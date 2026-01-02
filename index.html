@@ -17,12 +17,11 @@
 --text:#f8fafc;
 --muted:#94a3b8;
 --success:#22c55e;
+--danger:#ef4444;
 --shadow:0 10px 35px rgba(0,0,0,.45);
---shadow-hover:0 15px 40px rgba(0,0,0,.5);
 --gradient-bg:radial-gradient(circle at top,#1e293b,#020617 70%);
 --gradient-card:linear-gradient(145deg,#020617,#111827);
 --gradient-gold:linear-gradient(145deg,#1c1917,#422006);
---gradient-btn:linear-gradient(90deg,#facc15,#f59e0b);
 }
 
 *{box-sizing:border-box}
@@ -57,11 +56,6 @@ padding:20px;
 margin-bottom:18px;
 border:1px solid rgba(255,255,255,.08);
 box-shadow:var(--shadow);
-transition:transform .15s ease, box-shadow .15s ease;
-}
-.card:hover{
-transform:translateY(-4px);
-box-shadow:var(--shadow-hover);
 }
 
 .card.gold{
@@ -70,79 +64,51 @@ background:var(--gradient-gold);
 box-shadow:0 10px 35px rgba(250,204,21,.25);
 }
 
-/* TABS */
-.tab{display:none}
-.tab.active{display:block}
-
-/* BADGE */
+/* UI ELEMENTS */
 .badge{
 display:inline-block;
-padding:6px 14px;
+padding:4px 10px;
 border-radius:999px;
-font-size:12px;
+font-size:11px;
 font-weight:700;
-background:var(--gradient-btn);
-color:#000;
 text-transform:uppercase;
 }
 
-/* BLUR */
-.blur{
-filter:blur(6px);
-opacity:.6;
-padding:2px 6px;
-background:rgba(255,255,255,.12);
-border-radius:6px;
-}
-
-/* BUTTON */
 .btn{
 width:100%;
-padding:14px;
+padding:12px;
 border-radius:12px;
 border:none;
 font-weight:900;
 cursor:pointer;
-background:var(--gradient-btn);
+background:linear-gradient(90deg,#facc15,#f59e0b);
 color:#000;
-font-size:16px;
+font-size:15px;
 }
 
-/* TABLE */
-table{
-width:100%;
-border-collapse:collapse;
-font-size:14px;
-margin-top:10px;
+input, select {
+  font-family: inherit;
+  outline: none;
 }
-td,th{
-padding:10px 0;
-border-bottom:1px solid rgba(255,255,255,.05);
-}
+
+/* TABLES */
+table{width:100%; border-collapse:collapse; font-size:13px;}
+td,th{padding:8px 0; border-bottom:1px solid rgba(255,255,255,.05);}
 th{color:var(--gold)}
 
 /* NAV */
 .nav{
-position:fixed;
-bottom:0;
-left:0;
-right:0;
-background:var(--nav);
-display:grid;
-grid-template-columns:repeat(6,1fr);
-padding:12px 0;
-border-top:1px solid rgba(255,255,255,.12);
-z-index:999;
+position:fixed; bottom:0; left:0; right:0;
+background:var(--nav); display:grid; grid-template-columns:repeat(6,1fr);
+padding:12px 0; border-top:1px solid rgba(255,255,255,.12); z-index:999;
 }
-
-.nav-item{
-text-align:center;
-font-size:11px;
-color:var(--muted);
-cursor:pointer;
-}
+.nav-item{text-align:center; font-size:10px; color:var(--muted); cursor:pointer;}
 .nav-item.active{color:var(--blue)}
-.icon{font-size:20px}
+.icon{font-size:18px; margin-bottom:4px;}
+
+/* TABS */
+.tab{display:none}
+.tab.active{display:block}
 </style>
 </head>
 
@@ -155,84 +121,105 @@ cursor:pointer;
     <h2 id="username">Trader</h2>
     <p>User ID: <span id="uid">—</span></p>
     <p>Referrals: <span id="refCount" style="color:var(--gold)">0</span> / 5</p>
-    
-    <p style="font-size:12px;color:var(--muted)">
-      Market awareness for everyone • Precision for PRO
-    </p>
+    <p style="font-size:12px;color:var(--muted)">Market awareness for everyone • Precision for PRO</p>
   </div>
 
   <div class="card">
-    <h3>🌍 Market Sentiment</h3>
-    <table>
-      <tr><td>BTC Trend</td><td align="right" style="color:var(--success)">Bullish</td></tr>
-      <tr><td>Funding</td><td align="right">Neutral</td></tr>
-      <tr><td>Volatility</td><td align="right">Moderate</td></tr>
-      <tr><td>Fear & Greed</td><td align="right">Greed</td></tr>
-    </table>
-    <p style="font-size:11px;color:var(--muted)">Free users</p>
+    <h3>🔗 Your Referral Link</h3>
+    <p style="font-size:12px; color:var(--muted); margin-bottom:10px;">
+      Share this to unlock PRO access (5 invites needed).
+    </p>
+    <div style="display:flex; gap:8px; background:#1e293b; padding:8px; border-radius:10px;">
+      <input type="text" id="ref-link-input" readonly 
+             style="width:100%; background:transparent; border:none; color:#fff; font-size:13px;" 
+             value="Loading...">
+      <button onclick="copyReferralLink()" 
+              style="background:var(--blue); border:none; color:#fff; padding:6px 12px; border-radius:6px; font-weight:bold; cursor:pointer;">
+        Copy
+      </button>
+    </div>
+    <p id="copy-feedback" style="font-size:11px; color:var(--success); margin-top:5px; height:15px; text-align:right;"></p>
+  </div>
+
+  <div class="card">
+    <h3>🔔 Set Price Alert</h3>
+    <div style="display:flex; gap:10px; margin-bottom:10px;">
+      <input type="text" id="alert-coin" placeholder="Coin (e.g. BTC)" style="flex:1; padding:10px; border-radius:8px; border:none; background:#1e293b; color:#fff;">
+      <input type="number" id="alert-price" placeholder="Target $" style="flex:1; padding:10px; border-radius:8px; border:none; background:#1e293b; color:#fff;">
+    </div>
+    <select id="alert-condition" style="width:100%; padding:10px; border-radius:8px; border:none; background:#1e293b; color:#fff; margin-bottom:10px;">
+      <option value="ABOVE">Alert when Above 📈</option>
+      <option value="BELOW">Alert when Below 📉</option>
+    </select>
+    <button class="btn" onclick="setAlert()">Set Alert</button>
+    <p id="alert-msg" style="font-size:12px; margin-top:10px; text-align:center; color:var(--muted)"></p>
   </div>
 </div>
 
 <div id="signals" class="tab">
+  
   <div class="card">
-    <h3>📡 Live Market Signals</h3>
-    <p style="font-size:12px;color:var(--muted)">Powered by CoinGecko (Whale Scan)</p>
-  </div>
-
-  <div id="signal-container">
-    <div class="card" style="text-align:center; opacity:0.7;">
-      <p>⏳ Scanning market...</p>
+    <h3>🎁 Free Signal of the Day</h3>
+    <p style="font-size:12px;color:var(--muted)">High-confidence setup (Public).</p>
+    <div id="free-signal-container" style="margin-top:10px;">
+      <p style="font-size:12px;color:var(--muted)">⏳ Loading signal...</p>
     </div>
   </div>
-</div>
 
-  <div class="card">
-    <h3>🐳 Whale Activity Summary</h3>
-    <ul>
-      <li>Large BTC inflows</li>
-      <li>Exchange reserves decreasing</li>
-      <li>Open interest rising</li>
-    </ul>
+  <div class="card" id="premium-section" style="border:1px solid rgba(250,204,21,0.3); position:relative; overflow:hidden;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h3>🔒 VIP Whale Scans</h3>
+      <span class="badge" style="background:var(--gold); color:#000;">PRO</span>
+    </div>
+    <p style="font-size:12px;color:var(--muted)">Deep analysis & extra signals.</p>
+
+    <div id="premium-signal-container" style="margin-top:15px; filter: blur(5px); pointer-events:none; opacity:0.6;">
+      <div class="card" style="background:rgba(255,255,255,0.05); margin-bottom:10px;">
+         <b>ETH / USDT</b> <span style="float:right">🔴 SHORT</span><br><span style="font-size:11px">Entry: $2,400...</span>
+      </div>
+      <div class="card" style="background:rgba(255,255,255,0.05);">
+         <b>SOL / USDT</b> <span style="float:right">🟢 LONG</span><br><span style="font-size:11px">Entry: $145.20...</span>
+      </div>
+    </div>
+
+    <div id="premium-lock-overlay" style="position:absolute; top:0; left:0; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; background:rgba(0,0,0,0.6); z-index:10;">
+      <div style="font-size:35px;">🔒</div>
+      <h3 style="margin:5px 0;">Premium Access</h3>
+      <p style="font-size:11px; color:#ccc; text-align:center; padding:0 10px;">Unlock 5+ signals & exact targets.</p>
+      <button class="btn" onclick="openTab('upgrade', document.querySelector('.nav-item:nth-child(4)'))" style="width:auto; margin-top:8px; padding:6px 16px; font-size:12px;">Upgrade</button>
+    </div>
   </div>
 </div>
 
 <div id="history" class="tab">
   <div class="card">
-    <h3>🕒 Alert History</h3>
-    <p style="font-size:12px;color:var(--muted)">Last 3 alerts (Free)</p>
+    <h3>📋 Your Active Alerts</h3>
+    <div id="alert-list">
+      <p style="font-size:12px; color:var(--muted)">Loading alerts...</p>
+    </div>
   </div>
-
   <div class="card">
-    <p><b>BTC / USDT</b> — Whale Buy</p>
-    <p style="font-size:12px;color:var(--muted)">Today</p>
-  </div>
-
-  <div class="card">
-    <p><b>ETH / USDT</b> — Accumulation</p>
-    <p style="font-size:12px;color:var(--muted)">Yesterday</p>
-  </div>
-
-  <div class="card">
-    <p style="color:var(--gold)">⭐ PRO Feature</p>
-    <p style="font-size:12px;color:var(--muted)">Full history with outcomes</p>
+    <h3>🕒 Recent Triggers</h3>
+    <div style="padding:10px; border-bottom:1px solid rgba(255,255,255,0.05)">
+        <b>BTC / USDT</b> <span style="color:var(--success); font-size:12px">Whale Buy</span>
+        <div style="font-size:10px; color:var(--muted)">Today 04:20</div>
+    </div>
   </div>
 </div>
 
 <div id="upgrade" class="tab">
   <div class="card">
-    <h2>⭐ Upgrade to PRO <span class="badge">BETA</span></h2>
+    <h2>⭐ Upgrade to PRO</h2>
     <p style="font-size:12px;color:var(--muted)">Payments coming soon</p>
   </div>
-
   <div class="card">
     <table>
       <tr><th>Feature</th><th>Free</th><th>PRO</th></tr>
-      <tr><td>Signals/day</td><td align="center">1</td><td align="center">∞</td></tr>
-      <tr><td>Exact levels</td><td align="center">❌</td><td align="center">✅</td></tr>
-      <tr><td>Alert history</td><td align="center">Limited</td><td align="center">Full</td></tr>
+      <tr><td>Daily Signals</td><td align="center">1</td><td align="center">5+</td></tr>
+      <tr><td>Exact Targets</td><td align="center">✅</td><td align="center">✅</td></tr>
+      <tr><td>Active Alerts</td><td align="center">1</td><td align="center">Unlimited</td></tr>
     </table>
   </div>
-
   <div class="card">
     <button class="btn" onclick="startPayment()">🚧 Payments Coming Soon</button>
   </div>
@@ -249,9 +236,7 @@ cursor:pointer;
 <div id="roadmap" class="tab">
   <div class="card">
     <h3>🛣️ Future Plans</h3>
-    <p style="font-size:12px;color:var(--muted)">
-      Advanced analytics • Airdrop research • Long-term ecosystem
-    </p>
+    <p style="font-size:12px;color:var(--muted)">Advanced analytics • Airdrop research • Long-term ecosystem</p>
   </div>
 </div>
 
@@ -268,76 +253,208 @@ cursor:pointer;
 
 <script>
 // ==========================================
-// 🔴 IMPORTANT: REPLACE THIS URL WITH YOUR NGROK URL
-// Example: "https://a1b2-100-200.ngrok-free.app"
+// 🔴 CONFIGURATION
 // ==========================================
 const API_BASE_URL = "https://claustral-mable-dissectible.ngrok-free.dev";
+const BOT_USERNAME = "Whale_alert_info_bot"; 
 
 const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-// 1. Initialize User
+let user_is_premium = false;
+
+// 1. STARTUP LOGIC
 const user = tg.initDataUnsafe?.user;
 if(user){
   document.getElementById("username").innerText = user.first_name;
   document.getElementById("uid").innerText = user.id;
   document.getElementById("uid2").innerText = user.id;
+  generateRefLink(user.id);
   
-  // FETCH REAL DATA IMMEDIATELY
+  // Load Everything
   fetchUserData(user.id);
+  fetchSignals();
+  loadAlerts();
 } else {
-  console.error("No Telegram user detected. Are you testing in a browser?");
+  console.warn("Testing mode.");
+  fetchSignals();
 }
 
-// 2. Fetch Data from API
+// 2. FETCH USER STATS
 async function fetchUserData(uid) {
   try {
     const response = await fetch(`${API_BASE_URL}/user/referrals`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
         body: JSON.stringify({ uid: uid })
     });
-    
-    if (!response.ok) throw new Error("API Network Error");
-    
+    if (!response.ok) return;
     const data = await response.json();
-    console.log("✅ Data received:", data);
     
-    // Update UI with REAL data
     document.getElementById("refCount").innerText = data.referrals;
-    
     if (data.premium) {
+      user_is_premium = true;
       enableProUI();
+    }
+  } catch (error) { console.error(error); }
+}
+
+// 3. FETCH SIGNALS (SPLIT LAYOUT)
+async function fetchSignals() {
+  const freeContainer = document.getElementById("free-signal-container");
+  const premiumContainer = document.getElementById("premium-signal-container");
+  const lockOverlay = document.getElementById("premium-lock-overlay");
+  const premiumSection = document.getElementById("premium-section");
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/market/signals`, {
+        method: "GET",
+        headers: { "ngrok-skip-browser-warning": "true", "Content-Type": "application/json" }
+    });
+    if (!response.ok) throw new Error("Net Error");
+    const signals = await response.json();
+
+    if (signals.length === 0) {
+      freeContainer.innerHTML = `<p style="font-size:12px;color:var(--muted)">😴 No signals right now.</p>`;
+      return;
+    }
+
+    // A. Render Free Signal (First one)
+    freeContainer.innerHTML = "";
+    renderSignalCard(signals[0], freeContainer, true);
+
+    // B. Render Premium Signals (The rest)
+    const premiumSignals = signals.slice(1);
+    premiumContainer.innerHTML = ""; 
+    
+    if (premiumSignals.length > 0) {
+      premiumSignals.forEach(sig => {
+        // Even if locked, we render them (they get blurred by CSS)
+        renderSignalCard(sig, premiumContainer, user_is_premium);
+      });
+    } else {
+      premiumContainer.innerHTML = "<p style='font-size:11px'>No extra VIP signals today.</p>";
+    }
+
+    // C. Handle Lock
+    if (user_is_premium) {
+      lockOverlay.style.display = "none";
+      premiumContainer.style.filter = "none";
+      premiumContainer.style.opacity = "1";
+      premiumContainer.style.pointerEvents = "auto";
+      premiumSection.classList.add("gold");
+    } else {
+      lockOverlay.style.display = "flex";
     }
 
   } catch (error) {
-    console.error("❌ API Fetch Failed:", error);
-    // Optional: tg.showAlert("Error connecting to server");
+    freeContainer.innerHTML = `<p style="color:#ef4444; font-size:12px">❌ Connecting to server...</p>`;
   }
 }
 
-// 3. UI Helper Functions
-function enableProUI() {
-  document.body.classList.add("pro-user");
-
-  // Remove blur
-  document.querySelectorAll(".blur").forEach(el => {
-    el.style.filter = "none";
-    el.style.opacity = "1";
-    el.style.color = "#22c55e"; // Make text green to show it's revealed
-    el.style.fontWeight = "bold";
-  });
-
-  // Upgrade badge text
-  document.querySelectorAll(".badge").forEach(b => {
-    b.innerText = "PRO ACTIVE";
-    b.style.background = "var(--success)"; // Green badge
-  });
+function renderSignalCard(sig, targetContainer, isVisible) {
+  const color = sig.direction === "LONG" ? "var(--success)" : "#ef4444";
+  const arrow = sig.direction === "LONG" ? "🟢" : "🔴";
   
-  document.querySelector("#profile .card").classList.add("gold");
+  const html = `
+    <div class="card" style="margin-bottom:10px; background:rgba(255,255,255,0.03);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <b style="font-size:15px">${sig.symbol}</b>
+        <span class="badge" style="background:${color};color:#fff;font-size:10px;">${sig.direction}</span>
+      </div>
+      <p style="font-size:12px; color:var(--muted); margin:0 0 8px 0;">
+        ${arrow} Move: ${sig.change}%
+      </p>
+      <table style="margin:0; font-size:13px;">
+        <tr><td style="padding:4px 0;">Entry</td><td align="right">$${sig.entry}</td></tr>
+        <tr><td style="padding:4px 0;">Target</td><td align="right" style="font-weight:bold;">$${sig.tp}</td></tr>
+        <tr><td style="padding:4px 0;">Stop</td><td align="right">$${sig.sl}</td></tr>
+      </table>
+    </div>
+  `;
+  targetContainer.innerHTML += html;
 }
 
+// 4. ALERT FUNCTIONS
+async function setAlert() {
+  const coin = document.getElementById("alert-coin").value;
+  const price = document.getElementById("alert-price").value;
+  const condition = document.getElementById("alert-condition").value;
+  const msgEl = document.getElementById("alert-msg");
+
+  if(!coin || !price) { msgEl.innerText = "❌ Enter coin & price"; return; }
+  msgEl.innerText = "⏳ Saving...";
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/alert/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
+        body: JSON.stringify({ initData: tg.initData, symbol: coin, price: price, condition: condition })
+    });
+    const data = await response.json();
+    if(data.status === "success") {
+        msgEl.innerText = "✅ Saved!"; msgEl.style.color = "var(--success)";
+        loadAlerts();
+    } else {
+        msgEl.innerText = "❌ " + (data.message || "Error"); msgEl.style.color = "#ef4444";
+    }
+  } catch (e) { msgEl.innerText = "❌ Server updating..."; }
+}
+
+async function loadAlerts() {
+    const list = document.getElementById("alert-list");
+    try {
+        const response = await fetch(`${API_BASE_URL}/alert/list`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
+            body: JSON.stringify({ initData: tg.initData })
+        });
+        if(!response.ok) return;
+        const alerts = await response.json();
+        if(alerts.length === 0) { list.innerHTML = `<p style="font-size:12px;color:var(--muted)">No active alerts.</p>`; return; }
+        
+        list.innerHTML = "";
+        alerts.forEach(a => {
+            const icon = a.condition === "ABOVE" ? "📈" : "📉";
+            list.innerHTML += `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05)">
+                <div><b>${a.symbol}</b> ${icon} $${a.price}</div>
+                <button onclick="deleteAlert(${a.id})" style="color:#ef4444; background:none; border:none; cursor:pointer;">🗑️</button>
+            </div>`;
+        });
+    } catch(e) {}
+}
+
+async function deleteAlert(id) {
+    if(!confirm("Delete?")) return;
+    await fetch(`${API_BASE_URL}/alert/delete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
+        body: JSON.stringify({ initData: tg.initData, alert_id: id })
+    });
+    loadAlerts();
+}
+
+// 5. HELPER FUNCTIONS
+function generateRefLink(uid) {
+    const link = `https://t.me/${BOT_USERNAME}?start=${uid}`;
+    const input = document.getElementById("ref-link-input");
+    if(input) input.value = link;
+}
+function copyReferralLink() {
+  const input = document.getElementById("ref-link-input");
+  input.select(); input.setSelectionRange(0, 99999);
+  navigator.clipboard.writeText(input.value).then(() => {
+    document.getElementById("copy-feedback").innerText = "✅ Copied!";
+    if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+    setTimeout(() => { document.getElementById("copy-feedback").innerText = ""; }, 2000);
+  });
+}
+function enableProUI() {
+  document.body.classList.add("pro-user");
+  document.querySelector("#profile .card").classList.add("gold");
+}
 function openTab(id,el){
   if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -345,88 +462,7 @@ function openTab(id,el){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   el.classList.add('active');
 }
-
-function startPayment(){
-  tg.showAlert("🚧 PRO payments are coming soon.\nEarly users will get priority access.");
-}
-// Add this inside your <script> tag
-
-async function fetchSignals() {
-  const container = document.getElementById("signal-container");
-  
-  try {
-    console.log("📡 Fetching signals...");
-    
-    // 👇 THIS HEADER IS THE KEY. IT FORCES NGROK TO LET US IN.
-    const response = await fetch(`${API_BASE_URL}/market/signals`, {
-        method: "GET",
-        headers: {
-            "ngrok-skip-browser-warning": "true",  // <--- THE MAGIC LINE
-            "Content-Type": "application/json"
-        }
-    });
-    
-    if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-    
-    const signals = await response.json();
-    console.log("✅ Signals Received:", signals);
-
-    // If empty
-    if (signals.length === 0) {
-      container.innerHTML = `<div class="card"><p>⏳ Market Scanner Initializing...<br><span style="font-size:11px">Please wait 10 seconds.</span></p></div>`;
-      return;
-    }
-
-    // Clear loading
-    container.innerHTML = ""; 
-
-    // Loop through signals
-    signals.forEach(sig => {
-      const color = sig.direction === "LONG" ? "var(--success)" : "#ef4444";
-      const arrow = sig.direction === "LONG" ? "🟢" : "🔴";
-
-      const html = `
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-            <b style="font-size:18px">${sig.symbol}</b>
-            <span class="badge" style="background:${color};color:#fff">${sig.direction}</span>
-          </div>
-          
-          <p style="font-size:13px; color:var(--muted); margin:0 0 10px 0;">
-            ${arrow} Whale Move Detected (${sig.change}%)
-          </p>
-
-          <table>
-            <tr><td>Entry</td><td align="right">$${sig.entry}</td></tr>
-            <tr><td>Target (TP)</td><td align="right" class="blur">$${sig.tp}</td></tr>
-            <tr><td>Stop (SL)</td><td align="right" class="blur">$${sig.sl}</td></tr>
-          </table>
-          
-          <div style="margin-top:10px; font-size:11px; color:var(--muted); text-align:center;">
-             ${user_is_premium ? "🔓 PRO Access" : "🔒 Targets Hidden (Free)"}
-          </div>
-        </div>
-      `;
-      container.innerHTML += html;
-    });
-
-    if (user_is_premium) enableProUI();
-
-  } catch (error) {
-    console.error("❌ Signal Fetch Error:", error);
-    container.innerHTML = `<div class="card"><p>❌ Connection Failed.<br><span style="font-size:11px">${error.message}</span></p></div>`;
-  }
-}
-
-// Create a global variable to track premium status
-let user_is_premium = false;
-
-// UPDATE your existing fetchUserData function to set this variable
-// Look for your existing fetchUserData function and add this line inside:
-// if (data.premium) { user_is_premium = true; enableProUI(); }
-
-// CALL fetchSignals when the app loads
-fetchSignals();
+function startPayment(){ tg.showAlert("🚧 PRO payments coming soon."); }
 </script>
 
 </body>
