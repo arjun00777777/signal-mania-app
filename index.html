@@ -4,19 +4,19 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<title>Whale Intel</title>
+<title>SignalMania</title>
 
 <style>
 :root{
---bg:#0f172a;
---card:#111827;
+--bg:#0b1220;
+--card:#0f172a;
 --nav:#020617;
 --blue:#3b82f6;
---green:#22c55e;
---red:#ef4444;
 --gold:#facc15;
+--gold-soft:#fde68a;
 --text:#f8fafc;
 --muted:#94a3b8;
+--success:#22c55e;
 }
 
 *{box-sizing:border-box}
@@ -24,9 +24,9 @@
 body{
 margin:0;
 font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-background:radial-gradient(circle at top,#1e293b,#0f172a 70%);
+background:radial-gradient(circle at top,#1e293b,#020617 70%);
 color:var(--text);
-padding-bottom:84px;
+padding-bottom:92px;
 user-select:none;
 }
 
@@ -34,72 +34,70 @@ user-select:none;
 max-width:520px;
 margin:auto;
 padding:14px;
+animation:fadeIn .35s ease;
 }
 
-/* Cards */
+@keyframes fadeIn{
+from{opacity:0;transform:translateY(6px)}
+to{opacity:1}
+}
+
+/* CARDS */
 .card{
 background:linear-gradient(145deg,#020617,#111827);
 border-radius:18px;
 padding:16px;
 margin-bottom:14px;
-border:1px solid rgba(255,255,255,.1);
-box-shadow:0 8px 30px rgba(0,0,0,.35);
-}
-
-h2{margin:0 0 6px;font-size:18px}
-p{margin:6px 0;font-size:13px;color:#cbd5e1}
-
-/* Tabs */
-.tab{display:none}
-.tab.active{display:block;animation:fade .25s}
-@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
-
-/* Signals */
-.signal{
-background:rgba(255,255,255,.04);
-border-radius:14px;
-padding:14px;
-margin-bottom:12px;
-cursor:pointer;
 border:1px solid rgba(255,255,255,.08);
+box-shadow:0 10px 35px rgba(0,0,0,.45);
+transition:transform .15s ease;
 }
-.signal.open .hidden{display:block}
+.card:hover{transform:translateY(-1px)}
 
-.hidden{display:none;font-size:12px;margin-top:8px}
-
-.blur{
-filter:blur(6px);
-opacity:.6;
-padding:2px 6px;
-background:rgba(255,255,255,.12);
-border-radius:6px;
+.card.gold{
+border:1px solid rgba(250,204,21,.45);
+background:linear-gradient(145deg,#1c1917,#422006);
 }
 
+/* TABS */
+.tab{display:none}
+.tab.active{display:block}
+
+/* BADGE */
 .badge{
 display:inline-block;
-padding:4px 10px;
+padding:4px 12px;
 border-radius:999px;
 font-size:11px;
 font-weight:700;
-background:linear-gradient(90deg,var(--gold),#f59e0b);
+background:linear-gradient(90deg,#facc15,#f59e0b);
 color:#000;
 }
 
-/* Buttons */
+/* BUTTON */
 .btn{
-display:block;
 width:100%;
-padding:10px;
-border-radius:10px;
-text-align:center;
-font-weight:700;
-text-decoration:none;
+padding:12px;
+border-radius:12px;
 border:none;
-margin-top:8px;
+font-weight:900;
 cursor:pointer;
+background:linear-gradient(90deg,#facc15,#f59e0b);
+color:#000;
+transition:transform .15s ease, box-shadow .15s ease;
 }
-.binance{background:#f3ba2f;color:#000}
-.bybit{background:#181818;color:#fff;border:1px solid #333}
+.btn:hover{
+transform:scale(1.02);
+box-shadow:0 0 18px rgba(250,204,21,.45);
+}
+
+/* TABLE */
+table{
+width:100%;
+border-collapse:collapse;
+font-size:13px;
+}
+td,th{padding:7px 0}
 
 /* NAV */
 .nav{
@@ -109,27 +107,19 @@ left:0;
 right:0;
 background:var(--nav);
 display:grid;
-grid-template-columns:repeat(5,1fr);
+grid-template-columns:repeat(6,1fr);
 padding:8px 0;
 border-top:1px solid rgba(255,255,255,.12);
-z-index:1000;
+z-index:999;
 }
 
 .nav-item{
 text-align:center;
 font-size:11px;
 color:var(--muted);
-padding:4px 0;
-white-space:nowrap;
 }
-
 .nav-item.active{color:var(--blue)}
-
-.nav-item .icon{
-display:block;
-font-size:18px;
-margin-bottom:2px;
-}
+.icon{font-size:18px}
 </style>
 </head>
 
@@ -139,215 +129,170 @@ margin-bottom:2px;
 
 <!-- HOME -->
 <div id="home" class="tab active">
-<div class="card">
-<h2 id="username">Trader</h2>
-<p>User ID: <span id="uid">—</span></p>
-</div>
+  <div class="card">
+    <h2 id="username">Trader</h2>
+    <p>User ID: <span id="uid">—</span></p>
+    <p style="font-size:12px;color:var(--muted)">
+      Market awareness for everyone • Precision for PRO
+    </p>
+  </div>
 
-<div class="card">
-<h2>🎁 Referrals</h2>
-<p><b id="refCount">0</b> / 5 completed</p>
-<p>Invite friends → unlock <span class="badge">PRO</span></p>
-</div>
+  <div class="card">
+    <h3>🎁 Free Access</h3>
+    <ul style="font-size:13px;color:#cbd5e1;margin-left:16px">
+      <li>1 signal per day</li>
+      <li>Whale signal previews</li>
+      <li>Market sentiment</li>
+      <li>Occasional PRO previews</li>
+    </ul>
+  </div>
 </div>
 
 <!-- SIGNALS -->
 <div id="signals" class="tab">
-<div class="card">
-<h2>📡 Live Signals <span class="badge">PRO</span></h2>
+  <div class="card">
+    <h3>📡 Signals <span class="badge">LIVE</span></h3>
+    <p style="font-size:12px;color:var(--muted)">
+      Free users see previews • PRO users see exact levels
+    </p>
+  </div>
 
-<div class="signal" onclick="toggle(this)">
-<b>BTC / USDT</b>
-<p>🐳 Whale buy detected (Binance)</p>
-
-<div class="hidden">
-<p>Entry: <span class="blur">$66,800</span></p>
-<p>Target: <span class="blur">$69,420</span></p>
-<p>Stop Loss: <span class="blur">$65,900</span></p>
-
-<p style="font-size:11px;color:var(--gold)">
-🔒 Exact levels unlocked for PRO users
-</p>
-
-<div style="display:flex;gap:8px">
-<a class="btn binance"
-   href="https://www.binance.com/en/futures/BTCUSDT"
-   target="_blank"
-   onclick="event.stopPropagation()">
-   Binance
-</a>
-
-<a class="btn bybit"
-   href="https://www.bybit.com/trade/usdt/BTCUSDT"
-   target="_blank"
-   onclick="event.stopPropagation()">
-   Bybit
-</a>
-</div>
-</div>
+  <div class="card">
+    <p><b>BTC / USDT</b></p>
+    <p style="color:var(--success)">🐳 Whale accumulation detected</p>
+    <p style="font-size:12px;color:var(--muted)">
+      Entry / TP / SL locked for PRO
+    </p>
+  </div>
 </div>
 
-<p style="font-size:11px;color:var(--red)">
-Free users: Preview only • PRO users: Full precision
-</p>
-</div>
+<!-- ALERT HISTORY -->
+<div id="history" class="tab">
+  <div class="card">
+    <h3>🕒 Alert History</h3>
+    <p style="font-size:12px;color:var(--muted)">
+      Track alerts you received and their outcomes
+    </p>
+  </div>
+
+  <div class="card">
+    <p>BTC / USDT — Whale Buy</p>
+    <p style="font-size:12px;color:var(--muted)">
+      Today • Preview shown
+    </p>
+  </div>
+
+  <div class="card">
+    <p style="color:var(--gold)">⭐ PRO Feature</p>
+    <p style="font-size:12px;color:var(--muted)">
+      Full alert history with confidence & outcomes
+    </p>
+  </div>
 </div>
 
 <!-- UPGRADE -->
 <div id="upgrade" class="tab">
-
   <div class="card">
-    <h2>⭐ Upgrade to PRO <span class="badge">LAUNCH OFFER</span></h2>
-    <p>Designed for traders who want precision, not guesses.</p>
+    <h2>⭐ Upgrade to PRO</h2>
+    <p style="font-size:12px;color:var(--muted)">
+      Speed, clarity, and confidence — no limits
+    </p>
   </div>
 
-  <!-- FREE -->
   <div class="card">
-    <h3 style="font-size:15px">🆓 Free Version</h3>
-    <ul style="font-size:13px;color:#cbd5e1;margin-left:16px">
-      <li>Preview whale signals</li>
-      <li>Blurred entry / TP / SL</li>
-      <li>Limited alerts</li>
-      <li>Delayed updates</li>
-      <li>Basic market awareness</li>
-    </ul>
+    <table>
+      <tr style="color:var(--muted)">
+        <th align="left">Feature</th>
+        <th align="center">Free</th>
+        <th align="center" style="color:var(--gold)">PRO</th>
+      </tr>
+      <tr>
+        <td>Signals per day</td>
+        <td align="center">1</td>
+        <td align="center">Unlimited</td>
+      </tr>
+      <tr>
+        <td>Entry / TP / SL</td>
+        <td align="center">Blurred</td>
+        <td align="center">Exact</td>
+      </tr>
+      <tr>
+        <td>Alert history</td>
+        <td align="center">Limited</td>
+        <td align="center">Full</td>
+      </tr>
+      <tr>
+        <td>Signal confidence</td>
+        <td align="center">❌</td>
+        <td align="center">✅</td>
+      </tr>
+      <tr>
+        <td>Custom alert sounds</td>
+        <td align="center">❌</td>
+        <td align="center">✅</td>
+      </tr>
+    </table>
   </div>
 
-  <!-- PRO -->
-  <div class="card" style="border:1px solid rgba(250,204,21,.4)">
-    <h3 style="font-size:15px;color:#facc15">⭐ PRO Version</h3>
-    <ul style="font-size:13px;color:#cbd5e1;margin-left:16px">
-      <li><b>Exact entry, target & stop-loss</b></li>
-      <li><b>Unlimited live signals</b></li>
-      <li><b>Real-time updates</b></li>
-      <li><b>Priority whale alerts</b></li>
-      <li><b>PRO badge</b></li>
-    </ul>
-  </div>
-
-  <!-- PRICING -->
   <div class="card">
-    <p style="font-size:13px;color:#94a3b8;text-decoration:line-through">
+    <p style="font-size:12px;color:var(--muted);text-decoration:line-through">
       ₹799 / month
     </p>
-
-    <p style="font-size:22px;font-weight:900;color:#facc15">
-      ⭐ 399 Stars <span style="font-size:11px">(Launch Offer)</span>
+    <p style="font-size:22px;font-weight:900;color:var(--gold)">
+      ⭐ 399 Stars
     </p>
-
+    <p style="font-size:11px;color:var(--muted)">
+      Launch offer for early users
+    </p>
     <button class="btn"
-      onclick="event.stopPropagation(); startPayment();"
-      style="background:linear-gradient(90deg,#facc15,#f59e0b);color:#000;font-weight:900">
+      onclick="event.stopPropagation(); startPayment();">
       🚀 Upgrade to PRO
     </button>
-
-    <p style="font-size:11px;color:#94a3b8;margin-top:6px">
-      Secure payment via Telegram Stars
-    </p>
   </div>
-
-</div>
-
-
-    <!-- PRO -->
-    <div class="card" style="margin-top:12px;border:1px solid rgba(250,204,21,.35)">
-      <h3 style="margin:0 0 6px;font-size:15px;color:#facc15">⭐ PRO Version</h3>
-      <ul style="font-size:13px;color:#cbd5e1;margin-left:16px">
-        <li><b>Exact entry, target & stop-loss</b></li>
-        <li><b>Unlimited live signals</b></li>
-        <li><b>Real-time updates (no delay)</b></li>
-        <li><b>Priority whale alerts</b></li>
-        <li><b>Higher confidence trade setups</b></li>
-        <li><b>PRO badge on profile</b></li>
-      </ul>
-    </div>
-
-    <!-- COMPARISON -->
-    <div class="card" style="margin-top:12px">
-      <h3 style="margin:0 0 8px;font-size:15px">📊 Free vs PRO</h3>
-
-      <table style="width:100%;font-size:12px;border-collapse:collapse">
-        <tr>
-          <td>Signal visibility</td>
-          <td style="color:#94a3b8">Preview</td>
-          <td style="color:#facc15"><b>Full</b></td>
-        </tr>
-        <tr>
-          <td>Entry / SL / TP</td>
-          <td style="color:#94a3b8">Blurred</td>
-          <td style="color:#facc15"><b>Exact</b></td>
-        </tr>
-        <tr>
-          <td>Alerts per day</td>
-          <td style="color:#94a3b8">Limited</td>
-          <td style="color:#facc15"><b>Unlimited</b></td>
-        </tr>
-        <tr>
-          <td>Update speed</td>
-          <td style="color:#94a3b8">Delayed</td>
-          <td style="color:#facc15"><b>Real-time</b></td>
-        </tr>
-      </table>
-    </div>
-
-    <!-- PRICING -->
-    <div class="card" style="margin-top:12px">
-      <p style="font-size:13px;color:#94a3b8;text-decoration:line-through">
-        ₹799 / month
-      </p>
-
-      <p style="font-size:22px;font-weight:900;color:#facc15">
-        ⭐ 399 Stars <span style="font-size:11px;color:#cbd5e1">(Launch Offer)</span>
-      </p>
-
-      <p style="font-size:11px;color:#94a3b8">
-        Early adopter pricing • Limited-time
-      </p>
-
-      <button class="btn"
-        onclick="event.stopPropagation(); startPayment();"
-        style="background:linear-gradient(90deg,#facc15,#f59e0b);color:#000;font-weight:900">
-        🚀 Upgrade to PRO
-      </button>
-
-      <p style="font-size:11px;color:#94a3b8;margin-top:6px">
-        Secure payment via Telegram Stars
-      </p>
-    </div>
-
-  </div>
-</div>
-
-</div>
-
-<!-- ROADMAP -->
-<div id="roadmap" class="tab">
-<div class="card">
-<h2>🛣️ Product Roadmap</h2>
-<p>✅ Launch</p>
-<p>🟡 PRO Access</p>
-<p>🔵 Expansion</p>
-</div>
 </div>
 
 <!-- PROFILE -->
 <div id="profile" class="tab">
-<div class="card">
-<h2>⚙️ Account</h2>
-<p>User ID: <span id="uid2">—</span></p>
-<button class="badge">Contact Support</button>
+  <div class="card gold">
+    <h3>🪪 PRO Identity Card</h3>
+    <p><b id="uid2">—</b></p>
+    <p style="color:var(--gold-soft)">SignalMania PRO Member</p>
+  </div>
+
+  <div class="card">
+    <p style="font-size:12px;color:var(--muted)">
+      Secure Telegram payments • No financial advice
+    </p>
+  </div>
 </div>
+
+<!-- ROADMAP -->
+<div id="roadmap" class="tab">
+  <div class="card">
+    <h3>🛣️ Future Plans</h3>
+    <ul style="font-size:13px;color:#cbd5e1;margin-left:16px">
+      <li>Advanced whale & smart-money analytics</li>
+      <li>Airdrop scanning & listings (research ongoing)</li>
+      <li>On-chain anomaly detection</li>
+      <li>Long-term ecosystem token research</li>
+      <li>Community-driven features</li>
+    </ul>
+    <p style="font-size:11px;color:var(--muted)">
+      Features listed are under research and not guaranteed.
+    </p>
+  </div>
 </div>
 
 </div>
 
 <!-- NAV -->
 <div class="nav">
-<div class="nav-item active" onclick="openTab('home',this)"><div class="icon">🏠</div>Home</div>
-<div class="nav-item" onclick="openTab('signals',this)"><div class="icon">📡</div>Signals</div>
-<div class="nav-item" onclick="openTab('roadmap',this)"><div class="icon">🛣️</div>Roadmap</div>
-<div class="nav-item" onclick="openTab('profile',this)"><div class="icon">👤</div>Profile</div>
-<div class="nav-item" onclick="openTab('upgrade',this)"><div class="icon">⭐</div>Upgrade</div>
+  <div class="nav-item active" onclick="openTab('home',this)"><div class="icon">🏠</div>Home</div>
+  <div class="nav-item" onclick="openTab('signals',this)"><div class="icon">📡</div>Signals</div>
+  <div class="nav-item" onclick="openTab('history',this)"><div class="icon">🕒</div>History</div>
+  <div class="nav-item" onclick="openTab('upgrade',this)"><div class="icon">⭐</div>Upgrade</div>
+  <div class="nav-item" onclick="openTab('profile',this)"><div class="icon">👤</div>Profile</div>
+  <div class="nav-item" onclick="openTab('roadmap',this)"><div class="icon">🛣️</div>Roadmap</div>
 </div>
 
 <script>
@@ -355,38 +300,22 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-let user = tg.initDataUnsafe?.user || null;
-
+const user = tg.initDataUnsafe?.user || null;
 if(user){
-document.getElementById("username").innerText = user.first_name;
-document.getElementById("uid").innerText = user.id;
-document.getElementById("uid2").innerText = user.id;
-loadReferralStats();
-}
-
-async function loadReferralStats(){
-const r = await fetch("http://127.0.0.1:5000/user/referrals",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({uid:user.id})
-});
-const d = await r.json();
-document.getElementById("refCount").innerText = d.referrals;
+  document.getElementById("username").innerText = user.first_name;
+  document.getElementById("uid").innerText = user.id;
+  document.getElementById("uid2").innerText = user.id;
 }
 
 function openTab(id,el){
-document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-document.getElementById(id).classList.add("active");
-document.querySelectorAll(".nav-item").forEach(i=>i.classList.remove("active"));
-el.classList.add("active");
-}
-
-function toggle(card){
-card.classList.toggle("open");
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  document.querySelectorAll(".nav-item").forEach(i=>i.classList.remove("active"));
+  el.classList.add("active");
 }
 
 function startPayment(){
-tg.sendData(JSON.stringify({ action:"START_PRO_PAYMENT" }));
+  tg.sendData(JSON.stringify({ action:"START_PRO_PAYMENT" }));
 }
 </script>
 
