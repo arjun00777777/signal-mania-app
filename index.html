@@ -9,8 +9,8 @@
 <style>
 :root{
 --bg:#0f172a;
---card:rgba(30,41,59,.85);
---nav:rgba(15,23,42,.95);
+--card:#111827;
+--nav:#020617;
 --blue:#3b82f6;
 --green:#22c55e;
 --red:#ef4444;
@@ -26,11 +26,15 @@ margin:0;
 font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
 background:radial-gradient(circle at top,#1e293b,#0f172a 70%);
 color:var(--text);
-padding-bottom:78px;
+padding-bottom:84px;
 user-select:none;
 }
 
-.app{max-width:520px;margin:auto;padding:14px}
+.app{
+max-width:520px;
+margin:auto;
+padding:14px;
+}
 
 /* Cards */
 .card{
@@ -96,24 +100,35 @@ margin-top:8px;
 .binance{background:#f3ba2f;color:#000}
 .bybit{background:#181818;color:#fff;border:1px solid #333}
 
-/* Nav */
+/* NAV – GRID BASED (DEVICE SAFE) */
 .nav{
 position:fixed;
-bottom:0;left:0;right:0;
+bottom:0;
+left:0;
+right:0;
 background:var(--nav);
-display:flex;
-justify-content:space-around;
-padding:10px 0;
-border-top:1px solid rgba(255,255,255,.1);
+display:grid;
+grid-template-columns:repeat(4,1fr);
+padding:8px 0;
+border-top:1px solid rgba(255,255,255,.12);
+z-index:1000;
 }
 
 .nav-item{
 text-align:center;
-font-size:10px;
+font-size:11px;
 color:var(--muted);
+padding:4px 0;
+white-space:nowrap;
 }
+
 .nav-item.active{color:var(--blue)}
-.icon{font-size:18px}
+
+.nav-item .icon{
+display:block;
+font-size:18px;
+margin-bottom:2px;
+}
 </style>
 </head>
 
@@ -153,17 +168,16 @@ color:var(--muted);
 🔒 Exact levels unlocked for PRO users
 </p>
 
-<!-- EXCHANGE BUTTONS (ALWAYS CLICKABLE) -->
 <div style="display:flex;gap:8px">
 <a class="btn binance"
-   href="https://www.binance.com/en/futures/BTCUSDT?ref=YOUR_CODE"
+   href="https://www.binance.com/en/futures/BTCUSDT"
    target="_blank"
    onclick="event.stopPropagation()">
    Binance
 </a>
 
 <a class="btn bybit"
-   href="https://www.bybit.com/trade/usdt/BTCUSDT?affiliate_id=YOUR_CODE"
+   href="https://www.bybit.com/trade/usdt/BTCUSDT"
    target="_blank"
    onclick="event.stopPropagation()">
    Bybit
@@ -247,7 +261,9 @@ document.querySelectorAll(".nav-item").forEach(i=>i.classList.remove("active"));
 el.classList.add("active");
 }
 
-function toggle(card){card.classList.toggle("open")}
+function toggle(card){
+card.classList.toggle("open");
+}
 </script>
 
 </body>
