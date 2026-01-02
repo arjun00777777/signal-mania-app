@@ -294,6 +294,37 @@ function openTab(id,el){
 function startPayment(){
   tg.showAlert("🚧 PRO payments are coming soon.\nEarly users will get priority access.");
 }
+
+function requestUserStatus(){
+  tg.sendData(JSON.stringify({
+    action: "GET_USER_STATUS"
+  }));
+}
+
+tg.onEvent("web_app_data", (event) => {
+  try {
+    const data = JSON.parse(event.data);
+
+    if(typeof data.premium !== "undefined"){
+      applyUserStatus(data);
+    }
+  } catch(e){}
+});
+
+function applyUserStatus(data){
+  const isPro = data.premium;
+  const referrals = data.referrals;
+
+  // Update profile card
+  if(isPro){
+    document.querySelector("#profile .card").classList.add("gold");
+  }
+
+  // Update referral info (optional for later UI)
+  console.log("Referrals:", referrals);
+}
+requestUserStatus();
+
 </script>
 
 </body>
