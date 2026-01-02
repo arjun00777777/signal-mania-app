@@ -80,13 +80,15 @@ font-size:11px;
 font-weight:700;
 background:linear-gradient(90deg,#facc15,#f59e0b);
 color:#000;
-animation:pulse 2s infinite;
 }
 
-@keyframes pulse{
-0%{transform:scale(1)}
-50%{transform:scale(1.05)}
-100%{transform:scale(1)}
+/* BLUR */
+.blur{
+filter:blur(6px);
+opacity:.6;
+padding:2px 6px;
+background:rgba(255,255,255,.12);
+border-radius:6px;
 }
 
 /* BUTTON */
@@ -99,30 +101,6 @@ font-weight:900;
 cursor:pointer;
 background:linear-gradient(90deg,#facc15,#f59e0b);
 color:#000;
-transition:transform .15s ease, box-shadow .15s ease, opacity .15s ease;
-position:relative;
-overflow:hidden;
-}
-.btn:hover{
-transform:scale(1.02);
-box-shadow:0 0 18px rgba(250,204,21,.45);
-}
-.btn:disabled{cursor:not-allowed; opacity:.7}
-
-/* SPINNER */
-.spinner{
-display:inline-block;
-width:16px;
-height:16px;
-border:2px solid rgba(0,0,0,.3);
-border-top-color:#000;
-border-radius:50%;
-animation:spin 1s linear infinite;
-margin-right:8px;
-}
-
-@keyframes spin{
-to{transform:rotate(360deg)}
 }
 
 /* TABLE */
@@ -151,29 +129,6 @@ cursor:pointer;
 }
 .nav-item.active{color:var(--blue)}
 .icon{font-size:18px}
-
-/* MODAL */
-.modal{
-position:fixed;
-top:0;left:0;right:0;bottom:0;
-background:rgba(0,0,0,.8);
-display:flex;
-align-items:center;
-justify-content:center;
-opacity:0;
-pointer-events:none;
-transition:opacity .3s ease;
-z-index:1000;
-}
-.modal.active{opacity:1; pointer-events:all}
-
-.modal-content{
-background:var(--card);
-padding:20px;
-border-radius:18px;
-text-align:center;
-max-width:300px;
-}
 </style>
 </head>
 
@@ -189,134 +144,85 @@ max-width:300px;
     <p style="font-size:12px;color:var(--muted)">
       Market awareness for everyone • Precision for PRO
     </p>
-    <div class="card">
-  <h3>🌍 Market Sentiment</h3>
-  <table>
-    <tr>
-      <td>BTC Trend</td>
-      <td align="right" style="color:var(--success)">Bullish</td>
-    </tr>
-    <tr>
-      <td>Funding</td>
-      <td align="right">Neutral</td>
-    </tr>
-    <tr>
-      <td>Volatility</td>
-      <td align="right">Moderate</td>
-    </tr>
-    <tr>
-      <td>Fear & Greed</td>
-      <td align="right">Greed</td>
-    </tr>
-  </table>
+  </div>
 
-  <p style="font-size:11px;color:var(--muted);margin-top:6px">
-    Updated every few hours • Free users
-  </p>
-</div>
-
+  <div class="card">
+    <h3>🌍 Market Sentiment</h3>
+    <table>
+      <tr><td>BTC Trend</td><td align="right" style="color:var(--success)">Bullish</td></tr>
+      <tr><td>Funding</td><td align="right">Neutral</td></tr>
+      <tr><td>Volatility</td><td align="right">Moderate</td></tr>
+      <tr><td>Fear & Greed</td><td align="right">Greed</td></tr>
+    </table>
+    <p style="font-size:11px;color:var(--muted)">Free users</p>
   </div>
 </div>
 
 <!-- SIGNALS -->
-<div class="card">
-  <h3>📡 Today’s Signal (Free Preview)</h3>
-
-  <p><b>BTC / USDT</b></p>
-  <p style="color:var(--success)">🐳 Whale accumulation detected</p>
-
-  <table style="margin-top:6px">
-    <tr>
-      <td>Direction</td>
-      <td align="right"><b>LONG</b></td>
-    </tr>
-    <tr>
-      <td>Entry</td>
-      <td align="right"><span class="blur">$66,800</span></td>
-    </tr>
-    <tr>
-      <td>Target</td>
-      <td align="right"><span class="blur">$69,420</span></td>
-    </tr>
-    <tr>
-      <td>Stop Loss</td>
-      <td align="right"><span class="blur">$65,900</span></td>
-    </tr>
-  </table>
-
-  <p style="font-size:12px;color:var(--muted);margin-top:6px">
-    Free users get 1 preview/day • PRO unlocks exact levels
-  </p>
+<div id="signals" class="tab">
   <div class="card">
-  <h3>🐳 Whale Activity Summary</h3>
+    <h3>📡 Today’s Signal (Free Preview)</h3>
+    <p><b>BTC / USDT</b></p>
+    <p style="color:var(--success)">🐳 Whale accumulation detected</p>
+    <table>
+      <tr><td>Direction</td><td align="right"><b>LONG</b></td></tr>
+      <tr><td>Entry</td><td align="right"><span class="blur">$66,800</span></td></tr>
+      <tr><td>Target</td><td align="right"><span class="blur">$69,420</span></td></tr>
+      <tr><td>Stop Loss</td><td align="right"><span class="blur">$65,900</span></td></tr>
+    </table>
+  </div>
 
-  <ul style="font-size:13px;color:#cbd5e1;margin-left:16px">
-    <li>Large BTC inflows detected</li>
-    <li>Exchange reserves decreasing</li>
-    <li>Open interest rising</li>
-  </ul>
-
-  <p style="font-size:11px;color:var(--muted)">
-    High-level data • Detailed analytics for PRO
-  </p>
+  <div class="card">
+    <h3>🐳 Whale Activity Summary</h3>
+    <ul>
+      <li>Large BTC inflows</li>
+      <li>Exchange reserves down</li>
+      <li>Open interest rising</li>
+    </ul>
+  </div>
 </div>
-
-</div>
-
 
 <!-- HISTORY -->
-<div class="card">
-  <h3>🕒 Alert History</h3>
-  <p style="font-size:12px;color:var(--muted)">
-    Showing last 3 alerts (Free)
-  </p>
-</div>
+<div id="history" class="tab">
+  <div class="card">
+    <h3>🕒 Alert History</h3>
+    <p style="font-size:12px;color:var(--muted)">Last 3 alerts (Free)</p>
+  </div>
 
-<div class="card">
-  <p><b>BTC / USDT</b> — Whale Buy</p>
-  <p style="font-size:12px;color:var(--muted)">Today • Preview only</p>
-</div>
+  <div class="card">
+    <p><b>BTC / USDT</b> — Whale Buy</p>
+    <p style="font-size:12px;color:var(--muted)">Today</p>
+  </div>
 
-<div class="card">
-  <p><b>ETH / USDT</b> — Accumulation</p>
-  <p style="font-size:12px;color:var(--muted)">Yesterday • Preview only</p>
-</div>
+  <div class="card">
+    <p><b>ETH / USDT</b> — Accumulation</p>
+    <p style="font-size:12px;color:var(--muted)">Yesterday</p>
+  </div>
 
-<div class="card">
-  <p style="color:var(--gold)">⭐ PRO Feature</p>
-  <p style="font-size:12px;color:var(--muted)">
-    Full history with outcomes & confidence
-  </p>
+  <div class="card">
+    <p style="color:var(--gold)">⭐ PRO Feature</p>
+    <p style="font-size:12px;color:var(--muted)">Full history with outcomes</p>
+  </div>
 </div>
 
 <!-- UPGRADE -->
 <div id="upgrade" class="tab">
   <div class="card">
-    <h2>⭐ Upgrade to PRO</h2>
-    <p style="font-size:12px;color:var(--muted)">
-      Speed, clarity, and confidence — no limits
-    </p>
+    <h2>⭐ Upgrade to PRO <span class="badge">BETA</span></h2>
+    <p style="font-size:12px;color:var(--muted)">Payments coming soon</p>
   </div>
 
   <div class="card">
     <table>
-      <tr style="color:var(--muted)">
-        <th align="left">Feature</th>
-        <th align="center">Free</th>
-        <th align="center" style="color:var(--gold)">PRO</th>
-      </tr>
-      <tr><td>Signals/day</td><td align="center">1</td><td align="center">Unlimited</td></tr>
-      <tr><td>Entry/TP/SL</td><td align="center">Blurred</td><td align="center">Exact</td></tr>
+      <tr><th>Feature</th><th>Free</th><th style="color:var(--gold)">PRO</th></tr>
+      <tr><td>Signals/day</td><td align="center">1</td><td align="center">∞</td></tr>
+      <tr><td>Exact levels</td><td align="center">❌</td><td align="center">✅</td></tr>
       <tr><td>Alert history</td><td align="center">Limited</td><td align="center">Full</td></tr>
     </table>
   </div>
 
   <div class="card">
-    <p style="text-decoration:line-through;color:var(--muted)">₹799 / month</p>
-    <p style="font-size:22px;font-weight:900;color:var(--gold)">⭐ 399 Stars</p>
-    <button class="btn" id="upgradeBtn" onclick="startPayment()">
-      🚀 Upgrade to PRO
-    </button>
+    <button class="btn" onclick="startPayment()">🚧 Payments Coming Soon</button>
   </div>
 </div>
 
@@ -325,7 +231,7 @@ max-width:300px;
   <div class="card gold">
     <h3>🪪 PRO Identity Card</h3>
     <p><b id="uid2">—</b></p>
-    <p style="color:var(--gold-soft)">SignalMania PRO Member</p>
+    <p style="color:var(--gold-soft)">SignalMania Member</p>
   </div>
 </div>
 
@@ -334,20 +240,11 @@ max-width:300px;
   <div class="card">
     <h3>🛣️ Future Plans</h3>
     <p style="font-size:12px;color:var(--muted)">
-      Advanced analytics, airdrop research, long-term ecosystem plans.
+      Advanced analytics • Airdrop research • Long-term ecosystem
     </p>
   </div>
 </div>
 
-</div>
-
-<!-- MODAL -->
-<div class="modal" id="paymentModal">
-  <div class="modal-content">
-    <h3>Processing Payment…</h3>
-    <p>Please complete payment in Telegram</p>
-    <div class="spinner"></div>
-  </div>
 </div>
 
 <!-- NAV -->
@@ -366,9 +263,9 @@ tg.ready(); tg.expand();
 
 const user = tg.initDataUnsafe?.user;
 if(user){
-  username.innerText = user.first_name;
-  uid.innerText = user.id;
-  uid2.innerText = user.id;
+  document.getElementById("username").innerText = user.first_name;
+  document.getElementById("uid").innerText = user.id;
+  document.getElementById("uid2").innerText = user.id;
 }
 
 function openTab(id,el){
@@ -379,39 +276,8 @@ function openTab(id,el){
   el.classList.add('active');
 }
 
-let paymentInProgress=false;
-
-function resetPaymentUI(msg){
-  document.getElementById("paymentModal").classList.remove("active");
-  const btn=document.getElementById("upgradeBtn");
-  btn.disabled=false;
-  btn.innerHTML="🚀 Upgrade to PRO";
-  btn.style.opacity="1";
-  paymentInProgress=false;
-  if(msg) tg.showAlert(msg);
-}
-
 function startPayment(){
-  if(paymentInProgress) return;
-  paymentInProgress=true;
-  tg.HapticFeedback?.impactOccurred('medium');
-
-  const btn=document.getElementById("upgradeBtn");
-  btn.disabled=true;
-  btn.innerHTML='<span class="spinner"></span>Opening payment…';
-  btn.style.opacity=".7";
-
-  document.getElementById("paymentModal").classList.add("active");
-
-  tg.sendData(JSON.stringify({action:"START_PRO_PAYMENT"}));
-
-  setTimeout(()=>{
-    if(paymentInProgress){
-      resetPaymentUI(
-        "If payment was successful, please reopen the app to activate PRO."
-      );
-    }
-  },10000);
+  tg.showAlert("🚧 PRO payments are coming soon.\nEarly users will get priority access.");
 }
 </script>
 
