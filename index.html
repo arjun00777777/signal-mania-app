@@ -273,6 +273,33 @@ cursor:pointer;
 
 <script>
 const tg = window.Telegram.WebApp;
+// ===== REQUEST USER STATUS FROM BOT =====
+tg.sendData(JSON.stringify({
+  action: "GET_USER_STATUS"
+}));
+
+// ===== RECEIVE DATA FROM BOT =====
+tg.onEvent("web_app_data", (event) => {
+  try {
+    const data = JSON.parse(event.data);
+    console.log("📥 Status from bot:", data);
+
+    // Update referral count if exists
+    if (typeof data.referrals !== "undefined") {
+      const refEl = document.getElementById("refCount");
+      if (refEl) refEl.innerText = data.referrals;
+    }
+
+    // Apply PRO status
+    if (data.premium === true) {
+      enableProUI();
+    }
+
+  } catch (e) {
+    console.error("Invalid WebApp response", e);
+  }
+});
+
 tg.ready();
 tg.expand();
 
@@ -282,6 +309,27 @@ if(user){
   document.getElementById("uid").innerText = user.id;
   document.getElementById("uid2").innerText = user.id;
 }
+
+function enableProUI() {
+  document.body.classList.add("pro-user");
+
+  // Remove blur
+  document.querySelectorAll(".blur").forEach(el => {
+    el.style.filter = "none";
+    el.style.opacity = "1";
+  });
+
+  // Upgrade badge text
+  document.querySelectorAll(".badge").forEach(b => {
+    if (b.innerText.includes("PRO")) {
+      b.innerText = "PRO ACTIVE";
+    }
+  });
+
+  // Optional: show PRO notification
+  tg.showAlert("⭐ PRO Access Active!");
+}
+
 
 function openTab(id,el){
   tg.HapticFeedback?.impactOccurred('light');
