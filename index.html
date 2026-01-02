@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Signal Mania</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body { background:#0e0e0e; color:#fff; font-family:Arial; padding:16px }
+    .card { background:#1c1c1c; padding:16px; border-radius:12px; margin-top:12px }
+    button { width:100%; padding:10px; margin-top:8px; border:none; border-radius:8px }
+  </style>
+</head>
+<body>
+
+<h2>📊 Signal Mania</h2>
+
+<div class="card" id="profile">Loading…</div>
+
+<div class="card">
+  <h3>🐋 Signals</h3>
+  <div id="signals">Loading…</div>
+</div>
+
+<div class="card">
+  <h3>🔔 Set Alert</h3>
+  <input id="coin" placeholder="BTC">
+  <input id="price" placeholder="65000">
+  <button onclick="setAlert()">Set Alert</button>
+</div>
+
+<div class="card">
+  <h3>🚀 Roadmap</h3>
+  <ul>
+    <li><b>Jan:</b> Launch & referrals ✅</li>
+    <li><b>Late Jan:</b> Telegram Stars 💎</li>
+    <li><b>Feb:</b> CM Points & rewards 🎯</li>
+    <li><b>Mar:</b> Airdrops & campaigns 🪂</li>
+    <li><b>Apr:</b> Advanced insights 🤖</li>
+  </ul>
+</div>
+
+<script>
+const tg = Telegram.WebApp;
+tg.expand();
+const uid = tg.initDataUnsafe.user.id;
+
+fetch("https://YOUR_VPS_IP:8080/user", {
+  method:"POST",
+  headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({user_id: uid})
+})
+.then(r=>r.json())
+.then(d=>{
+  document.getElementById("profile").innerHTML = `
+    <b>${tg.initDataUnsafe.user.first_name}</b><br>
+    Status: ${d.is_pro ? "PRO 💎" : "Free 🆓"}<br>
+    Referrals: ${d.referrals}/5<br>
+    CM Points: ${d.cm_points}
+  `;
+});
+
+fetch("https://YOUR_VPS_IP:8080/signals", {method:"POST"})
+.then(r=>r.json())
+.then(s=>{
+  document.getElementById("signals").innerHTML =
+    s.map(c=>`<p>${c}</p>`).join("");
+});
+
+function setAlert(){
+  fetch("https://YOUR_VPS_IP:8080/set_alert",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      user_id:uid,
+      coin:document.getElementById("coin").value,
+      price:document.getElementById("price").value
+    })
+  });
+  alert("Alert set!");
+}
+</script>
+
+</body>
+</html>
