@@ -4,15 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <title>Whale Intel Hub</title>
+    <title>Whale Intel & Trade Hub</title>
     <style>
         :root {
             --bg-dark: #0f172a;
-            --card-glass: rgba(30, 41, 59, 0.75);
+            --card-glass: rgba(30, 41, 59, 0.7);
+            --nav-bg: rgba(15, 23, 42, 0.95);
             --accent-green: #10b981;
             --accent-blue: #3b82f6;
-            --accent-red: #ef4444;
-            --binance-gold: #F3BA2F;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
         }
@@ -22,218 +21,202 @@
             background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%);
             color: var(--text-main);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 16px;
-            /* Security: Stops user from selecting/copying text */
-            -webkit-user-select: none;
-            user-select: none;
+            margin: 0; padding: 0;
+            -webkit-user-select: none; user-select: none;
+            overflow-x: hidden;
+            padding-bottom: 80px; /* Space for Bottom Nav */
         }
 
-        /* Container ensures it looks good on Laptops/Desktops by centering it */
-        .app-container {
-            max-width: 500px; 
-            margin: 0 auto;
-        }
+        /* CONTAINER */
+        .app-container { max-width: 500px; margin: 0 auto; padding: 16px; }
 
-        /* GLASS CARD DESIGN */
+        /* CARDS */
         .card {
             background: var(--card-glass);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            padding: 18px;
-            margin-bottom: 16px;
+            border-radius: 16px; padding: 18px; margin-bottom: 16px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
-        /* HEADERS */
-        .header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-        h2 { margin: 0; font-size: 18px; font-weight: 700; }
-        .badge {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-        .badge.free { color: var(--text-muted); border: 1px solid var(--text-muted); }
-        .badge.pro { color: var(--accent-green); border: 1px solid var(--accent-green); }
+        /* TYPOGRAPHY */
+        h2 { margin: 0 0 10px 0; font-size: 18px; font-weight: 700; }
+        .badge { font-size: 10px; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--text-muted); color: var(--text-muted); }
+        .badge.pro { border-color: var(--accent-green); color: var(--accent-green); }
 
-        /* PROGRESS BAR (VIRAL ENGINE) */
-        .progress-section { margin-top: 12px; }
-        .progress-info { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; color: var(--text-muted); }
-        .progress-track { background: rgba(0,0,0,0.3); height: 8px; border-radius: 4px; overflow: hidden; }
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
-            width: 60%; /* This is hardcoded to 60% for the launch demo */
-            box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
-            transition: width 0.5s ease;
-        }
+        /* PROGRESS BAR */
+        .progress-track { background: rgba(0,0,0,0.3); height: 8px; border-radius: 4px; overflow: hidden; margin: 10px 0; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent-blue), var(--accent-green)); width: 60%; }
 
-        /* SIGNALS (MONEY MAKER) */
+        /* BOTTOM NAVIGATION (The "App" Feel) */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--nav-bg);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            display: flex; justify-content: space-around;
+            padding: 12px 0; z-index: 1000;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center;
+            font-size: 10px; color: var(--text-muted);
+            cursor: pointer; transition: 0.2s;
+        }
+        .nav-item.active { color: var(--accent-blue); }
+        .nav-icon { font-size: 20px; margin-bottom: 4px; }
+
+        /* TABS LOGIC */
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* SIGNAL STYLES */
         .signal-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .coin-name { font-weight: 800; font-size: 16px; }
-        .percent-up { color: var(--accent-green); font-weight: 600; }
-        .blur-data { 
-            filter: blur(6px); 
-            opacity: 0.6; 
-            background: rgba(255,255,255,0.1); 
-            border-radius: 4px;
-            padding: 0 4px;
-        }
-        .locked-msg { font-size: 11px; color: var(--accent-blue); margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+        .blur-data { filter: blur(6px); opacity: 0.6; background: rgba(255,255,255,0.1); border-radius: 4px; padding: 0 4px; }
 
-        /* BUTTONS (AFFILIATE) */
-        .btn-grid { display: flex; gap: 10px; margin-top: 15px; }
-        .btn {
-            flex: 1;
-            padding: 12px;
-            border-radius: 10px;
-            border: none;
-            font-weight: 700;
-            font-size: 13px;
-            text-align: center;
-            text-decoration: none;
-            cursor: pointer;
-            transition: transform 0.1s;
-        }
-        .btn:active { transform: scale(0.98); }
-        .btn-binance { background: var(--binance-gold); color: #000; }
+        /* BUTTONS */
+        .btn { display: block; width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: 700; text-align: center; text-decoration: none; margin-top: 10px; box-sizing: border-box; }
+        .btn-binance { background: #F3BA2F; color: #000; }
         .btn-bybit { background: #181818; color: #fff; border: 1px solid #333; }
-        .small-note { font-size: 10px; color: var(--text-muted); text-align: center; margin-top: 8px; display: block; }
-
-        /* ROADMAP */
-        .roadmap-list { list-style: none; padding: 0; margin: 0; }
-        .roadmap-item { display: flex; gap: 12px; margin-bottom: 10px; font-size: 13px; }
-        .dot { font-size: 14px; }
-        .dot.done { color: var(--accent-green); }
-        .dot.soon { color: var(--text-muted); }
-        .phase-title { font-weight: 600; display: block; }
-        .phase-desc { font-size: 11px; color: var(--text-muted); }
-
     </style>
 </head>
 <body>
 
-<div class="app-container">
+    <div class="app-container">
 
-    <div class="card">
-        <div class="header-row">
-            <h2 id="username">Trader</h2>
-            <span class="badge free">FREE PLAN</span>
+        <div id="tab-home" class="tab-content active">
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h2 id="username">Trader</h2>
+                    <span class="badge">FREE PLAN</span>
+                </div>
+                <p style="font-size:13px; color:#cbd5e1;">Market awareness for free. Execution advantage for PRO.</p>
+                
+                <div style="margin-top:15px;">
+                    <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-muted);">
+                        <span>PRO Unlock Progress</span>
+                        <span>3 / 5 Friends</span>
+                    </div>
+                    <div class="progress-track"><div class="progress-fill"></div></div>
+                    <div style="text-align:right; font-size:11px; color:var(--accent-blue);">
+                        Invite Friends &rarr;
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📢 Latest Updates</h2>
+                <div style="font-size:13px; color:var(--text-muted);">
+                    <p>✅ <b>System Online:</b> Tracking BTC, ETH, SOL whales.</p>
+                    <p>🚀 <b>New Feature:</b> Binance Futures discount active in Trade tab.</p>
+                </div>
+            </div>
         </div>
-        <div style="font-size: 13px; color: #cbd5e1; margin-bottom: 10px;">
-            Invite friends to unlock Institutional Data.
+
+        <div id="tab-signals" class="tab-content">
+            <div class="card">
+                <div style="display:flex; justify-content:space-between;">
+                    <h2>Live Feed</h2>
+                    <span style="color:var(--accent-green); font-size:12px;">● LIVE</span>
+                </div>
+                
+                <div style="margin-top:15px; border-left:3px solid var(--accent-green); padding-left:12px;">
+                    <div class="signal-row">
+                        <b>BTC / USDT</b>
+                        <span style="color:var(--accent-green);">+4.2%</span>
+                    </div>
+                    <div style="font-size:13px; color:#cbd5e1;">Target: <span class="blur-data">$69,420</span></div>
+                    <div style="font-size:11px; color:var(--accent-blue); margin-top:4px;">🔒 Unlock PRO to see target</div>
+                </div>
+
+                <div style="margin-top:20px; border-left:3px solid var(--accent-blue); padding-left:12px;">
+                    <div class="signal-row">
+                        <b>ETH / USDT</b>
+                        <span style="color:var(--accent-blue);">Accumulating</span>
+                    </div>
+                    <div style="font-size:13px; color:#cbd5e1;">Zone: <span class="blur-data">$3,850</span></div>
+                    <div style="font-size:11px; color:var(--accent-blue); margin-top:4px;">🔒 Unlock PRO to see zone</div>
+                </div>
+            </div>
         </div>
+
+        <div id="tab-trade" class="tab-content">
+            <div class="card" style="text-align:center;">
+                <h2 style="font-size:20px;">⚡ Execution Hub</h2>
+                <p style="font-size:13px; color:#cbd5e1;">Trade with 0% extra fees & claim bonuses.</p>
+                
+                <a href="https://www.binance.com/en/futures?ref=YOUR_CODE" class="btn btn-binance">TRADE ON BINANCE</a>
+                <p style="font-size:10px; color:var(--text-muted); margin-top:5px;">Existing User? Activate Futures for 10% Fee Refund.</p>
+                
+                <a href="https://www.bybit.com/register?affiliate_id=YOUR_CODE" class="btn btn-bybit">TRADE ON BYBIT</a>
+                <p style="font-size:10px; color:var(--text-muted); margin-top:5px;">Claim up to $500 Deposit Bonus.</p>
+            </div>
+        </div>
+
+        <div id="tab-profile" class="tab-content">
+            <div class="card">
+                <h2>🚀 Roadmap</h2>
+                <ul style="list-style:none; padding:0; font-size:13px;">
+                    <li style="margin-bottom:10px;">✅ <b>Phase 1:</b> Launch & Alerts</li>
+                    <li style="margin-bottom:10px; color:var(--text-muted);">○ <b>Phase 2:</b> PRO Subscriptions</li>
+                    <li style="color:var(--text-muted);">○ <b>Phase 3:</b> Rewards & Airdrops</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h2>⚙️ Settings</h2>
+                <p style="font-size:13px;">User ID: <span id="userid">Loading...</span></p>
+                <div class="btn" style="background:#334155; color:white; font-size:12px;">Contact Support</div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('home', this)">
+            <div class="nav-icon">🏠</div>
+            <span>Home</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('signals', this)">
+            <div class="nav-icon">📡</div>
+            <span>Signals</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('trade', this)">
+            <div class="nav-icon">💸</div>
+            <span>Trade</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('profile', this)">
+            <div class="nav-icon">👤</div>
+            <span>Profile</span>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
         
-        <div class="progress-section">
-            <div class="progress-info">
-                <span>PRO Unlock Progress</span>
-                <span id="referral-count">3 / 5 Friends</span>
-            </div>
-            <div class="progress-track">
-                <div class="progress-fill" style="width: 60%;"></div>
-            </div>
-            <div style="text-align: right; font-size: 10px; margin-top: 4px; color: var(--accent-blue);">
-                <a href="#" onclick="copyLink()" style="color: inherit;">Copy Invite Link</a>
-            </div>
-        </div>
-    </div>
+        // Personalization
+        const user = tg.initDataUnsafe?.user;
+        if (user) {
+            document.getElementById('username').innerText = user.first_name;
+            document.getElementById('userid').innerText = user.id;
+        }
 
-    <div class="card">
-        <div class="header-row">
-            <span style="font-size: 12px; color: var(--text-muted);">LIVE FEED</span>
-            <div style="display: flex; align-items: center; gap: 4px;">
-                <span style="height: 6px; width: 6px; background: var(--accent-green); border-radius: 50%;"></span>
-                <span style="font-size: 10px; color: var(--accent-green);">ONLINE</span>
-            </div>
-        </div>
+        // TAB SWITCHING LOGIC
+        function switchTab(tabName, element) {
+            // 1. Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            // 2. Show selected tab
+            document.getElementById('tab-' + tabName).classList.add('active');
+            
+            // 3. Update bottom nav highlighting
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            element.classList.add('active');
 
-        <div style="margin-top: 10px; border-left: 2px solid var(--accent-green); padding-left: 12px;">
-            <div class="signal-row">
-                <span class="coin-name">BTC / USDT</span>
-                <span class="percent-up">+4.2%</span>
-            </div>
-            <div style="font-size: 13px; color: #e2e8f0; margin-bottom: 4px;">
-                Whale Accumulation Detected
-            </div>
-            <div style="font-size: 13px; color: #e2e8f0;">
-                Entry Target: <span class="blur-data">$68,240</span>
-            </div>
-            <div class="locked-msg">
-                🔒 Unlock PRO to reveal precise targets
-            </div>
-        </div>
-
-        <div class="btn-grid">
-            <a href="https://www.binance.com/en/futures?ref=YOUR_CODE" class="btn btn-binance">TRADE ON BINANCE</a>
-            <a href="https://www.bybit.com/register?affiliate_id=YOUR_CODE" class="btn btn-bybit">TRADE ON BYBIT</a>
-        </div>
-        <span class="small-note">⚡ Existing User? Activate Futures above for 10% Fee Refund.</span>
-    </div>
-
-    <div class="card">
-        <h2 style="font-size: 15px; margin-bottom: 12px;">🚀 Development Roadmap</h2>
-        <ul class="roadmap-list">
-            <li class="roadmap-item">
-                <span class="dot done">✅</span>
-                <div>
-                    <span class="phase-title">Phase 1: Launch (Jan)</span>
-                    <span class="phase-desc">Whale Alerts & Referral Engine Live</span>
-                </div>
-            </li>
-            <li class="roadmap-item">
-                <span class="dot soon">○</span>
-                <div>
-                    <span class="phase-title">Phase 2: PRO Access (Feb)</span>
-                    <span class="phase-desc">Instant Subscriptions & VIP Signals</span>
-                </div>
-            </li>
-            <li class="roadmap-item">
-                <span class="dot soon">○</span>
-                <div>
-                    <span class="phase-title">Phase 3: Rewards (March)</span>
-                    <span class="phase-desc">Earn Points for Trading & Airdrops</span>
-                </div>
-            </li>
-        </ul>
-    </div>
-
-</div>
-
-<script>
-    // Initialize Telegram Mini App
-    const tg = window.Telegram.WebApp;
-    tg.expand(); // Forces full height
-    tg.ready();
-
-    // Get User Name
-    const user = tg.initDataUnsafe?.user;
-    if (user) {
-        document.getElementById('username').innerText = `Welcome, ${user.first_name}`;
-    }
-
-    // Copy Link Function (Mockup)
-    function copyLink() {
-        // This simulates copying. In the next step, we connect this to real bot link.
-        tg.showPopup({
-            title: 'Invite Link',
-            message: 'Your unique invite link has been copied! Share it to unlock PRO.',
-            buttons: [{type: 'ok'}]
-        });
-    }
-
-    // Security: Prevent Right Click
-    document.addEventListener('contextmenu', event => event.preventDefault());
-</script>
-
+            // 4. Haptic Feedback (Feels like a real app)
+            if(tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('light');
+            }
+        }
+    </script>
 </body>
 </html>
