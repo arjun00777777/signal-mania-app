@@ -50,9 +50,12 @@ padding:16px;
 margin-bottom:14px;
 border:1px solid rgba(255,255,255,.08);
 box-shadow:0 10px 35px rgba(0,0,0,.45);
-transition:transform .15s ease;
+transition:transform .15s ease, box-shadow .15s ease;
 }
-.card:hover{transform:translateY(-1px)}
+.card:hover{
+transform:translateY(-2px);
+box-shadow:0 15px 40px rgba(0,0,0,.5);
+}
 
 .card.gold{
 border:1px solid rgba(250,204,21,.45);
@@ -61,7 +64,12 @@ background:linear-gradient(145deg,#1c1917,#422006);
 
 /* TABS */
 .tab{display:none}
-.tab.active{display:block}
+.tab.active{display:block; animation:slideIn .3s ease}
+
+@keyframes slideIn{
+from{opacity:0; transform:translateX(10px)}
+to{opacity:1; transform:translateX(0)}
+}
 
 /* BADGE */
 .badge{
@@ -72,6 +80,13 @@ font-size:11px;
 font-weight:700;
 background:linear-gradient(90deg,#facc15,#f59e0b);
 color:#000;
+animation:pulse 2s infinite;
+}
+
+@keyframes pulse{
+0%{transform:scale(1)}
+50%{transform:scale(1.05)}
+100%{transform:scale(1)}
 }
 
 /* BUTTON */
@@ -84,19 +99,34 @@ font-weight:900;
 cursor:pointer;
 background:linear-gradient(90deg,#facc15,#f59e0b);
 color:#000;
-transition:transform .15s ease, box-shadow .15s ease;
+transition:transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+position:relative;
+overflow:hidden;
 }
 .btn:hover{
 transform:scale(1.02);
 box-shadow:0 0 18px rgba(250,204,21,.45);
 }
+.btn:disabled{cursor:not-allowed; opacity:.7}
+
+/* SPINNER */
+.spinner{
+display:inline-block;
+width:16px;
+height:16px;
+border:2px solid rgba(0,0,0,.3);
+border-top-color:#000;
+border-radius:50%;
+animation:spin 1s linear infinite;
+margin-right:8px;
+}
+
+@keyframes spin{
+to{transform:rotate(360deg)}
+}
 
 /* TABLE */
-table{
-width:100%;
-border-collapse:collapse;
-font-size:13px;
-}
+table{width:100%; border-collapse:collapse; font-size:13px}
 td,th{padding:7px 0}
 
 /* NAV */
@@ -117,9 +147,33 @@ z-index:999;
 text-align:center;
 font-size:11px;
 color:var(--muted);
+cursor:pointer;
 }
 .nav-item.active{color:var(--blue)}
 .icon{font-size:18px}
+
+/* MODAL */
+.modal{
+position:fixed;
+top:0;left:0;right:0;bottom:0;
+background:rgba(0,0,0,.8);
+display:flex;
+align-items:center;
+justify-content:center;
+opacity:0;
+pointer-events:none;
+transition:opacity .3s ease;
+z-index:1000;
+}
+.modal.active{opacity:1; pointer-events:all}
+
+.modal-content{
+background:var(--card);
+padding:20px;
+border-radius:18px;
+text-align:center;
+max-width:300px;
+}
 </style>
 </head>
 
@@ -136,16 +190,6 @@ color:var(--muted);
       Market awareness for everyone • Precision for PRO
     </p>
   </div>
-
-  <div class="card">
-    <h3>🎁 Free Access</h3>
-    <ul style="font-size:13px;color:#cbd5e1;margin-left:16px">
-      <li>1 signal per day</li>
-      <li>Whale signal previews</li>
-      <li>Market sentiment</li>
-      <li>Occasional PRO previews</li>
-    </ul>
-  </div>
 </div>
 
 <!-- SIGNALS -->
@@ -156,36 +200,14 @@ color:var(--muted);
       Free users see previews • PRO users see exact levels
     </p>
   </div>
-
-  <div class="card">
-    <p><b>BTC / USDT</b></p>
-    <p style="color:var(--success)">🐳 Whale accumulation detected</p>
-    <p style="font-size:12px;color:var(--muted)">
-      Entry / TP / SL locked for PRO
-    </p>
-  </div>
 </div>
 
-<!-- ALERT HISTORY -->
+<!-- HISTORY -->
 <div id="history" class="tab">
   <div class="card">
     <h3>🕒 Alert History</h3>
     <p style="font-size:12px;color:var(--muted)">
-      Track alerts you received and their outcomes
-    </p>
-  </div>
-
-  <div class="card">
-    <p>BTC / USDT — Whale Buy</p>
-    <p style="font-size:12px;color:var(--muted)">
-      Today • Preview shown
-    </p>
-  </div>
-
-  <div class="card">
-    <p style="color:var(--gold)">⭐ PRO Feature</p>
-    <p style="font-size:12px;color:var(--muted)">
-      Full alert history with confidence & outcomes
+      Full history unlocked for PRO users
     </p>
   </div>
 </div>
@@ -206,46 +228,16 @@ color:var(--muted);
         <th align="center">Free</th>
         <th align="center" style="color:var(--gold)">PRO</th>
       </tr>
-      <tr>
-        <td>Signals per day</td>
-        <td align="center">1</td>
-        <td align="center">Unlimited</td>
-      </tr>
-      <tr>
-        <td>Entry / TP / SL</td>
-        <td align="center">Blurred</td>
-        <td align="center">Exact</td>
-      </tr>
-      <tr>
-        <td>Alert history</td>
-        <td align="center">Limited</td>
-        <td align="center">Full</td>
-      </tr>
-      <tr>
-        <td>Signal confidence</td>
-        <td align="center">❌</td>
-        <td align="center">✅</td>
-      </tr>
-      <tr>
-        <td>Custom alert sounds</td>
-        <td align="center">❌</td>
-        <td align="center">✅</td>
-      </tr>
+      <tr><td>Signals/day</td><td align="center">1</td><td align="center">Unlimited</td></tr>
+      <tr><td>Entry/TP/SL</td><td align="center">Blurred</td><td align="center">Exact</td></tr>
+      <tr><td>Alert history</td><td align="center">Limited</td><td align="center">Full</td></tr>
     </table>
   </div>
 
   <div class="card">
-    <p style="font-size:12px;color:var(--muted);text-decoration:line-through">
-      ₹799 / month
-    </p>
-    <p style="font-size:22px;font-weight:900;color:var(--gold)">
-      ⭐ 399 Stars
-    </p>
-    <p style="font-size:11px;color:var(--muted)">
-      Launch offer for early users
-    </p>
-    <button class="btn"
-      onclick="event.stopPropagation(); startPayment();">
+    <p style="text-decoration:line-through;color:var(--muted)">₹799 / month</p>
+    <p style="font-size:22px;font-weight:900;color:var(--gold)">⭐ 399 Stars</p>
+    <button class="btn" id="upgradeBtn" onclick="startPayment()">
       🚀 Upgrade to PRO
     </button>
   </div>
@@ -258,31 +250,27 @@ color:var(--muted);
     <p><b id="uid2">—</b></p>
     <p style="color:var(--gold-soft)">SignalMania PRO Member</p>
   </div>
-
-  <div class="card">
-    <p style="font-size:12px;color:var(--muted)">
-      Secure Telegram payments • No financial advice
-    </p>
-  </div>
 </div>
 
 <!-- ROADMAP -->
 <div id="roadmap" class="tab">
   <div class="card">
     <h3>🛣️ Future Plans</h3>
-    <ul style="font-size:13px;color:#cbd5e1;margin-left:16px">
-      <li>Advanced whale & smart-money analytics</li>
-      <li>Airdrop scanning & listings (research ongoing)</li>
-      <li>On-chain anomaly detection</li>
-      <li>Long-term ecosystem token research</li>
-      <li>Community-driven features</li>
-    </ul>
-    <p style="font-size:11px;color:var(--muted)">
-      Features listed are under research and not guaranteed.
+    <p style="font-size:12px;color:var(--muted)">
+      Advanced analytics, airdrop research, long-term ecosystem plans.
     </p>
   </div>
 </div>
 
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="paymentModal">
+  <div class="modal-content">
+    <h3>Processing Payment…</h3>
+    <p>Please complete payment in Telegram</p>
+    <div class="spinner"></div>
+  </div>
 </div>
 
 <!-- NAV -->
@@ -297,48 +285,57 @@ color:var(--muted);
 
 <script>
 const tg = window.Telegram.WebApp;
-tg.ready();
-tg.expand();
+tg.ready(); tg.expand();
 
-const user = tg.initDataUnsafe?.user || null;
+const user = tg.initDataUnsafe?.user;
 if(user){
-  document.getElementById("username").innerText = user.first_name;
-  document.getElementById("uid").innerText = user.id;
-  document.getElementById("uid2").innerText = user.id;
+  username.innerText = user.first_name;
+  uid.innerText = user.id;
+  uid2.innerText = user.id;
 }
 
 function openTab(id,el){
-  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
-  document.querySelectorAll(".nav-item").forEach(i=>i.classList.remove("active"));
-  el.classList.add("active");
+  tg.HapticFeedback?.impactOccurred('light');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
 }
 
-let paymentInProgress = false;
+let paymentInProgress=false;
+
+function resetPaymentUI(msg){
+  document.getElementById("paymentModal").classList.remove("active");
+  const btn=document.getElementById("upgradeBtn");
+  btn.disabled=false;
+  btn.innerHTML="🚀 Upgrade to PRO";
+  btn.style.opacity="1";
+  paymentInProgress=false;
+  if(msg) tg.showAlert(msg);
+}
 
 function startPayment(){
   if(paymentInProgress) return;
+  paymentInProgress=true;
+  tg.HapticFeedback?.impactOccurred('medium');
 
-  paymentInProgress = true;
+  const btn=document.getElementById("upgradeBtn");
+  btn.disabled=true;
+  btn.innerHTML='<span class="spinner"></span>Opening payment…';
+  btn.style.opacity=".7";
 
-  const btn = event.target;
-  btn.disabled = true;
-  btn.innerText = "⏳ Opening payment...";
-  btn.style.opacity = "0.7";
+  document.getElementById("paymentModal").classList.add("active");
 
-  tg.sendData(JSON.stringify({
-    action: "START_PRO_PAYMENT"
-  }));
+  tg.sendData(JSON.stringify({action:"START_PRO_PAYMENT"}));
 
-  // Safety fallback (Telegram might cancel silently)
-  setTimeout(() => {
-    paymentInProgress = false;
-    btn.disabled = false;
-    btn.innerText = "🚀 Upgrade to PRO";
-    btn.style.opacity = "1";
-  }, 8000);
+  setTimeout(()=>{
+    if(paymentInProgress){
+      resetPaymentUI(
+        "If payment was successful, please reopen the app to activate PRO."
+      );
+    }
+  },10000);
 }
-
 </script>
 
 </body>
