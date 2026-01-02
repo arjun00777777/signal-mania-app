@@ -108,7 +108,7 @@ left:0;
 right:0;
 background:var(--nav);
 display:grid;
-grid-template-columns:repeat(4,1fr);
+grid-template-columns:repeat(5,1fr);
 padding:8px 0;
 border-top:1px solid rgba(255,255,255,.12);
 z-index:1000;
@@ -193,6 +193,39 @@ Free users: Preview only • PRO users: Full precision
 </div>
 </div>
 
+<!-- UPGRADE -->
+<div id="upgrade" class="tab">
+  <div class="card">
+    <h2>⭐ Upgrade to PRO</h2>
+    <p>Unlock full whale intelligence and precision signals.</p>
+
+    <ul style="font-size:13px;color:#cbd5e1;margin-left:16px">
+      <li>✔ Exact Entry / TP / SL</li>
+      <li>✔ Unlimited signals</li>
+      <li>✔ Priority updates</li>
+      <li>✔ PRO badge</li>
+    </ul>
+
+    <div class="card" style="margin-top:12px">
+      <h2 style="color:#facc15">💎 PRO Plan</h2>
+      <p><b>30 Days Access</b></p>
+      <p style="font-size:18px;font-weight:800">⭐ 299 Stars</p>
+
+      <button class="btn" style="
+        background:linear-gradient(90deg,#facc15,#f59e0b);
+        color:#000;
+        font-weight:900;
+      " onclick="startPayment()">
+        🚀 Upgrade with Telegram Stars
+      </button>
+
+      <p style="font-size:11px;color:#94a3b8;margin-top:6px">
+        Secure payment via Telegram
+      </p>
+    </div>
+  </div>
+</div>
+
 <!-- ROADMAP -->
 <div id="roadmap" class="tab">
 <div class="card">
@@ -228,6 +261,10 @@ Free users: Preview only • PRO users: Full precision
 <div class="nav-item" onclick="openTab('profile',this)">
 <div class="icon">👤</div>Profile
 </div>
+<div class="nav-item" onclick="openTab('upgrade',this)">
+  <div class="icon">⭐</div>Upgrade
+</div>
+
 </div>
 
 <script>
@@ -265,6 +302,12 @@ function toggle(card){
 card.classList.toggle("open");
 }
 </script>
+function startPayment(){
+  tg.sendData(JSON.stringify({
+    action: "START_PRO_PAYMENT"
+  }));
+}
+
 
 </body>
 </html>
