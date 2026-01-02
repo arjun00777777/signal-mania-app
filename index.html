@@ -4,7 +4,6 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
 <title>Whale Intel</title>
 
 <style>
@@ -152,7 +151,6 @@ color:var(--muted);
 <div class="card">
 <h2>📡 Live Signals</h2>
 
-<!-- BTC -->
 <div class="signal" onclick="toggle(this)">
 <div class="row">
 <b>BTC / USDT</b>
@@ -166,9 +164,12 @@ color:var(--muted);
 <p>SL: <span class="blur">$65,900</span></p>
 
 <div style="display:flex;gap:8px">
-<a class="btn binance" href="https://www.binance.com/en/futures/BTCUSDT?ref=YOUR_CODE"
+<a class="btn binance"
+href="https://www.binance.com/en/futures/BTCUSDT?ref=YOUR_CODE"
 onclick="event.stopPropagation()">Binance</a>
-<a class="btn bybit" href="https://www.bybit.com/trade/usdt/BTCUSDT?affiliate_id=YOUR_CODE"
+
+<a class="btn bybit"
+href="https://www.bybit.com/trade/usdt/BTCUSDT?affiliate_id=YOUR_CODE"
 onclick="event.stopPropagation()">Bybit</a>
 </div>
 
@@ -176,7 +177,6 @@ onclick="event.stopPropagation()">Bybit</a>
 </div>
 </div>
 
-<!-- ETH -->
 <div class="signal" onclick="toggle(this)">
 <div class="row">
 <b>ETH / USDT</b>
@@ -188,9 +188,12 @@ onclick="event.stopPropagation()">Bybit</a>
 <p>Zone: <span class="blur">$3,850 – $3,780</span></p>
 
 <div style="display:flex;gap:8px">
-<a class="btn binance" href="https://www.binance.com/en/futures/ETHUSDT?ref=YOUR_CODE"
+<a class="btn binance"
+href="https://www.binance.com/en/futures/ETHUSDT?ref=YOUR_CODE"
 onclick="event.stopPropagation()">Binance</a>
-<a class="btn bybit" href="https://www.bybit.com/trade/usdt/ETHUSDT?affiliate_id=YOUR_CODE"
+
+<a class="btn bybit"
+href="https://www.bybit.com/trade/usdt/ETHUSDT?affiliate_id=YOUR_CODE"
 onclick="event.stopPropagation()">Bybit</a>
 </div>
 
@@ -201,19 +204,27 @@ onclick="event.stopPropagation()">Bybit</a>
 <p style="font-size:11px;color:var(--red)">
 Free users: 1 alert/day • PRO: Unlimited
 </p>
+</div>
+</div>
 
+<!-- ROADMAP -->
+<div id="roadmap" class="tab">
+<div class="card">
+<h2>🛣️ Product Roadmap</h2>
+
+<p>✅ <b>Phase 1 – Launch</b></p>
+<p style="color:var(--muted)">• Whale alerts<br>• Trade buttons<br>• Referral system</p>
+
+<p>🟡 <b>Phase 2 – PRO Access</b></p>
+<p style="color:var(--muted)">• Paid PRO plans<br>• Exact entry/exit<br>• Unlimited alerts</p>
+
+<p>🔵 <b>Phase 3 – Expansion</b></p>
+<p style="color:var(--muted)">• More coins<br>• Smart money analytics<br>• Rewards & airdrops</p>
 </div>
 </div>
 
 <!-- PROFILE -->
 <div id="profile" class="tab">
-<div class="card">
-<h2>🚀 Roadmap</h2>
-<p>✅ Launch & Alerts</p>
-<p style="color:var(--muted)">○ PRO Subscriptions</p>
-<p style="color:var(--muted)">○ Rewards & Airdrops</p>
-</div>
-
 <div class="card">
 <h2>⚙️ Account</h2>
 <p>User ID: <span id="uid">—</span></p>
@@ -230,6 +241,9 @@ Free users: 1 alert/day • PRO: Unlimited
 </div>
 <div class="nav-item" onclick="openTab('signals',this)">
 <div class="icon">📡</div>Signals
+</div>
+<div class="nav-item" onclick="openTab('roadmap',this)">
+<div class="icon">🛣️</div>Roadmap
 </div>
 <div class="nav-item" onclick="openTab('profile',this)">
 <div class="icon">👤</div>Profile
