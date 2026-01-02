@@ -352,24 +352,36 @@ function startPayment(){
 // Add this inside your <script> tag
 
 async function fetchSignals() {
+  const container = document.getElementById("signal-container");
+  
   try {
-    const container = document.getElementById("signal-container");
+    console.log("📡 Fetching signals...");
     
-    // Call our new API endpoint
-    const response = await fetch(`${API_BASE_URL}/market/signals`);
+    // 👇 THIS HEADER IS THE KEY. IT FORCES NGROK TO LET US IN.
+    const response = await fetch(`${API_BASE_URL}/market/signals`, {
+        method: "GET",
+        headers: {
+            "ngrok-skip-browser-warning": "true",  // <--- THE MAGIC LINE
+            "Content-Type": "application/json"
+        }
+    });
+    
+    if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+    
     const signals = await response.json();
+    console.log("✅ Signals Received:", signals);
 
+    // If empty
     if (signals.length === 0) {
-      container.innerHTML = `<div class="card"><p>😴 No high-volatility whales detected right now. check back later.</p></div>`;
+      container.innerHTML = `<div class="card"><p>⏳ Market Scanner Initializing...<br><span style="font-size:11px">Please wait 10 seconds.</span></p></div>`;
       return;
     }
 
-    // Clear loading message
-    container.innerHTML = "";
+    // Clear loading
+    container.innerHTML = ""; 
 
-    // Loop through signals and create cards
+    // Loop through signals
     signals.forEach(sig => {
-      // Determine colors based on LONG (Green) or SHORT (Red)
       const color = sig.direction === "LONG" ? "var(--success)" : "#ef4444";
       const arrow = sig.direction === "LONG" ? "🟢" : "🔴";
 
@@ -398,14 +410,11 @@ async function fetchSignals() {
       container.innerHTML += html;
     });
 
-    // If user is Premium, unblur the data
-    if (user_is_premium) {
-      enableProUI();
-    }
+    if (user_is_premium) enableProUI();
 
   } catch (error) {
-    console.error("Signal fetch error:", error);
-    document.getElementById("signal-container").innerHTML = `<div class="card"><p>❌ Error fetching market data.</p></div>`;
+    console.error("❌ Signal Fetch Error:", error);
+    container.innerHTML = `<div class="card"><p>❌ Connection Failed.<br><span style="font-size:11px">${error.message}</span></p></div>`;
   }
 }
 
