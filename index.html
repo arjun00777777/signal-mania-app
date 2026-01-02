@@ -175,16 +175,16 @@ cursor:pointer;
 
 <div id="signals" class="tab">
   <div class="card">
-    <h3>📡 Today’s Signal (Free Preview)</h3>
-    <p><b>BTC / USDT</b></p>
-    <p style="color:var(--success)">🐳 Whale accumulation detected</p>
-    <table>
-      <tr><td>Direction</td><td align="right"><b>LONG</b></td></tr>
-      <tr><td>Entry</td><td align="right"><span class="blur">$66,800</span></td></tr>
-      <tr><td>Target</td><td align="right"><span class="blur">$69,420</span></td></tr>
-      <tr><td>Stop Loss</td><td align="right"><span class="blur">$65,900</span></td></tr>
-    </table>
+    <h3>📡 Live Market Signals</h3>
+    <p style="font-size:12px;color:var(--muted)">Powered by CoinGecko (Whale Scan)</p>
   </div>
+
+  <div id="signal-container">
+    <div class="card" style="text-align:center; opacity:0.7;">
+      <p>⏳ Scanning market...</p>
+    </div>
+  </div>
+</div>
 
   <div class="card">
     <h3>🐳 Whale Activity Summary</h3>
@@ -349,6 +349,75 @@ function openTab(id,el){
 function startPayment(){
   tg.showAlert("🚧 PRO payments are coming soon.\nEarly users will get priority access.");
 }
+// Add this inside your <script> tag
+
+async function fetchSignals() {
+  try {
+    const container = document.getElementById("signal-container");
+    
+    // Call our new API endpoint
+    const response = await fetch(`${API_BASE_URL}/market/signals`);
+    const signals = await response.json();
+
+    if (signals.length === 0) {
+      container.innerHTML = `<div class="card"><p>😴 No high-volatility whales detected right now. check back later.</p></div>`;
+      return;
+    }
+
+    // Clear loading message
+    container.innerHTML = "";
+
+    // Loop through signals and create cards
+    signals.forEach(sig => {
+      // Determine colors based on LONG (Green) or SHORT (Red)
+      const color = sig.direction === "LONG" ? "var(--success)" : "#ef4444";
+      const arrow = sig.direction === "LONG" ? "🟢" : "🔴";
+
+      const html = `
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <b style="font-size:18px">${sig.symbol}</b>
+            <span class="badge" style="background:${color};color:#fff">${sig.direction}</span>
+          </div>
+          
+          <p style="font-size:13px; color:var(--muted); margin:0 0 10px 0;">
+            ${arrow} Whale Move Detected (${sig.change}%)
+          </p>
+
+          <table>
+            <tr><td>Entry</td><td align="right">$${sig.entry}</td></tr>
+            <tr><td>Target (TP)</td><td align="right" class="blur">$${sig.tp}</td></tr>
+            <tr><td>Stop (SL)</td><td align="right" class="blur">$${sig.sl}</td></tr>
+          </table>
+          
+          <div style="margin-top:10px; font-size:11px; color:var(--muted); text-align:center;">
+             ${user_is_premium ? "🔓 PRO Access" : "🔒 Targets Hidden (Free)"}
+          </div>
+        </div>
+      `;
+      container.innerHTML += html;
+    });
+
+    // If user is Premium, unblur the data
+    if (user_is_premium) {
+      enableProUI();
+    }
+
+  } catch (error) {
+    console.error("Signal fetch error:", error);
+    document.getElementById("signal-container").innerHTML = `<div class="card"><p>❌ Error fetching market data.</p></div>`;
+  }
+}
+
+// Create a global variable to track premium status
+let user_is_premium = false;
+
+// UPDATE your existing fetchUserData function to set this variable
+// Look for your existing fetchUserData function and add this line inside:
+// if (data.premium) { user_is_premium = true; enableProUI(); }
+
+// CALL fetchSignals when the app loads
+fetchSignals();
 </script>
 
 </body>
