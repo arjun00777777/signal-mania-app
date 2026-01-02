@@ -96,11 +96,12 @@ font-weight:700;
 text-decoration:none;
 border:none;
 margin-top:8px;
+cursor:pointer;
 }
 .binance{background:#f3ba2f;color:#000}
 .bybit{background:#181818;color:#fff;border:1px solid #333}
 
-/* NAV – GRID BASED (DEVICE SAFE) */
+/* NAV */
 .nav{
 position:fixed;
 bottom:0;
@@ -183,7 +184,6 @@ margin-bottom:2px;
    Bybit
 </a>
 </div>
-
 </div>
 </div>
 
@@ -195,49 +195,25 @@ Free users: Preview only • PRO users: Full precision
 
 <!-- UPGRADE -->
 <div id="upgrade" class="tab">
-  <div class="card">
-   <h2>⭐ Upgrade to PRO <span class="badge">LAUNCH OFFER</span></h2>
-    <p>Unlock full whale intelligence and precision signals.</p>
+<div class="card">
+<h2>⭐ Upgrade to PRO <span class="badge">LAUNCH OFFER</span></h2>
 
-    <ul style="font-size:13px;color:#cbd5e1;margin-left:16px">
-      <li>✔ Exact Entry / TP / SL</li>
-      <li>✔ Unlimited signals</li>
-      <li>✔ Priority updates</li>
-      <li>✔ PRO badge</li>
-    </ul>
+<p style="text-decoration:line-through;color:#94a3b8">₹799 / month</p>
 
-    <div class="card" style="margin-top:12px">
-      <h2 style="color:#facc15">💎 PRO Plan</h2>
-      <p><b>30 Days Access</b></p>
-      <p><b>30 Days Access</b></p>
-      <p><b>30 Days PRO Access</b></p>
-      <p style="font-size:13px;color:#94a3b8;text-decoration:line-through">
-      ₹799 / month
-      </p>
+<p style="font-size:20px;font-weight:900;color:#facc15">
+⭐ 399 Stars <span style="font-size:11px;color:#cbd5e1">(Launch Offer)</span>
+</p>
 
-      <p style="font-size:20px;font-weight:900;color:#facc15">
-      ⭐ 399 Stars <span style="font-size:11px;color:#cbd5e1">(Launch Offer)</span>
-      </p>
+<button class="btn"
+onclick="event.stopPropagation(); startPayment();"
+style="background:linear-gradient(90deg,#facc15,#f59e0b);color:#000;font-weight:900">
+🚀 Upgrade with Telegram Stars
+</button>
 
-      <p style="font-size:11px;color:#94a3b8;margin-top:4px">
-       Early adopter pricing • Limited-time
-      </p>
-
-
-
-      <button class="btn" style="
-        background:linear-gradient(90deg,#facc15,#f59e0b);
-        color:#000;
-        font-weight:900;
-      " onclick="startPayment()">
-        🚀 Upgrade with Telegram Stars
-      </button>
-
-      <p style="font-size:11px;color:#94a3b8;margin-top:6px">
-        Secure payment via Telegram
-      </p>
-    </div>
-  </div>
+<p style="font-size:11px;color:#94a3b8;margin-top:6px">
+Secure payment via Telegram
+</p>
+</div>
 </div>
 
 <!-- ROADMAP -->
@@ -263,28 +239,17 @@ Free users: Preview only • PRO users: Full precision
 
 <!-- NAV -->
 <div class="nav">
-<div class="nav-item active" onclick="openTab('home',this)">
-<div class="icon">🏠</div>Home
-</div>
-<div class="nav-item" onclick="openTab('signals',this)">
-<div class="icon">📡</div>Signals
-</div>
-<div class="nav-item" onclick="openTab('roadmap',this)">
-<div class="icon">🛣️</div>Roadmap
-</div>
-<div class="nav-item" onclick="openTab('profile',this)">
-<div class="icon">👤</div>Profile
-</div>
-<div class="nav-item" onclick="openTab('upgrade',this)">
-  <div class="icon">⭐</div>Upgrade
-</div>
-
+<div class="nav-item active" onclick="openTab('home',this)"><div class="icon">🏠</div>Home</div>
+<div class="nav-item" onclick="openTab('signals',this)"><div class="icon">📡</div>Signals</div>
+<div class="nav-item" onclick="openTab('roadmap',this)"><div class="icon">🛣️</div>Roadmap</div>
+<div class="nav-item" onclick="openTab('profile',this)"><div class="icon">👤</div>Profile</div>
+<div class="nav-item" onclick="openTab('upgrade',this)"><div class="icon">⭐</div>Upgrade</div>
 </div>
 
 <script>
 const tg = window.Telegram.WebApp;
-tg.expand();
 tg.ready();
+tg.expand();
 
 let user = tg.initDataUnsafe?.user || null;
 
@@ -315,14 +280,11 @@ el.classList.add("active");
 function toggle(card){
 card.classList.toggle("open");
 }
+
 function startPayment(){
-  tg.sendData(JSON.stringify({
-    action: "START_PRO_PAYMENT"
-  }));
+tg.sendData(JSON.stringify({ action:"START_PRO_PAYMENT" }));
 }
 </script>
-
-
 
 </body>
 </html>
