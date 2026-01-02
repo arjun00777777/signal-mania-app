@@ -314,9 +314,31 @@ function openTab(id,el){
   el.classList.add("active");
 }
 
+let paymentInProgress = false;
+
 function startPayment(){
-  tg.sendData(JSON.stringify({ action:"START_PRO_PAYMENT" }));
+  if(paymentInProgress) return;
+
+  paymentInProgress = true;
+
+  const btn = event.target;
+  btn.disabled = true;
+  btn.innerText = "⏳ Opening payment...";
+  btn.style.opacity = "0.7";
+
+  tg.sendData(JSON.stringify({
+    action: "START_PRO_PAYMENT"
+  }));
+
+  // Safety fallback (Telegram might cancel silently)
+  setTimeout(() => {
+    paymentInProgress = false;
+    btn.disabled = false;
+    btn.innerText = "🚀 Upgrade to PRO";
+    btn.style.opacity = "1";
+  }, 8000);
 }
+
 </script>
 
 </body>
