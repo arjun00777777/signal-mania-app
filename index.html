@@ -9,7 +9,7 @@
 <style>
 :root{
 --bg:#0f172a;
---card:rgba(30,41,59,.75);
+--card:rgba(30,41,59,.78);
 --nav:rgba(15,23,42,.95);
 --blue:#3b82f6;
 --green:#10b981;
@@ -48,16 +48,6 @@ backdrop-filter:blur(12px);
 
 h2{margin:0 0 6px;font-size:18px}
 p{margin:6px 0;font-size:13px;color:#cbd5e1}
-
-/* Badges */
-.badge{
-font-size:10px;
-padding:4px 8px;
-border-radius:6px;
-border:1px solid var(--muted);
-color:var(--muted);
-}
-.badge.pro{border-color:var(--green);color:var(--green)}
 
 /* Tabs */
 .tab{display:none}
@@ -131,12 +121,18 @@ color:var(--muted);
 
 <!-- HOME -->
 <div id="home" class="tab active">
+
 <div class="card">
-<div class="row">
 <h2 id="username">Trader</h2>
-<span class="badge">FREE</span>
+<p>Whale intelligence for awareness. Precision for PRO users.</p>
 </div>
-<p>Whale activity for awareness. PRO for precision.</p>
+
+<div class="card">
+<h2>🌍 Market Snapshot</h2>
+<p>BTC Dominance: <b>52.4%</b></p>
+<p>Funding Rate: <b>Neutral</b></p>
+<p>Fear & Greed: <b>Greed</b></p>
+<p style="font-size:11px;color:var(--muted)">Updates every 30 minutes</p>
 </div>
 
 <div class="card">
@@ -144,24 +140,42 @@ color:var(--muted);
 <p>Invite <b>5 friends</b> → Get <b>30 days PRO</b></p>
 <button class="btn gray" onclick="copyReferral()">Copy Referral Link</button>
 </div>
+
 </div>
 
 <!-- SIGNALS -->
 <div id="signals" class="tab">
+
+<div class="card">
+<h2>📈 Signal Performance</h2>
+<p>Last 7 days:</p>
+<p>✔️ Wins: 8 | ❌ Losses: 2</p>
+<p>🎯 Accuracy: <b>80%</b></p>
+<p style="font-size:11px;color:var(--muted)">Demo stats • Live tracking soon</p>
+</div>
+
 <div class="card">
 <h2>📡 Live Signals</h2>
 
+<!-- BTC -->
 <div class="signal" onclick="toggle(this)">
 <div class="row">
 <b>BTC / USDT</b>
 <span class="long">LONG</span>
 </div>
-<p>🐳 Whale buy detected</p>
+<p>🐳 Whale buy detected (Binance)</p>
 
 <div class="hidden">
 <p>Entry: <span class="blur">$66,800</span></p>
 <p>Target: <span class="blur">$69,420</span></p>
 <p>SL: <span class="blur">$65,900</span></p>
+
+<p style="font-size:11px;color:#94a3b8">Why this signal?</p>
+<ul style="font-size:11px;color:#cbd5e1;margin-left:14px">
+<li>Large wallet inflow</li>
+<li>Open interest rising</li>
+<li>Price holding VWAP</li>
+</ul>
 
 <div style="display:flex;gap:8px">
 <a class="btn binance"
@@ -177,6 +191,7 @@ onclick="event.stopPropagation()">Bybit</a>
 </div>
 </div>
 
+<!-- ETH -->
 <div class="signal" onclick="toggle(this)">
 <div class="row">
 <b>ETH / USDT</b>
@@ -186,6 +201,13 @@ onclick="event.stopPropagation()">Bybit</a>
 
 <div class="hidden">
 <p>Zone: <span class="blur">$3,850 – $3,780</span></p>
+
+<p style="font-size:11px;color:#94a3b8">Why this signal?</p>
+<ul style="font-size:11px;color:#cbd5e1;margin-left:14px">
+<li>Exchange outflows</li>
+<li>Funding reset</li>
+<li>Support defended</li>
+</ul>
 
 <div style="display:flex;gap:8px">
 <a class="btn binance"
@@ -204,7 +226,15 @@ onclick="event.stopPropagation()">Bybit</a>
 <p style="font-size:11px;color:var(--red)">
 Free users: 1 alert/day • PRO: Unlimited
 </p>
+
 </div>
+
+<div class="card">
+<h2>📚 Learn</h2>
+<p><b>Whale Buy:</b> Large wallet accumulation often precedes volatility.</p>
+<p style="font-size:11px;color:var(--muted)">PRO users get deeper breakdowns</p>
+</div>
+
 </div>
 
 <!-- ROADMAP -->
@@ -213,13 +243,13 @@ Free users: 1 alert/day • PRO: Unlimited
 <h2>🛣️ Product Roadmap</h2>
 
 <p>✅ <b>Phase 1 – Launch</b></p>
-<p style="color:var(--muted)">• Whale alerts<br>• Trade buttons<br>• Referral system</p>
+<p style="color:var(--muted)">Whale alerts • Trade buttons • Referrals</p>
 
 <p>🟡 <b>Phase 2 – PRO Access</b></p>
-<p style="color:var(--muted)">• Paid PRO plans<br>• Exact entry/exit<br>• Unlimited alerts</p>
+<p style="color:var(--muted)">Exact levels • Unlimited alerts • Paid plans</p>
 
 <p>🔵 <b>Phase 3 – Expansion</b></p>
-<p style="color:var(--muted)">• More coins<br>• Smart money analytics<br>• Rewards & airdrops</p>
+<p style="color:var(--muted)">More coins • Smart money analytics • Rewards</p>
 </div>
 </div>
 
