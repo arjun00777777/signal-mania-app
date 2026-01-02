@@ -141,38 +141,81 @@ border-top:1px solid rgba(255,255,255,.1)
 
 <!-- SIGNALS -->
 <div id="signals" class="tab">
-<div class="card">
-<h2>📡 Live Whale Signals</h2>
+  <div class="card">
+    <h2>📡 Live Whale Signals</h2>
 
-<div class="signal" onclick="toggle(this)">
-<div class="row">
-<b>BTC / USDT</b><span class="tag long">LONG</span>
-</div>
-<p>🐳 Binance whale buy</p>
-<div class="hidden">
-<p>Entry: <span class="blur">$66,800</span></p>
-<p>Target: <span class="blur">$69,420</span></p>
-<p>SL: <span class="blur">$65,900</span></p>
-<p style="color:var(--blue)">🔒 PRO required</p>
-</div>
+    <!-- SIGNAL 1 -->
+    <div class="signal" onclick="toggle(this)">
+      <div class="row">
+        <b>BTC / USDT</b>
+        <span class="tag long">LONG</span>
+      </div>
+      <p>🐳 Whale Buy • Binance Futures</p>
+
+      <div class="hidden">
+        <p>Entry: <span class="blur">$66,800</span></p>
+        <p>Target: <span class="blur">$69,420</span></p>
+        <p>Stop Loss: <span class="blur">$65,900</span></p>
+
+        <!-- ACTION BUTTONS -->
+        <div style="display:flex; gap:8px; margin-top:10px;">
+          <a class="btn binance" 
+             href="https://www.binance.com/en/futures/BTCUSDT?ref=YOUR_CODE"
+             onclick="event.stopPropagation()">
+             Trade Binance
+          </a>
+
+          <a class="btn bybit"
+             href="https://www.bybit.com/trade/usdt/BTCUSDT?affiliate_id=YOUR_CODE"
+             onclick="event.stopPropagation()">
+             Trade Bybit
+          </a>
+        </div>
+
+        <p style="font-size:11px;color:var(--blue);margin-top:6px;">
+          🔒 Unlock PRO to see exact levels
+        </p>
+      </div>
+    </div>
+
+    <!-- SIGNAL 2 -->
+    <div class="signal" onclick="toggle(this)">
+      <div class="row">
+        <b>ETH / USDT</b>
+        <span class="tag">ACCUM</span>
+      </div>
+      <p>Smart Money Inflow</p>
+
+      <div class="hidden">
+        <p>Zone: <span class="blur">$3,850 – $3,780</span></p>
+
+        <div style="display:flex; gap:8px; margin-top:10px;">
+          <a class="btn binance"
+             href="https://www.binance.com/en/futures/ETHUSDT?ref=YOUR_CODE"
+             onclick="event.stopPropagation()">
+             Trade Binance
+          </a>
+
+          <a class="btn bybit"
+             href="https://www.bybit.com/trade/usdt/ETHUSDT?affiliate_id=YOUR_CODE"
+             onclick="event.stopPropagation()">
+             Trade Bybit
+          </a>
+        </div>
+
+        <p style="font-size:11px;color:var(--blue);margin-top:6px;">
+          🔒 PRO required for precise zone
+        </p>
+      </div>
+    </div>
+
+    <p style="font-size:11px;color:var(--red)">
+      🔔 Free users: 1 alert/day • PRO: Unlimited
+    </p>
+
+  </div>
 </div>
 
-<div class="signal" onclick="toggle(this)">
-<div class="row">
-<b>ETH / USDT</b><span class="tag">ACCUM</span>
-</div>
-<p>Smart money inflow</p>
-<div class="hidden">
-<p>Zone: <span class="blur">$3,850</span></p>
-<p style="color:var(--blue)">🔒 PRO required</p>
-</div>
-</div>
-
-<p style="font-size:11px;color:var(--red)">
-🔔 Free limit: 1 alert/day
-</p>
-</div>
-</div>
 
 <!-- TRADE -->
 <div id="trade" class="tab">
