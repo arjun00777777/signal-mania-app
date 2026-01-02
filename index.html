@@ -150,11 +150,12 @@ cursor:pointer;
 
 <div class="app">
 
-<!-- HOME -->
 <div id="home" class="tab active">
   <div class="card">
     <h2 id="username">Trader</h2>
     <p>User ID: <span id="uid">—</span></p>
+    <p>Referrals: <span id="refCount" style="color:var(--gold)">0</span> / 5</p>
+    
     <p style="font-size:12px;color:var(--muted)">
       Market awareness for everyone • Precision for PRO
     </p>
@@ -172,7 +173,6 @@ cursor:pointer;
   </div>
 </div>
 
-<!-- SIGNALS -->
 <div id="signals" class="tab">
   <div class="card">
     <h3>📡 Today’s Signal (Free Preview)</h3>
@@ -196,7 +196,6 @@ cursor:pointer;
   </div>
 </div>
 
-<!-- HISTORY -->
 <div id="history" class="tab">
   <div class="card">
     <h3>🕒 Alert History</h3>
@@ -219,7 +218,6 @@ cursor:pointer;
   </div>
 </div>
 
-<!-- UPGRADE -->
 <div id="upgrade" class="tab">
   <div class="card">
     <h2>⭐ Upgrade to PRO <span class="badge">BETA</span></h2>
@@ -240,7 +238,6 @@ cursor:pointer;
   </div>
 </div>
 
-<!-- PROFILE -->
 <div id="profile" class="tab">
   <div class="card gold">
     <h3>🪪 PRO Identity Card</h3>
@@ -249,7 +246,6 @@ cursor:pointer;
   </div>
 </div>
 
-<!-- ROADMAP -->
 <div id="roadmap" class="tab">
   <div class="card">
     <h3>🛣️ Future Plans</h3>
@@ -261,7 +257,6 @@ cursor:pointer;
 
 </div>
 
-<!-- NAV -->
 <div class="nav">
   <div class="nav-item active" onclick="openTab('home',this)"><div class="icon">🏠</div>Home</div>
   <div class="nav-item" onclick="openTab('signals',this)"><div class="icon">📡</div>Signals</div>
@@ -272,44 +267,57 @@ cursor:pointer;
 </div>
 
 <script>
+// ==========================================
+// 🔴 IMPORTANT: REPLACE THIS URL WITH YOUR NGROK URL
+// Example: "https://a1b2-100-200.ngrok-free.app"
+// ==========================================
+const API_BASE_URL = "REPLACE_THIS_WITH_YOUR_NGROK_URL"; 
+
 const tg = window.Telegram.WebApp;
-// ===== REQUEST USER STATUS FROM BOT =====
-tg.sendData(JSON.stringify({
-  action: "GET_USER_STATUS"
-}));
-
-// ===== RECEIVE DATA FROM BOT =====
-tg.onEvent("web_app_data", (event) => {
-  try {
-    const data = JSON.parse(event.data);
-    console.log("📥 Status from bot:", data);
-
-    // Update referral count if exists
-    if (typeof data.referrals !== "undefined") {
-      const refEl = document.getElementById("refCount");
-      if (refEl) refEl.innerText = data.referrals;
-    }
-
-    // Apply PRO status
-    if (data.premium === true) {
-      enableProUI();
-    }
-
-  } catch (e) {
-    console.error("Invalid WebApp response", e);
-  }
-});
-
 tg.ready();
 tg.expand();
 
+// 1. Initialize User
 const user = tg.initDataUnsafe?.user;
 if(user){
   document.getElementById("username").innerText = user.first_name;
   document.getElementById("uid").innerText = user.id;
   document.getElementById("uid2").innerText = user.id;
+  
+  // FETCH REAL DATA IMMEDIATELY
+  fetchUserData(user.id);
+} else {
+  console.error("No Telegram user detected. Are you testing in a browser?");
 }
 
+// 2. Fetch Data from API
+async function fetchUserData(uid) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/user/referrals`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ uid: uid })
+    });
+    
+    if (!response.ok) throw new Error("API Network Error");
+    
+    const data = await response.json();
+    console.log("✅ Data received:", data);
+    
+    // Update UI with REAL data
+    document.getElementById("refCount").innerText = data.referrals;
+    
+    if (data.premium) {
+      enableProUI();
+    }
+
+  } catch (error) {
+    console.error("❌ API Fetch Failed:", error);
+    // Optional: tg.showAlert("Error connecting to server");
+  }
+}
+
+// 3. UI Helper Functions
 function enableProUI() {
   document.body.classList.add("pro-user");
 
@@ -317,22 +325,21 @@ function enableProUI() {
   document.querySelectorAll(".blur").forEach(el => {
     el.style.filter = "none";
     el.style.opacity = "1";
+    el.style.color = "#22c55e"; // Make text green to show it's revealed
+    el.style.fontWeight = "bold";
   });
 
   // Upgrade badge text
   document.querySelectorAll(".badge").forEach(b => {
-    if (b.innerText.includes("PRO")) {
-      b.innerText = "PRO ACTIVE";
-    }
+    b.innerText = "PRO ACTIVE";
+    b.style.background = "var(--success)"; // Green badge
   });
-
-  // Optional: show PRO notification
-  tg.showAlert("⭐ PRO Access Active!");
+  
+  document.querySelector("#profile .card").classList.add("gold");
 }
 
-
 function openTab(id,el){
-  tg.HapticFeedback?.impactOccurred('light');
+  if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
@@ -342,37 +349,6 @@ function openTab(id,el){
 function startPayment(){
   tg.showAlert("🚧 PRO payments are coming soon.\nEarly users will get priority access.");
 }
-
-function requestUserStatus(){
-  tg.sendData(JSON.stringify({
-    action: "GET_USER_STATUS"
-  }));
-}
-
-tg.onEvent("web_app_data", (event) => {
-  try {
-    const data = JSON.parse(event.data);
-
-    if(typeof data.premium !== "undefined"){
-      applyUserStatus(data);
-    }
-  } catch(e){}
-});
-
-function applyUserStatus(data){
-  const isPro = data.premium;
-  const referrals = data.referrals;
-
-  // Update profile card
-  if(isPro){
-    document.querySelector("#profile .card").classList.add("gold");
-  }
-
-  // Update referral info (optional for later UI)
-  console.log("Referrals:", referrals);
-}
-requestUserStatus();
-
 </script>
 
 </body>
