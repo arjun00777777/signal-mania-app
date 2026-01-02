@@ -1,84 +1,238 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Signal Mania</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    body { background:#0e0e0e; color:#fff; font-family:Arial; padding:16px }
-    .card { background:#1c1c1c; padding:16px; border-radius:12px; margin-top:12px }
-    button { width:100%; padding:10px; margin-top:8px; border:none; border-radius:8px }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <title>Whale Intel Hub</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-glass: rgba(30, 41, 59, 0.75);
+            --accent-green: #10b981;
+            --accent-blue: #3b82f6;
+            --accent-red: #ef4444;
+            --binance-gold: #F3BA2F;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 16px;
+            /* Security: Stops user from selecting/copying text */
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        /* Container ensures it looks good on Laptops/Desktops by centering it */
+        .app-container {
+            max-width: 500px; 
+            margin: 0 auto;
+        }
+
+        /* GLASS CARD DESIGN */
+        .card {
+            background: var(--card-glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* HEADERS */
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        h2 { margin: 0; font-size: 18px; font-weight: 700; }
+        .badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .badge.free { color: var(--text-muted); border: 1px solid var(--text-muted); }
+        .badge.pro { color: var(--accent-green); border: 1px solid var(--accent-green); }
+
+        /* PROGRESS BAR (VIRAL ENGINE) */
+        .progress-section { margin-top: 12px; }
+        .progress-info { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; color: var(--text-muted); }
+        .progress-track { background: rgba(0,0,0,0.3); height: 8px; border-radius: 4px; overflow: hidden; }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+            width: 60%; /* This is hardcoded to 60% for the launch demo */
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+            transition: width 0.5s ease;
+        }
+
+        /* SIGNALS (MONEY MAKER) */
+        .signal-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .coin-name { font-weight: 800; font-size: 16px; }
+        .percent-up { color: var(--accent-green); font-weight: 600; }
+        .blur-data { 
+            filter: blur(6px); 
+            opacity: 0.6; 
+            background: rgba(255,255,255,0.1); 
+            border-radius: 4px;
+            padding: 0 4px;
+        }
+        .locked-msg { font-size: 11px; color: var(--accent-blue); margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+
+        /* BUTTONS (AFFILIATE) */
+        .btn-grid { display: flex; gap: 10px; margin-top: 15px; }
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 700;
+            font-size: 13px;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-binance { background: var(--binance-gold); color: #000; }
+        .btn-bybit { background: #181818; color: #fff; border: 1px solid #333; }
+        .small-note { font-size: 10px; color: var(--text-muted); text-align: center; margin-top: 8px; display: block; }
+
+        /* ROADMAP */
+        .roadmap-list { list-style: none; padding: 0; margin: 0; }
+        .roadmap-item { display: flex; gap: 12px; margin-bottom: 10px; font-size: 13px; }
+        .dot { font-size: 14px; }
+        .dot.done { color: var(--accent-green); }
+        .dot.soon { color: var(--text-muted); }
+        .phase-title { font-weight: 600; display: block; }
+        .phase-desc { font-size: 11px; color: var(--text-muted); }
+
+    </style>
 </head>
 <body>
 
-<h2>📊 Signal Mania</h2>
+<div class="app-container">
 
-<div class="card" id="profile">Loading…</div>
+    <div class="card">
+        <div class="header-row">
+            <h2 id="username">Trader</h2>
+            <span class="badge free">FREE PLAN</span>
+        </div>
+        <div style="font-size: 13px; color: #cbd5e1; margin-bottom: 10px;">
+            Invite friends to unlock Institutional Data.
+        </div>
+        
+        <div class="progress-section">
+            <div class="progress-info">
+                <span>PRO Unlock Progress</span>
+                <span id="referral-count">3 / 5 Friends</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" style="width: 60%;"></div>
+            </div>
+            <div style="text-align: right; font-size: 10px; margin-top: 4px; color: var(--accent-blue);">
+                <a href="#" onclick="copyLink()" style="color: inherit;">Copy Invite Link</a>
+            </div>
+        </div>
+    </div>
 
-<div class="card">
-  <h3>🐋 Signals</h3>
-  <div id="signals">Loading…</div>
-</div>
+    <div class="card">
+        <div class="header-row">
+            <span style="font-size: 12px; color: var(--text-muted);">LIVE FEED</span>
+            <div style="display: flex; align-items: center; gap: 4px;">
+                <span style="height: 6px; width: 6px; background: var(--accent-green); border-radius: 50%;"></span>
+                <span style="font-size: 10px; color: var(--accent-green);">ONLINE</span>
+            </div>
+        </div>
 
-<div class="card">
-  <h3>🔔 Set Alert</h3>
-  <input id="coin" placeholder="BTC">
-  <input id="price" placeholder="65000">
-  <button onclick="setAlert()">Set Alert</button>
-</div>
+        <div style="margin-top: 10px; border-left: 2px solid var(--accent-green); padding-left: 12px;">
+            <div class="signal-row">
+                <span class="coin-name">BTC / USDT</span>
+                <span class="percent-up">+4.2%</span>
+            </div>
+            <div style="font-size: 13px; color: #e2e8f0; margin-bottom: 4px;">
+                Whale Accumulation Detected
+            </div>
+            <div style="font-size: 13px; color: #e2e8f0;">
+                Entry Target: <span class="blur-data">$68,240</span>
+            </div>
+            <div class="locked-msg">
+                🔒 Unlock PRO to reveal precise targets
+            </div>
+        </div>
 
-<div class="card">
-  <h3>🚀 Roadmap</h3>
-  <ul>
-    <li><b>Jan:</b> Launch & referrals ✅</li>
-    <li><b>Late Jan:</b> Telegram Stars 💎</li>
-    <li><b>Feb:</b> CM Points & rewards 🎯</li>
-    <li><b>Mar:</b> Airdrops & campaigns 🪂</li>
-    <li><b>Apr:</b> Advanced insights 🤖</li>
-  </ul>
+        <div class="btn-grid">
+            <a href="https://www.binance.com/en/futures?ref=YOUR_CODE" class="btn btn-binance">TRADE ON BINANCE</a>
+            <a href="https://www.bybit.com/register?affiliate_id=YOUR_CODE" class="btn btn-bybit">TRADE ON BYBIT</a>
+        </div>
+        <span class="small-note">⚡ Existing User? Activate Futures above for 10% Fee Refund.</span>
+    </div>
+
+    <div class="card">
+        <h2 style="font-size: 15px; margin-bottom: 12px;">🚀 Development Roadmap</h2>
+        <ul class="roadmap-list">
+            <li class="roadmap-item">
+                <span class="dot done">✅</span>
+                <div>
+                    <span class="phase-title">Phase 1: Launch (Jan)</span>
+                    <span class="phase-desc">Whale Alerts & Referral Engine Live</span>
+                </div>
+            </li>
+            <li class="roadmap-item">
+                <span class="dot soon">○</span>
+                <div>
+                    <span class="phase-title">Phase 2: PRO Access (Feb)</span>
+                    <span class="phase-desc">Instant Subscriptions & VIP Signals</span>
+                </div>
+            </li>
+            <li class="roadmap-item">
+                <span class="dot soon">○</span>
+                <div>
+                    <span class="phase-title">Phase 3: Rewards (March)</span>
+                    <span class="phase-desc">Earn Points for Trading & Airdrops</span>
+                </div>
+            </li>
+        </ul>
+    </div>
+
 </div>
 
 <script>
-const tg = Telegram.WebApp;
-tg.expand();
-const uid = tg.initDataUnsafe.user.id;
+    // Initialize Telegram Mini App
+    const tg = window.Telegram.WebApp;
+    tg.expand(); // Forces full height
+    tg.ready();
 
-fetch("https://YOUR_VPS_IP:8080/user", {
-  method:"POST",
-  headers:{"Content-Type":"application/json"},
-  body:JSON.stringify({user_id: uid})
-})
-.then(r=>r.json())
-.then(d=>{
-  document.getElementById("profile").innerHTML = `
-    <b>${tg.initDataUnsafe.user.first_name}</b><br>
-    Status: ${d.is_pro ? "PRO 💎" : "Free 🆓"}<br>
-    Referrals: ${d.referrals}/5<br>
-    CM Points: ${d.cm_points}
-  `;
-});
+    // Get User Name
+    const user = tg.initDataUnsafe?.user;
+    if (user) {
+        document.getElementById('username').innerText = `Welcome, ${user.first_name}`;
+    }
 
-fetch("https://YOUR_VPS_IP:8080/signals", {method:"POST"})
-.then(r=>r.json())
-.then(s=>{
-  document.getElementById("signals").innerHTML =
-    s.map(c=>`<p>${c}</p>`).join("");
-});
+    // Copy Link Function (Mockup)
+    function copyLink() {
+        // This simulates copying. In the next step, we connect this to real bot link.
+        tg.showPopup({
+            title: 'Invite Link',
+            message: 'Your unique invite link has been copied! Share it to unlock PRO.',
+            buttons: [{type: 'ok'}]
+        });
+    }
 
-function setAlert(){
-  fetch("https://YOUR_VPS_IP:8080/set_alert",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      user_id:uid,
-      coin:document.getElementById("coin").value,
-      price:document.getElementById("price").value
-    })
-  });
-  alert("Alert set!");
-}
+    // Security: Prevent Right Click
+    document.addEventListener('contextmenu', event => event.preventDefault());
 </script>
 
 </body>
