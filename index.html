@@ -499,38 +499,47 @@
     setInterval(syncPoints, 5000);
 
     // === 🛒 SHOP ===
-    async function buyPack(type) {
-        await syncPoints(); // Force save first
-
+async function buyPack(type) {
+    try {
+        await syncPoints(); 
         let cost = type === 'time' ? 50 : 100;
+        
         if (miningPoints < cost) {
-            tg.showAlert(`Not enough Hashes! You need ${cost}.`);
+            tg.showAlert(`Need ${cost} hashes.`);
             return;
         }
 
-        const btn = event.target;
-        btn.innerText = "PURCHASING...";
-        btn.disabled = true;
+        // Show a loading indicator
+        tg.MainButton.setText("PROCESSING...");
+        tg.MainButton.show();
 
-        try {
-            const res = await fetch(`${API_BASE_URL}/user/mining/upgrade`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
-                body: JSON.stringify({ initData: tg.initData, pack: type })
-            });
-            const data = await res.json();
+        const res = await fetch(`${API_BASE_URL}/user/mining/upgrade`, {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json",
+                "ngrok-skip-browser-warning": "true" 
+            },
+            body: JSON.stringify({ initData: tg.initData, pack: type })
+        });
 
-            if (data.status === "success") {
-                miningPoints = data.new_sp;
-                if(data.new_max_time) MAX_MINING_TIME = data.new_max_time;
-                updateDisplay();
-                tg.showPopup({ title: "UPGRADE SUCCESS", message: `Level Up! Max Time: ${MAX_MINING_TIME}s` });
-            } else {
-                tg.showAlert(data.message);
-            }
-        } catch (e) { tg.showAlert("Connection Error"); } 
-        finally { btn.disabled = false; btn.innerText = (type==='time') ? "🕒 +5m (50 HASHES)" : "🚀 x1.5 (100 HASHES)"; }
+        if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.message || "Server Error");
+        }
+
+        const data = await res.json();
+        if (data.status === "success") {
+            miningPoints = data.new_sp;
+            if(data.new_max_time) MAX_MINING_TIME = data.new_max_time;
+            updateDisplay();
+            tg.showPopup({ title: "SUCCESS", message: "Upgrade complete!" });
+        }
+    } catch (e) {
+        tg.showAlert("Upgrade Failed: " + e.message);
+    } finally {
+        tg.MainButton.hide();
     }
+}
 
     // === ➕ ALERTS ===
     async function loadAlerts() {
