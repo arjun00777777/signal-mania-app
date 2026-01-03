@@ -2,19 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SignalMania Ecosystem</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg-color: #050505; /* Hacker Black */
+            --bg-color: #050505;
             --card-bg: #111;
             --text-primary: #00ff41; /* Matrix Green */
             --text-secondary: #a8b2d1;
             --accent: #00ff41;
             --danger: #ff003c;
             --nav-bg: #0a0a0a;
+            --path-color: #333;
+            --glow-shadow: 0 0 10px rgba(0, 255, 65, 0.4);
         }
+
         body {
             background-color: var(--bg-color);
             color: var(--text-primary);
@@ -22,105 +25,214 @@
             margin: 0;
             padding: 0;
             padding-bottom: 90px;
+            user-select: none;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
         }
+
+        /* === 🎬 ANIMATIONS === */
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 5px var(--accent); }
+            50% { box-shadow: 0 0 20px var(--accent), 0 0 10px var(--accent); }
+            100% { box-shadow: 0 0 5px var(--accent); }
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-50px) scale(1.5); opacity: 0; }
+        }
+
         .container { max-width: 500px; margin: 0 auto; padding: 20px; }
         
-        /* GLITCH HEADER */
-        h1 { 
-            font-size: 28px; 
-            text-transform: uppercase; 
-            letter-spacing: 3px; 
-            text-shadow: 0 0 10px var(--accent);
-            margin-bottom: 10px;
+        /* HEADER */
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #222;
+            margin-bottom: 20px;
         }
-        p { color: var(--text-secondary); margin-top: 0; font-size: 14px; }
+        h1 { 
+            font-size: 22px; 
+            text-transform: uppercase; 
+            letter-spacing: 2px; 
+            margin: 0;
+            text-shadow: var(--glow-shadow);
+        }
+        .status-badge {
+            font-size: 10px;
+            background: rgba(0, 255, 65, 0.1);
+            color: var(--accent);
+            padding: 4px 8px;
+            border: 1px solid var(--accent);
+            border-radius: 4px;
+        }
 
-        /* CYBERPUNK CARDS */
+        /* CARDS */
         .card {
             background-color: var(--card-bg);
             border: 1px solid #333;
             border-left: 3px solid var(--accent);
             padding: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 0 15px rgba(0, 255, 65, 0.1);
+            margin-bottom: 15px;
+            border-radius: 4px;
+            position: relative;
+            animation: slideUp 0.4s ease-out forwards;
         }
+        .card:nth-child(2) { animation-delay: 0.1s; }
+        .card:nth-child(3) { animation-delay: 0.2s; }
 
-        /* INPUTS & BUTTONS */
-        .input-group { display: flex; gap: 10px; margin-bottom: 15px; }
-        input, select {
-            background: #000; border: 1px solid #333; color: var(--accent);
-            padding: 12px; font-family: inherit; width: 100%;
+        /* === 🛣️ THE DIGITAL PATHWAY (ROADMAP) === */
+        .roadmap-container {
+            position: relative;
+            padding: 20px 0;
+            margin-left: 10px;
         }
-        button {
-            background-color: var(--accent); color: black; border: none; padding: 14px;
-            font-weight: 900; letter-spacing: 1px; cursor: pointer; text-transform: uppercase;
+        /* The Background Line */
+        .roadmap-path {
+            position: absolute;
+            left: 20px;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: #222;
+            border-radius: 2px;
+            z-index: 0;
         }
-        button:active { transform: scale(0.98); }
+        /* The Active Glow Line */
+        .roadmap-path-active {
+            position: absolute;
+            left: 20px;
+            top: 0;
+            height: 35%; /* Progress Bar */
+            width: 4px;
+            background: var(--accent);
+            box-shadow: var(--glow-shadow);
+            z-index: 1;
+        }
         
-        /* 🛣️ ROADMAP STYLES */
-        .roadmap { margin-top: 20px; position: relative; padding-left: 20px; }
-        .roadmap::before {
-            content: ''; position: absolute; left: 0; top: 0; bottom: 0;
-            width: 2px; background: #333;
+        .milestone {
+            position: relative;
+            margin-left: 50px;
+            margin-bottom: 40px;
+            opacity: 0;
+            animation: slideUp 0.5s ease-out forwards;
         }
-        .phase { position: relative; margin-bottom: 30px; padding-left: 20px; }
-        .phase::before {
-            content: ''; position: absolute; left: -26px; top: 5px;
-            width: 14px; height: 14px; background: #000;
-            border: 2px solid var(--text-secondary); border-radius: 50%;
-        }
-        .phase.active::before {
-            background: var(--accent); border-color: var(--accent);
-            box-shadow: 0 0 10px var(--accent);
-        }
-        .phase-title { color: white; font-weight: bold; font-size: 16px; margin-bottom: 5px; }
-        .phase-desc { color: var(--text-secondary); font-size: 13px; line-height: 1.4; }
+        .milestone:nth-child(1) { animation-delay: 0.1s; }
+        .milestone:nth-child(2) { animation-delay: 0.2s; }
+        .milestone:nth-child(3) { animation-delay: 0.3s; }
+        .milestone:nth-child(4) { animation-delay: 0.4s; }
 
-        /* MINING CIRCLE */
-        .hacker-screen { text-align: center; padding: 30px 0; }
+        /* The Node (Dot) */
+        .milestone::before {
+            content: '';
+            position: absolute;
+            left: -38px;
+            top: 0;
+            width: 16px;
+            height: 16px;
+            background: #000;
+            border: 2px solid #555;
+            border-radius: 50%;
+            z-index: 2;
+            transition: all 0.3s;
+        }
+        /* Active State */
+        .milestone.active::before {
+            background: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 0 15px var(--accent);
+            animation: pulseGlow 2s infinite;
+        }
+        .milestone.completed::before {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+        
+        .milestone-title { color: white; font-weight: bold; font-size: 16px; margin-bottom: 5px; }
+        .milestone-desc { color: var(--text-secondary); font-size: 12px; line-height: 1.4; }
+
+        /* === 👨‍💻 MINING INTERFACE === */
+        .hacker-screen { text-align: center; padding: 20px 0; position: relative; }
         .score-circle {
-            width: 180px; height: 180px;
-            background: radial-gradient(circle, #111 0%, #000 70%);
-            border: 2px dashed var(--accent);
+            width: 200px; height: 200px;
+            background: radial-gradient(circle, #1a1a1a 0%, #000 70%);
+            border: 2px dashed #333;
             border-radius: 50%;
             margin: 0 auto 20px auto;
             display: flex; flex-direction: column; justify-content: center;
-            box-shadow: 0 0 25px rgba(0, 255, 65, 0.2);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.1);
             transition: transform 0.1s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
         }
-        .score-circle:active { transform: scale(0.95); }
-        .score-val { font-size: 40px; color: var(--accent); font-weight: bold; }
+        .score-circle:active { transform: scale(0.95); border-color: var(--accent); }
+        .score-val { font-size: 42px; color: var(--accent); font-weight: bold; text-shadow: 0 0 10px var(--accent); }
+        
+        /* Floating Particles */
+        .particle {
+            position: absolute;
+            color: var(--accent);
+            font-weight: bold;
+            pointer-events: none;
+            animation: floatUp 0.8s ease-out forwards;
+        }
 
-        /* NAVIGATION */
+        /* === 👤 PROFILE === */
+        .profile-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        .profile-pic {
+            width: 70px; height: 70px; border-radius: 50%;
+            border: 2px solid var(--accent); background: #222;
+        }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .stat-box { background: #080808; border: 1px solid #333; padding: 15px; text-align: center; border-radius: 8px; }
+
+        /* === NAVIGATION === */
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; width: 100%;
-            background-color: var(--nav-bg);
+            background-color: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(10px);
             display: flex; justify-content: space-around;
-            padding: 15px 0;
+            padding: 12px 0;
             border-top: 1px solid #333;
             z-index: 1000;
         }
-        .nav-item { opacity: 0.5; text-align: center; font-size: 11px; cursor: pointer; flex: 1; }
-        .nav-item.active { opacity: 1; color: var(--accent); text-shadow: 0 0 8px var(--accent); }
-        .nav-icon { font-size: 22px; display: block; margin-bottom: 5px; }
+        .nav-item { opacity: 0.5; text-align: center; font-size: 10px; cursor: pointer; flex: 1; transition: opacity 0.2s; }
+        .nav-item.active { opacity: 1; color: var(--accent); text-shadow: 0 0 10px var(--accent); }
+        .nav-icon { font-size: 22px; display: block; margin-bottom: 4px; }
 
-        /* UTILS */
-        .tab-content { display: none; animation: fadeIn 0.3s; }
+        /* INPUTS */
+        .input-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        input, select {
+            background: #000; border: 1px solid #333; color: var(--accent);
+            padding: 12px; font-family: inherit; width: 100%; border-radius: 4px;
+        }
+        button.action-btn {
+            background-color: var(--accent); color: black; border: none; padding: 14px; width: 100%;
+            font-weight: 900; letter-spacing: 1px; cursor: pointer; text-transform: uppercase; border-radius: 4px;
+        }
+
+        .tab-content { display: none; }
         .tab-content.active { display: block; }
-        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-        .signal-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #333; }
     </style>
 </head>
 <body>
 
 <div id="tab-signals" class="container tab-content active">
-    <h1>Signal<span style="color:white">Mania</span></h1>
-    <p>Network Status: <span style="color:var(--accent)">CONNECTED</span></p>
+    <div class="header-container">
+        <h1>Signal<span style="color:white">Mania</span></h1>
+        <div class="status-badge">SYSTEM ONLINE</div>
+    </div>
 
     <div class="card">
-        <h3 style="margin-top:0">📡 Active Protocols</h3>
+        <h3 style="margin-top:0">📡 Active Watchers</h3>
         <div id="alerts-list">
-            <p style="text-align:center; opacity:0.5">No active watchers.</p>
+            <p style="text-align:center; opacity:0.5; font-size:12px;">Waiting for protocols...</p>
         </div>
     </div>
 
@@ -136,80 +248,120 @@
         <div class="input-group">
             <input type="number" id="alert-price" placeholder="TARGET PRICE">
         </div>
-        <button onclick="setAlert()">INITIALIZE</button>
+        <button class="action-btn" onclick="setAlert()">INITIALIZE</button>
         <p id="alert-msg" style="margin-top:10px; font-size:12px;"></p>
     </div>
 
     <div class="card">
         <h3 style="margin-top:0">🐳 Whale Radar</h3>
         <div id="signals-list">
-            <p style="text-align:center; opacity:0.5">Intercepting data...</p>
+            <p style="text-align:center; opacity:0.5; padding:20px;">Scanning blockchain...</p>
         </div>
     </div>
 </div>
 
 <div id="tab-mining" class="container tab-content">
-    <h1>Crypto<span style="color:white">Hacker</span></h1>
-    <p>System Breach in Progress...</p>
+    <div class="header-container">
+        <h1>Crypto<span style="color:white">Hacker</span></h1>
+        <div class="status-badge">BRUTEFORCE: ACTIVE</div>
+    </div>
     
     <div class="hacker-screen">
-        <div class="score-circle" onclick="minePoint()">
-            <span class="score-val" id="user-points">0</span>
-            <span style="font-size:10px; letter-spacing:2px">HASHES</span>
+        <div class="score-circle" id="mining-btn" onclick="minePoint(event)">
+            <span class="score-val" id="mining-points-display">0</span>
+            <span style="font-size:10px; letter-spacing:3px; opacity:0.7">HASHES</span>
         </div>
-        <div style="margin-bottom:20px; font-size:12px; color:#555;">
-            [////////////////////] 100% ENERGY
+        
+        <div class="card" style="margin-top:30px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <span>ENERGY</span>
+                <span id="energy-val">1000/1000</span>
+            </div>
+            <div style="width:100%; background:#222; height:6px; border-radius:3px;">
+                <div style="width:100%; background:var(--accent); height:100%; border-radius:3px; box-shadow: 0 0 10px var(--accent);"></div>
+            </div>
+            <p style="text-align:center; font-size:12px; margin-top:10px; color:#666;">TAP TO MINE BLOCKS</p>
         </div>
-        <button style="background:#111; border:1px solid var(--accent); color:var(--accent)">
-            UPGRADE RIG (COMING SOON)
-        </button>
     </div>
 </div>
 
-<div id="tab-tasks" class="container tab-content">
-    <h1>Master<span style="color:white">Plan</span></h1>
-    <p>The Path to Domination</p>
-    
-    <div class="roadmap">
-        <div class="phase active">
-            <div class="phase-title">PHASE 1: THE AWAKENING</div>
-            <div class="phase-desc">
-                ✅ Launch SignalMania (Utility)<br>
-                ✅ Launch CryptoHacker (Miner)<br>
-                🔄 Mining System Live
+<div id="tab-roadmap" class="container tab-content">
+    <div class="header-container">
+        <h1>Project<span style="color:white">Path</span></h1>
+        <div class="status-badge">PHASE: AWAKENING</div>
+    </div>
+
+    <div class="roadmap-container">
+        <div class="roadmap-path"></div>
+        <div class="roadmap-path-active"></div>
+
+        <div class="milestone completed">
+            <div class="milestone-title">PHASE 1: THE AWAKENING</div>
+            <div class="milestone-desc">
+                ✅ SignalMania System Launch<br>
+                ✅ Mining Core Activation<br>
+                ✅ Early Access Alpha
             </div>
         </div>
-        <div class="phase">
-            <div class="phase-title">PHASE 2: EXPANSION (TBA)</div>
-            <div class="phase-desc">
-                ⬜ Squad System (Team Mining)<br>
-                ⬜ Weekly USDT Leaderboards<br>
-                ⬜ AI Signal Prediction Model
+
+        <div class="milestone active">
+            <div class="milestone-title">PHASE 2: EXPANSION (Current)</div>
+            <div class="milestone-desc">
+                🔄 Squad Systems Integration<br>
+                🔄 Global Leaderboards<br>
+                🔄 AI Prediction Model Beta
             </div>
         </div>
-        <div class="phase">
-            <div class="phase-title">PHASE 3: TOKEN GEN (TBA)</div>
-            <div class="phase-desc">
-                ⬜ $MANIA Token Launch (TGE)<br>
-                ⬜ Community Airdrop (Convert Points)<br>
+
+        <div class="milestone">
+            <div class="milestone-title">PHASE 3: TOKEN GEN</div>
+            <div class="milestone-desc">
+                ⬜ $MANIA TGE (Token Generation)<br>
+                ⬜ Community Airdrop<br>
                 ⬜ NFT Rig Marketplace
             </div>
         </div>
-        <div class="phase">
-            <div class="phase-title">PHASE 4: TAKEOVER (TBA)</div>
-            <div class="phase-desc">
-                ⬜ Tier-1 CEX Listing<br>
+
+        <div class="milestone">
+            <div class="milestone-title">PHASE 4: DOMINATION</div>
+            <div class="milestone-desc">
+                ⬜ Tier-1 CEX Listings<br>
                 ⬜ Automated Trading Bot
             </div>
         </div>
     </div>
+</div>
 
-    <div class="card" style="margin-top:30px">
-        <h3 style="margin-top:0">🏆 Daily Missions</h3>
-        <div class="signal-item">
-            <div><strong>Join Telegram Channel</strong><br><span style="font-size:10px; color:var(--text-secondary)">+500 HASHES</span></div>
-            <button style="width:auto; padding:5px 10px; font-size:12px">GO</button>
+<div id="tab-profile" class="container tab-content">
+    <div class="header-container">
+        <h1>Agent<span style="color:white">Profile</span></h1>
+        <div class="status-badge">CLEARANCE: LEVEL 1</div>
+    </div>
+
+    <div class="card">
+        <div class="profile-header">
+            <img id="user-pic" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="profile-pic" alt="User">
+            <div>
+                <div id="user-name" style="font-weight:bold; font-size:18px; color:white">Unknown Agent</div>
+                <div id="user-level" class="status-badge">ROOKIE</div>
+            </div>
         </div>
+
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-val" id="total-hashes">0</div>
+                <div style="font-size:10px; color:#666; margin-top:5px;">TOTAL MINED</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-val" id="referral-count">0</div>
+                <div style="font-size:10px; color:#666; margin-top:5px;">RECRUITS</div>
+            </div>
+        </div>
+
+        <button class="action-btn" onclick="copyReferral()" style="margin-top:10px; background:white; color:black;">
+            COPY RECRUITMENT LINK 🔗
+        </button>
+        <input type="text" id="ref-link-hidden" style="position:absolute; left:-9999px;">
     </div>
 </div>
 
@@ -220,21 +372,138 @@
     <div class="nav-item" onclick="switchTab('mining', this)">
         <span class="nav-icon">👨‍💻</span> MINING
     </div>
-    <div class="nav-item" onclick="switchTab('tasks', this)">
-        <span class="nav-icon">🗺️</span> ROADMAP
+    <div class="nav-item" onclick="switchTab('roadmap', this)">
+        <span class="nav-icon">🗺️</span> PATH
+    </div>
+    <div class="nav-item" onclick="switchTab('profile', this)">
+        <span class="nav-icon">👤</span> PROFILE
     </div>
 </div>
 
 <script>
-    // ⚠️ REPLACE WITH YOUR DOMAIN WHEN READY
-    // const API_BASE_URL = "https://api.signalmania.com";
+    // ⚠️ 1. YOUR CONFIGURATION
+    const BOT_USERNAME = "Whale_alert_info_bot"; // No @
     const API_BASE_URL = "https://claustral-mable-dissectible.ngrok-free.dev -> http://localhost:5000"; 
 
     const tg = window.Telegram.WebApp;
     tg.expand(); 
     tg.MainButton.hide();
 
-    // === NAVIGATION ===
+    // === 👤 USER DATA & INIT ===
+    let user = tg.initDataUnsafe.user;
+    let miningPoints = localStorage.getItem('mining_points') ? parseInt(localStorage.getItem('mining_points')) : 0;
+
+    function initApp() {
+        if (user) {
+            document.getElementById('user-name').innerText = user.first_name;
+            if (user.photo_url) document.getElementById('user-pic').src = user.photo_url;
+            
+            // Generate Ref Link
+            const refLink = `https://t.me/${BOT_USERNAME}?start=ref_${user.id}`;
+            document.getElementById('ref-link-hidden').value = refLink;
+            
+            fetchReferralStats();
+        }
+        updateDisplay();
+    }
+
+    function updateDisplay() {
+        const fmt = miningPoints.toLocaleString();
+        document.getElementById('total-hashes').innerText = fmt;
+        document.getElementById('mining-points-display').innerText = fmt;
+    }
+
+    // === 👨‍💻 MINING ANIMATION ===
+    function minePoint(event) {
+        miningPoints++;
+        updateDisplay();
+        localStorage.setItem('mining_points', miningPoints);
+        
+        try { tg.HapticFeedback.impactOccurred('light'); } catch(e){}
+
+        // Particle Effect
+        const circle = document.getElementById('mining-btn');
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.innerText = '+1';
+        
+        const rect = circle.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        
+        circle.appendChild(particle);
+        setTimeout(() => particle.remove(), 800);
+    }
+
+    // === 📡 SIGNAL API ===
+    async function loadSignals() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/market/signals`, {
+                headers: { "ngrok-skip-browser-warning": "true" }
+            });
+            const signals = await response.json();
+            const list = document.getElementById("signals-list");
+            list.innerHTML = "";
+            
+            if (signals.length === 0) {
+                list.innerHTML = "<p style='text-align:center; opacity:0.5'>Scanning blockchain...</p>";
+                return;
+            }
+
+            signals.forEach(sig => {
+                const color = sig.direction === "LONG" ? "var(--accent)" : "var(--danger)";
+                const arrow = sig.direction === "LONG" ? "▲" : "▼";
+                const div = document.createElement("div");
+                div.style.cssText = "display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px dashed #333;";
+                div.innerHTML = `<div><strong>${sig.symbol}</strong><div style="font-size:10px; opacity:0.7">$${sig.entry}</div></div><div style="color:${color}; font-weight:bold;">${arrow} ${sig.direction}</div>`;
+                list.appendChild(div);
+            });
+        } catch (e) { console.log("Offline"); }
+    }
+
+    // === 📡 ALERT API (Simplified) ===
+    async function setAlert() {
+        const coin = document.getElementById("alert-coin").value;
+        const price = document.getElementById("alert-price").value;
+        const cond = document.getElementById("alert-condition").value;
+        const msgEl = document.getElementById("alert-msg");
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/alert/create`, {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ initData: tg.initData, symbol: coin, price: price, condition: cond })
+            });
+            const data = await response.json();
+            msgEl.innerText = data.status === "success" ? "✅ DEPLOYED" : "❌ " + data.message;
+            if(data.status==="success") msgEl.style.color = "var(--accent)";
+        } catch (e) { msgEl.innerText = "❌ ERROR"; }
+    }
+
+    async function fetchReferralStats() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/user/referrals`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
+                body: JSON.stringify({ uid: user.id })
+            });
+            const data = await response.json();
+            document.getElementById('referral-count').innerText = data.referrals || 0;
+        } catch (e) {}
+    }
+
+    function copyReferral() {
+        const copyText = document.getElementById("ref-link-hidden");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(copyText.value).then(() => {
+            tg.showPopup({ title: "COPIED", message: "Recruit agents with this link." });
+        });
+    }
+
+    // === NAV ===
     function switchTab(tabId, navElement) {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -242,87 +511,10 @@
         navElement.classList.add('active');
     }
 
-    // === MINING (LOCAL MOCKUP) ===
-    let points = localStorage.getItem('mining_points') ? parseInt(localStorage.getItem('mining_points')) : 0;
-    document.getElementById('user-points').innerText = points;
-
-    function minePoint() {
-        points += 1; // Simple increment
-        document.getElementById('user-points').innerText = points;
-        localStorage.setItem('mining_points', points); // Save locally
-        tg.HapticFeedback.impactOccurred('medium'); // Vibrate phone
-    }
-
-    // === API CONNECTIONS (SIGNALS) ===
-    async function loadAlerts() {
-        try {
-            const response = await fetch(`${API_BASE_URL}/alert/list`, {
-                method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ initData: tg.initData })
-            });
-            const alerts = await response.json();
-            const list = document.getElementById("alerts-list");
-            list.innerHTML = "";
-            if (alerts.length === 0) list.innerHTML = "<p style='text-align:center; opacity:0.5'>No active watchers.</p>";
-            alerts.forEach(alert => {
-                const div = document.createElement("div");
-                div.className = "signal-item";
-                div.innerHTML = `<div><strong style="color:white">${alert.symbol}</strong> ${alert.condition === 'ABOVE' ? 'Above' : 'Below'} <span style="color:var(--accent)">$${alert.price}</span></div><button style="background:none; color:var(--danger); width:auto;" onclick="deleteAlert(${alert.id})">✖</button>`;
-                list.appendChild(div);
-            });
-        } catch (e) { console.log("Offline Mode or Error"); }
-    }
-
-    async function setAlert() {
-        const coin = document.getElementById("alert-coin").value;
-        const price = document.getElementById("alert-price").value;
-        const condition = document.getElementById("alert-condition").value;
-        const msgEl = document.getElementById("alert-msg");
-        
-        try {
-            const response = await fetch(`${API_BASE_URL}/alert/create`, {
-                method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ initData: tg.initData, symbol: coin, price: price, condition: condition })
-            });
-            const data = await response.json();
-            if(data.status === "success") {
-                msgEl.innerText = "✅ WATCHER INITIALIZED"; msgEl.style.color = "var(--accent)"; loadAlerts();
-            } else { msgEl.innerText = "❌ " + data.message; msgEl.style.color = "var(--danger)"; }
-        } catch (e) { msgEl.innerText = "❌ CONNECTION FAILED"; msgEl.style.color = "var(--danger)"; }
-    }
-
-    async function deleteAlert(id) {
-        if(!confirm("TERMINATE PROTOCOL?")) return;
-        await fetch(`${API_BASE_URL}/alert/delete`, {
-            method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ initData: tg.initData, alert_id: id })
-        });
-        loadAlerts();
-    }
-
-    async function loadSignals() {
-        try {
-            const response = await fetch(`${API_BASE_URL}/market/signals`);
-            const signals = await response.json();
-            const list = document.getElementById("signals-list");
-            list.innerHTML = "";
-            if (signals.length === 0) list.innerHTML = "<p style='text-align:center; opacity:0.5'>Scanning blockchain...</p>";
-            signals.forEach(sig => {
-                const color = sig.direction === "LONG" ? "var(--accent)" : "var(--danger)";
-                const arrow = sig.direction === "LONG" ? "▲" : "▼";
-                const div = document.createElement("div");
-                div.className = "signal-item";
-                div.innerHTML = `<div><strong>${sig.symbol}</strong><div style="font-size:10px; opacity:0.7">$${sig.entry}</div></div><div style="color:${color}; font-weight:bold;">${arrow} ${sig.direction}</div>`;
-                list.appendChild(div);
-            });
-        } catch (e) { console.log("Offline Mode"); }
-    }
-
     // Init
-    loadAlerts();
+    initApp();
     loadSignals();
     setInterval(loadSignals, 30000);
 </script>
-
 </body>
 </html>
