@@ -9,7 +9,7 @@
         :root {
             --bg-color: #050505;
             --card-bg: #111;
-            --text-primary: #00ff41; /* Matrix Green */
+            --text-primary: #00ff41;
             --text-secondary: #a8b2d1;
             --accent: #00ff41;
             --danger: #ff003c;
@@ -30,7 +30,25 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* === 🎬 ANIMATIONS === */
+        /* Hacking Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text fill="rgba(0,255,65,0.05)" font-size="10" y="10%">1001010101</text></svg>') repeat;
+            z-index: -1;
+            animation: scrollMatrix 60s linear infinite;
+        }
+
+        @keyframes scrollMatrix {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 1000px; }
+        }
+
+        /* Animations */
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -47,7 +65,6 @@
 
         .container { max-width: 500px; margin: 0 auto; padding: 20px; }
         
-        /* HEADER */
         .header-container {
             display: flex;
             justify-content: space-between;
@@ -56,13 +73,7 @@
             border-bottom: 1px solid #222;
             margin-bottom: 20px;
         }
-        h1 { 
-            font-size: 22px; 
-            text-transform: uppercase; 
-            letter-spacing: 2px; 
-            margin: 0;
-            text-shadow: var(--glow-shadow);
-        }
+        h1 { font-size: 22px; text-transform: uppercase; letter-spacing: 2px; margin: 0; text-shadow: var(--glow-shadow); }
         .status-badge {
             font-size: 10px;
             background: rgba(0, 255, 65, 0.1);
@@ -72,7 +83,6 @@
             border-radius: 4px;
         }
 
-        /* CARDS */
         .card {
             background-color: var(--card-bg);
             border: 1px solid #333;
@@ -83,98 +93,37 @@
             position: relative;
             animation: slideUp 0.4s ease-out forwards;
         }
-        .card:nth-child(2) { animation-delay: 0.1s; }
-        .card:nth-child(3) { animation-delay: 0.2s; }
-
-        /* === 🛣️ THE DIGITAL PATHWAY (ROADMAP) === */
-        .roadmap-container {
-            position: relative;
-            padding: 20px 0;
-            margin-left: 10px;
-        }
-        /* The Background Line */
-        .roadmap-path {
-            position: absolute;
-            left: 20px;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            background: #222;
-            border-radius: 2px;
-            z-index: 0;
-        }
-        /* The Active Glow Line */
-        .roadmap-path-active {
-            position: absolute;
-            left: 20px;
-            top: 0;
-            height: 35%; /* Progress Bar */
-            width: 4px;
-            background: var(--accent);
-            box-shadow: var(--glow-shadow);
-            z-index: 1;
-        }
-        
-        .milestone {
-            position: relative;
-            margin-left: 50px;
-            margin-bottom: 40px;
-            opacity: 0;
-            animation: slideUp 0.5s ease-out forwards;
-        }
-        .milestone:nth-child(1) { animation-delay: 0.1s; }
-        .milestone:nth-child(2) { animation-delay: 0.2s; }
-        .milestone:nth-child(3) { animation-delay: 0.3s; }
-        .milestone:nth-child(4) { animation-delay: 0.4s; }
-
-        /* The Node (Dot) */
-        .milestone::before {
+        .card::before {
             content: '';
             position: absolute;
-            left: -38px;
             top: 0;
-            width: 16px;
-            height: 16px;
-            background: #000;
-            border: 2px solid #555;
-            border-radius: 50%;
-            z-index: 2;
-            transition: all 0.3s;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 65, 0.1), transparent);
+            animation: scanLine 3s infinite;
         }
-        /* Active State */
-        .milestone.active::before {
-            background: var(--accent);
-            border-color: var(--accent);
-            box-shadow: 0 0 15px var(--accent);
-            animation: pulseGlow 2s infinite;
+        @keyframes scanLine {
+            0% { left: -100%; }
+            100% { left: 100%; }
         }
-        .milestone.completed::before {
-            background: var(--accent);
-            border-color: var(--accent);
-        }
-        
-        .milestone-title { color: white; font-weight: bold; font-size: 16px; margin-bottom: 5px; }
-        .milestone-desc { color: var(--text-secondary); font-size: 12px; line-height: 1.4; }
 
-        /* === 👨‍💻 MINING INTERFACE === */
-        .hacker-screen { text-align: center; padding: 20px 0; position: relative; }
-        .score-circle {
+        /* Mining Circle */
+        .mining-circle {
             width: 200px; height: 200px;
             background: radial-gradient(circle, #1a1a1a 0%, #000 70%);
             border: 2px dashed #333;
             border-radius: 50%;
             margin: 0 auto 20px auto;
             display: flex; flex-direction: column; justify-content: center;
+            align-items: center;
             box-shadow: 0 0 20px rgba(0, 255, 65, 0.1);
-            transition: transform 0.1s;
-            cursor: pointer;
+            animation: pulseGlow 2s infinite;
             position: relative;
             overflow: hidden;
+            cursor: pointer;
         }
-        .score-circle:active { transform: scale(0.95); border-color: var(--accent); }
-        .score-val { font-size: 42px; color: var(--accent); font-weight: bold; text-shadow: 0 0 10px var(--accent); }
-        
-        /* Floating Particles */
+        .score-val { font-size: 32px; font-weight: bold; color: var(--accent); text-shadow: 0 0 10px var(--accent); }
         .particle {
             position: absolute;
             color: var(--accent);
@@ -183,39 +132,45 @@
             animation: floatUp 0.8s ease-out forwards;
         }
 
-        /* === 👤 PROFILE === */
-        .profile-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
-        .profile-pic {
-            width: 70px; height: 70px; border-radius: 50%;
-            border: 2px solid var(--accent); background: #222;
+        .progress-track {
+            width: 100%; height: 10px;
+            background: rgba(0, 255, 65, 0.2);
+            border-radius: 5px; overflow: hidden;
+            margin: 10px 0; border: 1px solid #00ff41;
         }
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-        .stat-box { background: #080808; border: 1px solid #333; padding: 15px; text-align: center; border-radius: 8px; }
+        .progress-fill { height: 100%; background: #00ff41; transition: width 1s linear; }
 
-        /* === NAVIGATION === */
+        /* Roadmap */
+        .roadmap-container { position: relative; padding: 20px 0; margin-left: 10px; }
+        .roadmap-path { position: absolute; left: 20px; top: 0; bottom: 0; width: 4px; background: #222; }
+        .roadmap-path-active { position: absolute; left: 20px; top: 0; height: 40%; width: 4px; background: var(--accent); box-shadow: var(--glow-shadow); }
+        .milestone { position: relative; margin-left: 50px; margin-bottom: 40px; opacity: 0; animation: slideUp 0.5s ease-out forwards; }
+        .milestone.completed .milestone-title { color: var(--accent); text-decoration: line-through; }
+        .milestone.active .milestone-title { color: white; text-shadow: 0 0 5px white; }
+
+        /* Profile */
+        .profile-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        .profile-pic { width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--accent); background: #222; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .stat-box { background: #080808; border: 1px solid #333; padding: 10px; text-align: center; border-radius: 8px; }
+
+        /* Inputs & Buttons */
+        .input-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        input, select { background: #000; border: 1px solid #333; color: var(--accent); padding: 12px; width: 100%; border-radius: 4px; box-sizing: border-box; }
+        button.action-btn { background-color: var(--accent); color: black; border: none; padding: 14px; width: 100%; font-weight: 900; cursor: pointer; text-transform: uppercase; border-radius: 4px; }
+        button.action-btn:active { transform: scale(0.98); }
+
+        /* Bottom Nav */
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; width: 100%;
             background-color: rgba(10, 10, 10, 0.95);
             backdrop-filter: blur(10px);
             display: flex; justify-content: space-around;
-            padding: 12px 0;
-            border-top: 1px solid #333;
-            z-index: 1000;
+            padding: 12px 0; border-top: 1px solid #333; z-index: 1000;
         }
         .nav-item { opacity: 0.5; text-align: center; font-size: 10px; cursor: pointer; flex: 1; transition: opacity 0.2s; }
         .nav-item.active { opacity: 1; color: var(--accent); text-shadow: 0 0 10px var(--accent); }
-        .nav-icon { font-size: 22px; display: block; margin-bottom: 4px; }
-
-        /* INPUTS */
-        .input-group { display: flex; gap: 10px; margin-bottom: 15px; }
-        input, select {
-            background: #000; border: 1px solid #333; color: var(--accent);
-            padding: 12px; font-family: inherit; width: 100%; border-radius: 4px;
-        }
-        button.action-btn {
-            background-color: var(--accent); color: black; border: none; padding: 14px; width: 100%;
-            font-weight: 900; letter-spacing: 1px; cursor: pointer; text-transform: uppercase; border-radius: 4px;
-        }
+        .nav-icon { font-size: 20px; display: block; margin-bottom: 4px; }
 
         .tab-content { display: none; }
         .tab-content.active { display: block; }
@@ -241,8 +196,8 @@
         <div class="input-group">
             <input type="text" id="alert-coin" placeholder="ASSET (e.g. BTC)">
             <select id="alert-condition" style="max-width: 80px;">
-                <option value="ABOVE">></option>
-                <option value="BELOW"><</option>
+                <option value="ABOVE">&gt;</option>
+                <option value="BELOW">&lt;</option>
             </select>
         </div>
         <div class="input-group">
@@ -258,6 +213,16 @@
             <p style="text-align:center; opacity:0.5; padding:20px;">Scanning blockchain...</p>
         </div>
     </div>
+
+    <div class="card">
+        <h3 style="margin-top:0">📊 Portfolio Simulator</h3>
+        <div class="input-group">
+            <input type="text" id="sim-asset" placeholder="Asset (BTC)">
+            <input type="number" id="sim-amount" placeholder="Amount ($)">
+        </div>
+        <button class="action-btn" onclick="simulatePortfolio()">Simulate PnL</button>
+        <p id="sim-result" style="margin-top:10px; font-size:12px;"></p>
+    </div>
 </div>
 
 <div id="tab-mining" class="container tab-content">
@@ -267,7 +232,7 @@
     </div>
     
     <div class="hacker-screen">
-        <div class="score-circle" id="mining-btn" onclick="minePoint(event)">
+        <div class="mining-circle" id="mining-btn" onclick="minePoint(event)">
             <span class="score-val" id="mining-points-display">0</span>
             <span style="font-size:10px; letter-spacing:3px; opacity:0.7">HASHES</span>
         </div>
@@ -277,10 +242,17 @@
                 <span>ENERGY</span>
                 <span id="energy-val">1000/1000</span>
             </div>
-            <div style="width:100%; background:#222; height:6px; border-radius:3px;">
-                <div style="width:100%; background:var(--accent); height:100%; border-radius:3px; box-shadow: 0 0 10px var(--accent);"></div>
+            <div class="progress-track">
+                <div class="progress-fill" id="mining-progress" style="width:0%;"></div>
             </div>
-            <p style="text-align:center; font-size:12px; margin-top:10px; color:#666;">TAP TO MINE BLOCKS</p>
+            <p id="mining-status-text" style="text-align:center; font-size:12px; margin-top:10px; color:#666;">TAP TO MINE BLOCKS</p>
+            <button id="auto-mine-btn" class="action-btn" style="margin-top:10px;" onclick="startAutoMining()">START AUTO-MINER</button>
+        </div>
+
+        <div class="card" style="margin-top:20px;">
+            <h3 style="margin-top:0">Upgrades</h3>
+            <button class="action-btn" style="margin-bottom:10px" onclick="buyPack('time')">🕒 +5m (50 SP)</button>
+            <button class="action-btn" onclick="buyPack('boost')">🚀 x1.5 (100 SP)</button>
         </div>
     </div>
 </div>
@@ -297,37 +269,15 @@
 
         <div class="milestone completed">
             <div class="milestone-title">PHASE 1: THE AWAKENING</div>
-            <div class="milestone-desc">
-                ✅ SignalMania System Launch<br>
-                ✅ Mining Core Activation<br>
-                ✅ Early Access Alpha
-            </div>
+            <div style="font-size:12px; opacity:0.7">✅ SignalMania Launch<br>✅ Mining Core Alpha</div>
         </div>
-
         <div class="milestone active">
             <div class="milestone-title">PHASE 2: EXPANSION (Current)</div>
-            <div class="milestone-desc">
-                🔄 Squad Systems Integration<br>
-                🔄 Global Leaderboards<br>
-                🔄 AI Prediction Model Beta
-            </div>
+            <div style="font-size:12px; opacity:0.7">🔄 Squad Systems<br>🔄 Global Leaderboards</div>
         </div>
-
         <div class="milestone">
             <div class="milestone-title">PHASE 3: TOKEN GEN</div>
-            <div class="milestone-desc">
-                ⬜ $MANIA TGE (Token Generation)<br>
-                ⬜ Community Airdrop<br>
-                ⬜ NFT Rig Marketplace
-            </div>
-        </div>
-
-        <div class="milestone">
-            <div class="milestone-title">PHASE 4: DOMINATION</div>
-            <div class="milestone-desc">
-                ⬜ Tier-1 CEX Listings<br>
-                ⬜ Automated Trading Bot
-            </div>
+            <div style="font-size:12px; opacity:0.7">⬜ $MANIA TGE<br>⬜ Community Airdrop</div>
         </div>
     </div>
 </div>
@@ -350,121 +300,181 @@
         <div class="stats-grid">
             <div class="stat-box">
                 <div class="stat-val" id="total-hashes">0</div>
-                <div style="font-size:10px; color:#666; margin-top:5px;">TOTAL MINED</div>
+                <div style="font-size:10px; color:#666;">TOTAL MINED</div>
             </div>
             <div class="stat-box">
                 <div class="stat-val" id="referral-count">0</div>
-                <div style="font-size:10px; color:#666; margin-top:5px;">RECRUITS</div>
+                <div style="font-size:10px; color:#666;">RECRUITS</div>
             </div>
         </div>
 
-        <button class="action-btn" onclick="copyReferral()" style="margin-top:10px; background:white; color:black;">
-            COPY RECRUITMENT LINK 🔗
-        </button>
+        <button class="action-btn" onclick="copyReferral()" style="margin-top:10px; background:white; color:black;">COPY RECRUITMENT LINK 🔗</button>
         <input type="text" id="ref-link-hidden" style="position:absolute; left:-9999px;">
+    </div>
+
+    <div class="card">
+        <h3 style="margin-top:0">Daily Missions</h3>
+        <p>Complete a 5-min mining session</p>
+        <button class="action-btn" onclick="completeMission()">Claim Reward</button>
+        
+        <h3 style="margin-top:20px">Streak</h3>
+        <p id="streak-display">Current Streak: 🔥 0 Days</p>
     </div>
 </div>
 
 <div class="bottom-nav">
-    <div class="nav-item active" onclick="switchTab('signals', this)">
-        <span class="nav-icon">📡</span> SIGNALS
-    </div>
-    <div class="nav-item" onclick="switchTab('mining', this)">
-        <span class="nav-icon">👨‍💻</span> MINING
-    </div>
-    <div class="nav-item" onclick="switchTab('roadmap', this)">
-        <span class="nav-icon">🗺️</span> PATH
-    </div>
-    <div class="nav-item" onclick="switchTab('profile', this)">
-        <span class="nav-icon">👤</span> PROFILE
-    </div>
+    <div class="nav-item active" onclick="switchTab('signals', this)"><span class="nav-icon">📡</span> SIGNALS</div>
+    <div class="nav-item" onclick="switchTab('mining', this)"><span class="nav-icon">👨‍💻</span> MINING</div>
+    <div class="nav-item" onclick="switchTab('roadmap', this)"><span class="nav-icon">🗺️</span> PATH</div>
+    <div class="nav-item" onclick="switchTab('profile', this)"><span class="nav-icon">👤</span> PROFILE</div>
 </div>
 
 <script>
-    // ⚠️ 1. YOUR CONFIGURATION
-    const BOT_USERNAME = "Whale_alert_info_bot"; // No @
-    const API_BASE_URL = "https://claustral-mable-dissectible.ngrok-free.dev -> http://localhost:5000"; 
+    // === ⚙️ CONFIGURATION ===
+    // Empty string = Use the VPS IP/Domain automatically
+    const API_BASE_URL = ""; 
+    const BOT_USERNAME = "Whale_alert_info_bot"; 
 
+    // === 📱 TELEGRAM INIT ===
     const tg = window.Telegram.WebApp;
-    tg.expand(); 
+    tg.expand();
     tg.MainButton.hide();
 
-    // === 👤 USER DATA & INIT ===
-    let user = tg.initDataUnsafe.user;
-    let miningPoints = localStorage.getItem('mining_points') ? parseInt(localStorage.getItem('mining_points')) : 0;
+    // === 💾 STATE ===
+    let user = tg.initDataUnsafe?.user || { id: 123, first_name: "Test Agent" };
+    let miningPoints = 0;
+    let isAutoMining = false;
+    let miningInterval;
+    let miningTime = 0;
+    const MAX_MINING_TIME = 300; // 5 mins
 
+    // === 🚀 INIT APP ===
     function initApp() {
         if (user) {
             document.getElementById('user-name').innerText = user.first_name;
             if (user.photo_url) document.getElementById('user-pic').src = user.photo_url;
             
-            // Generate Ref Link
-            const refLink = `https://t.me/${BOT_USERNAME}?start=ref_${user.id}`;
-            document.getElementById('ref-link-hidden').value = refLink;
-            
-            fetchReferralStats();
+            // Stats
+            document.getElementById('ref-link-hidden').value = `https://t.me/${BOT_USERNAME}?start=ref_${user.id}`;
+            fetchStats();
         }
         updateDisplay();
     }
 
-    function updateDisplay() {
-        const fmt = miningPoints.toLocaleString();
-        document.getElementById('total-hashes').innerText = fmt;
-        document.getElementById('mining-points-display').innerText = fmt;
+    // === 📡 API CALLS ===
+    async function fetchStats() {
+        try {
+            const res = await fetch(`${API_BASE_URL}/user/referrals`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ uid: user.id })
+            });
+            const data = await res.json();
+            document.getElementById('referral-count').innerText = data.referrals || 0;
+            
+            // Get Real Mining Stats (Using Mock Endpoint for now)
+            const mineRes = await fetch(`${API_BASE_URL}/user/mining/stats`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ initData: tg.initData })
+            });
+            const mineData = await mineRes.json();
+            miningPoints = mineData.sp || 0;
+            updateDisplay();
+        } catch (e) { console.error("API Error", e); }
     }
 
-    // === 👨‍💻 MINING ANIMATION ===
-    function minePoint(event) {
-        miningPoints++;
-        updateDisplay();
-        localStorage.setItem('mining_points', miningPoints);
-        
-        try { tg.HapticFeedback.impactOccurred('light'); } catch(e){}
-
-        // Particle Effect
-        const circle = document.getElementById('mining-btn');
-        const particle = document.createElement('div');
-        particle.className = 'particle';
-        particle.innerText = '+1';
-        
-        const rect = circle.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-        
-        particle.style.left = x + 'px';
-        particle.style.top = y + 'px';
-        
-        circle.appendChild(particle);
-        setTimeout(() => particle.remove(), 800);
-    }
-
-    // === 📡 SIGNAL API ===
     async function loadSignals() {
         try {
-            const response = await fetch(`${API_BASE_URL}/market/signals`, {
-                headers: { "ngrok-skip-browser-warning": "true" }
-            });
+            const response = await fetch(`${API_BASE_URL}/market/signals`);
             const signals = await response.json();
             const list = document.getElementById("signals-list");
             list.innerHTML = "";
             
-            if (signals.length === 0) {
+            if (!signals || signals.length === 0) {
                 list.innerHTML = "<p style='text-align:center; opacity:0.5'>Scanning blockchain...</p>";
                 return;
             }
 
             signals.forEach(sig => {
-                const color = sig.direction === "LONG" ? "var(--accent)" : "var(--danger)";
-                const arrow = sig.direction === "LONG" ? "▲" : "▼";
+                const color = sig.change > 0 ? "var(--accent)" : "var(--danger)";
+                const arrow = sig.change > 0 ? "▲" : "▼";
                 const div = document.createElement("div");
                 div.style.cssText = "display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px dashed #333;";
-                div.innerHTML = `<div><strong>${sig.symbol}</strong><div style="font-size:10px; opacity:0.7">$${sig.entry}</div></div><div style="color:${color}; font-weight:bold;">${arrow} ${sig.direction}</div>`;
+                div.innerHTML = `
+                    <div>
+                        <strong>${sig.symbol}</strong>
+                        <div style="font-size:10px; opacity:0.7">RSI: ${sig.rsi} | ${sig.sentiment}</div>
+                    </div>
+                    <div style="text-align:right">
+                        <div style="color:${color}; font-weight:bold;">${arrow} ${sig.change}%</div>
+                        <div style="font-size:10px;">$${sig.price}</div>
+                    </div>`;
                 list.appendChild(div);
             });
-        } catch (e) { console.log("Offline"); }
+        } catch (e) { console.log("Signal Load Error"); }
     }
 
-    // === 📡 ALERT API (Simplified) ===
+    // === 👨‍💻 MINING LOGIC ===
+    function minePoint(event) {
+        if(isAutoMining) return; // Disable tapping during auto-mine
+        miningPoints++;
+        updateDisplay();
+        tg.HapticFeedback.impactOccurred('light');
+        spawnParticle(event);
+    }
+
+    function startAutoMining() {
+        if(isAutoMining) return;
+        isAutoMining = true;
+        document.getElementById('auto-mine-btn').disabled = true;
+        document.getElementById('auto-mine-btn').innerText = "MINING IN PROGRESS...";
+        
+        miningInterval = setInterval(() => {
+            miningTime++;
+            const pct = (miningTime / MAX_MINING_TIME) * 100;
+            document.getElementById('mining-progress').style.width = pct + "%";
+            document.getElementById('mining-status-text').innerText = `HASHING: ${miningTime}s / ${MAX_MINING_TIME}s`;
+            
+            if(miningTime >= MAX_MINING_TIME) {
+                clearInterval(miningInterval);
+                finishMining();
+            }
+        }, 1000);
+    }
+
+    function finishMining() {
+        isAutoMining = false;
+        miningTime = 0;
+        miningPoints += 100; // Reward
+        updateDisplay();
+        document.getElementById('auto-mine-btn').disabled = false;
+        document.getElementById('auto-mine-btn').innerText = "START AUTO-MINER";
+        document.getElementById('mining-status-text').innerText = "SESSION COMPLETE (+100 SP)";
+        tg.HapticFeedback.notificationOccurred('success');
+    }
+
+    function updateDisplay() {
+        document.getElementById('mining-points-display').innerText = miningPoints.toLocaleString();
+        document.getElementById('total-hashes').innerText = miningPoints.toLocaleString();
+    }
+
+    function spawnParticle(event) {
+        const circle = document.getElementById('mining-btn');
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.innerText = '+1';
+        const rect = circle.getBoundingClientRect();
+        // If clicked, use click pos. If auto, use center.
+        const x = event ? event.clientX - rect.left : 100;
+        const y = event ? event.clientY - rect.top : 100;
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        circle.appendChild(particle);
+        setTimeout(() => particle.remove(), 800);
+    }
+
+    // === ➕ ALERTS ===
     async function setAlert() {
         const coin = document.getElementById("alert-coin").value;
         const price = document.getElementById("alert-price").value;
@@ -482,28 +492,31 @@
         } catch (e) { msgEl.innerText = "❌ ERROR"; }
     }
 
-    async function fetchReferralStats() {
+    // === 💰 SIMULATOR ===
+    async function simulatePortfolio() {
+        const asset = document.getElementById("sim-asset").value;
+        const amount = document.getElementById("sim-amount").value;
         try {
-            const response = await fetch(`${API_BASE_URL}/user/referrals`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
-                body: JSON.stringify({ uid: user.id })
+            const res = await fetch(`${API_BASE_URL}/user/portfolio/simulate`, {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ initData: tg.initData, asset: asset, amount: amount })
             });
-            const data = await response.json();
-            document.getElementById('referral-count').innerText = data.referrals || 0;
-        } catch (e) {}
+            const data = await res.json();
+            const el = document.getElementById("sim-result");
+            el.innerText = `Simulated PnL: $${data.simulated_impact}`;
+            el.style.color = data.simulated_impact >= 0 ? "var(--accent)" : "var(--danger)";
+        } catch(e) {}
     }
 
+    // === 🖇️ UTILS ===
     function copyReferral() {
         const copyText = document.getElementById("ref-link-hidden");
         copyText.select();
-        copyText.setSelectionRange(0, 99999);
         navigator.clipboard.writeText(copyText.value).then(() => {
             tg.showPopup({ title: "COPIED", message: "Recruit agents with this link." });
         });
     }
 
-    // === NAV ===
     function switchTab(tabId, navElement) {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -511,10 +524,10 @@
         navElement.classList.add('active');
     }
 
-    // Init
+    // === START ===
     initApp();
     loadSignals();
-    setInterval(loadSignals, 30000);
+    setInterval(loadSignals, 30000); // Refresh signals every 30s
 </script>
 </body>
 </html>
