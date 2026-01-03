@@ -331,8 +331,8 @@
 
 <script>
     // === ⚙️ CONFIGURATION ===
-    // Empty string = Use the VPS IP/Domain automatically
-    const API_BASE_URL = ""; 
+    // YOUR NGROK URL HERE
+    const API_BASE_URL = "https://claustral-mable-dissectible.ngrok-free.dev"; 
     const BOT_USERNAME = "Whale_alert_info_bot"; 
 
     // === 📱 TELEGRAM INIT ===
@@ -366,7 +366,10 @@
         try {
             const res = await fetch(`${API_BASE_URL}/user/referrals`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json",
+                    "ngrok-skip-browser-warning": "true"
+                },
                 body: JSON.stringify({ uid: user.id })
             });
             const data = await res.json();
@@ -375,7 +378,10 @@
             // Get Real Mining Stats (Using Mock Endpoint for now)
             const mineRes = await fetch(`${API_BASE_URL}/user/mining/stats`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json",
+                    "ngrok-skip-browser-warning": "true"
+                },
                 body: JSON.stringify({ initData: tg.initData })
             });
             const mineData = await mineRes.json();
@@ -386,7 +392,9 @@
 
     async function loadSignals() {
         try {
-            const response = await fetch(`${API_BASE_URL}/market/signals`);
+            const response = await fetch(`${API_BASE_URL}/market/signals`, {
+                headers: { "ngrok-skip-browser-warning": "true" }
+            });
             const signals = await response.json();
             const list = document.getElementById("signals-list");
             list.innerHTML = "";
@@ -483,7 +491,11 @@
         
         try {
             const response = await fetch(`${API_BASE_URL}/alert/create`, {
-                method: "POST", headers: { "Content-Type": "application/json" },
+                method: "POST", 
+                headers: { 
+                    "Content-Type": "application/json",
+                    "ngrok-skip-browser-warning": "true"
+                },
                 body: JSON.stringify({ initData: tg.initData, symbol: coin, price: price, condition: cond })
             });
             const data = await response.json();
@@ -498,7 +510,11 @@
         const amount = document.getElementById("sim-amount").value;
         try {
             const res = await fetch(`${API_BASE_URL}/user/portfolio/simulate`, {
-                method: "POST", headers: { "Content-Type": "application/json" },
+                method: "POST", 
+                headers: { 
+                    "Content-Type": "application/json",
+                    "ngrok-skip-browser-warning": "true"
+                },
                 body: JSON.stringify({ initData: tg.initData, asset: asset, amount: amount })
             });
             const data = await res.json();
