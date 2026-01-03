@@ -1,497 +1,327 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<title>SignalMania</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignalMania Ecosystem</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-color: #050505; /* Hacker Black */
+            --card-bg: #111;
+            --text-primary: #00ff41; /* Matrix Green */
+            --text-secondary: #a8b2d1;
+            --accent: #00ff41;
+            --danger: #ff003c;
+            --nav-bg: #0a0a0a;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 0;
+            padding-bottom: 90px;
+        }
+        .container { max-width: 500px; margin: 0 auto; padding: 20px; }
+        
+        /* GLITCH HEADER */
+        h1 { 
+            font-size: 28px; 
+            text-transform: uppercase; 
+            letter-spacing: 3px; 
+            text-shadow: 0 0 10px var(--accent);
+            margin-bottom: 10px;
+        }
+        p { color: var(--text-secondary); margin-top: 0; font-size: 14px; }
 
-<style>
-:root{
---bg:#0b1220;
---card:#0f172a;
---nav:#020617;
---blue:#3b82f6;
---gold:#facc15;
---gold-soft:#fde68a;
---text:#f8fafc;
---muted:#94a3b8;
---success:#22c55e;
---danger:#ef4444;
---shadow:0 10px 35px rgba(0,0,0,.45);
---gradient-bg:radial-gradient(circle at top,#1e293b,#020617 70%);
---gradient-card:linear-gradient(145deg,#020617,#111827);
---gradient-gold:linear-gradient(145deg,#1c1917,#422006);
-}
+        /* CYBERPUNK CARDS */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid #333;
+            border-left: 3px solid var(--accent);
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.1);
+        }
 
-*{box-sizing:border-box}
+        /* INPUTS & BUTTONS */
+        .input-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        input, select {
+            background: #000; border: 1px solid #333; color: var(--accent);
+            padding: 12px; font-family: inherit; width: 100%;
+        }
+        button {
+            background-color: var(--accent); color: black; border: none; padding: 14px;
+            font-weight: 900; letter-spacing: 1px; cursor: pointer; text-transform: uppercase;
+        }
+        button:active { transform: scale(0.98); }
+        
+        /* 🛣️ ROADMAP STYLES */
+        .roadmap { margin-top: 20px; position: relative; padding-left: 20px; }
+        .roadmap::before {
+            content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+            width: 2px; background: #333;
+        }
+        .phase { position: relative; margin-bottom: 30px; padding-left: 20px; }
+        .phase::before {
+            content: ''; position: absolute; left: -26px; top: 5px;
+            width: 14px; height: 14px; background: #000;
+            border: 2px solid var(--text-secondary); border-radius: 50%;
+        }
+        .phase.active::before {
+            background: var(--accent); border-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+        }
+        .phase-title { color: white; font-weight: bold; font-size: 16px; margin-bottom: 5px; }
+        .phase-desc { color: var(--text-secondary); font-size: 13px; line-height: 1.4; }
 
-body{
-margin:0;
-font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-background:var(--gradient-bg);
-color:var(--text);
-padding-bottom:92px;
-user-select:none;
-overflow-x:hidden;
-}
+        /* MINING CIRCLE */
+        .hacker-screen { text-align: center; padding: 30px 0; }
+        .score-circle {
+            width: 180px; height: 180px;
+            background: radial-gradient(circle, #111 0%, #000 70%);
+            border: 2px dashed var(--accent);
+            border-radius: 50%;
+            margin: 0 auto 20px auto;
+            display: flex; flex-direction: column; justify-content: center;
+            box-shadow: 0 0 25px rgba(0, 255, 65, 0.2);
+            transition: transform 0.1s;
+        }
+        .score-circle:active { transform: scale(0.95); }
+        .score-val { font-size: 40px; color: var(--accent); font-weight: bold; }
 
-.app{
-max-width:520px;
-margin:auto;
-padding:14px;
-animation:fadeIn .35s ease;
-}
+        /* NAVIGATION */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background-color: var(--nav-bg);
+            display: flex; justify-content: space-around;
+            padding: 15px 0;
+            border-top: 1px solid #333;
+            z-index: 1000;
+        }
+        .nav-item { opacity: 0.5; text-align: center; font-size: 11px; cursor: pointer; flex: 1; }
+        .nav-item.active { opacity: 1; color: var(--accent); text-shadow: 0 0 8px var(--accent); }
+        .nav-icon { font-size: 22px; display: block; margin-bottom: 5px; }
 
-@keyframes fadeIn{
-from{opacity:0;transform:translateY(6px)}
-to{opacity:1}
-}
-
-/* CARDS */
-.card{
-background:var(--gradient-card);
-border-radius:18px;
-padding:20px;
-margin-bottom:18px;
-border:1px solid rgba(255,255,255,.08);
-box-shadow:var(--shadow);
-}
-
-.card.gold{
-border:1px solid rgba(250,204,21,.45);
-background:var(--gradient-gold);
-box-shadow:0 10px 35px rgba(250,204,21,.25);
-}
-
-/* UI ELEMENTS */
-.badge{
-display:inline-block;
-padding:4px 10px;
-border-radius:999px;
-font-size:11px;
-font-weight:700;
-text-transform:uppercase;
-}
-
-.btn{
-width:100%;
-padding:12px;
-border-radius:12px;
-border:none;
-font-weight:900;
-cursor:pointer;
-background:linear-gradient(90deg,#facc15,#f59e0b);
-color:#000;
-font-size:15px;
-}
-
-input, select {
-  font-family: inherit;
-  outline: none;
-}
-
-/* TABLES */
-table{width:100%; border-collapse:collapse; font-size:13px;}
-td,th{padding:8px 0; border-bottom:1px solid rgba(255,255,255,.05);}
-th{color:var(--gold)}
-
-/* NAV */
-.nav{
-position:fixed; bottom:0; left:0; right:0;
-background:var(--nav); display:grid; grid-template-columns:repeat(6,1fr);
-padding:12px 0; border-top:1px solid rgba(255,255,255,.12); z-index:999;
-}
-.nav-item{text-align:center; font-size:10px; color:var(--muted); cursor:pointer;}
-.nav-item.active{color:var(--blue)}
-.icon{font-size:18px; margin-bottom:4px;}
-
-/* TABS */
-.tab{display:none}
-.tab.active{display:block}
-</style>
+        /* UTILS */
+        .tab-content { display: none; animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+        .signal-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #333; }
+    </style>
 </head>
-
 <body>
 
-<div class="app">
+<div id="tab-signals" class="container tab-content active">
+    <h1>Signal<span style="color:white">Mania</span></h1>
+    <p>Network Status: <span style="color:var(--accent)">CONNECTED</span></p>
 
-<div id="home" class="tab active">
-  <div class="card">
-    <h2 id="username">Trader</h2>
-    <p>User ID: <span id="uid">—</span></p>
-    <p>Referrals: <span id="refCount" style="color:var(--gold)">0</span> / 5</p>
-    <p style="font-size:12px;color:var(--muted)">Market awareness for everyone • Precision for PRO</p>
-  </div>
-
-  <div class="card">
-    <h3>🔗 Your Referral Link</h3>
-    <p style="font-size:12px; color:var(--muted); margin-bottom:10px;">
-      Share this to unlock PRO access (5 invites needed).
-    </p>
-    <div style="display:flex; gap:8px; background:#1e293b; padding:8px; border-radius:10px;">
-      <input type="text" id="ref-link-input" readonly 
-             style="width:100%; background:transparent; border:none; color:#fff; font-size:13px;" 
-             value="Loading...">
-      <button onclick="copyReferralLink()" 
-              style="background:var(--blue); border:none; color:#fff; padding:6px 12px; border-radius:6px; font-weight:bold; cursor:pointer;">
-        Copy
-      </button>
+    <div class="card">
+        <h3 style="margin-top:0">📡 Active Protocols</h3>
+        <div id="alerts-list">
+            <p style="text-align:center; opacity:0.5">No active watchers.</p>
+        </div>
     </div>
-    <p id="copy-feedback" style="font-size:11px; color:var(--success); margin-top:5px; height:15px; text-align:right;"></p>
-  </div>
 
-  <div class="card">
-    <h3>🔔 Set Price Alert</h3>
-    <div style="display:flex; gap:10px; margin-bottom:10px;">
-      <input type="text" id="alert-coin" placeholder="Coin (e.g. BTC)" style="flex:1; padding:10px; border-radius:8px; border:none; background:#1e293b; color:#fff;">
-      <input type="number" id="alert-price" placeholder="Target $" style="flex:1; padding:10px; border-radius:8px; border:none; background:#1e293b; color:#fff;">
+    <div class="card">
+        <h3 style="margin-top:0">➕ Deploy Watcher</h3>
+        <div class="input-group">
+            <input type="text" id="alert-coin" placeholder="ASSET (e.g. BTC)">
+            <select id="alert-condition" style="max-width: 80px;">
+                <option value="ABOVE">></option>
+                <option value="BELOW"><</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <input type="number" id="alert-price" placeholder="TARGET PRICE">
+        </div>
+        <button onclick="setAlert()">INITIALIZE</button>
+        <p id="alert-msg" style="margin-top:10px; font-size:12px;"></p>
     </div>
-    <select id="alert-condition" style="width:100%; padding:10px; border-radius:8px; border:none; background:#1e293b; color:#fff; margin-bottom:10px;">
-      <option value="ABOVE">Alert when Above 📈</option>
-      <option value="BELOW">Alert when Below 📉</option>
-    </select>
-    <button class="btn" onclick="setAlert()">Set Alert</button>
-    <p id="alert-msg" style="font-size:12px; margin-top:10px; text-align:center; color:var(--muted)"></p>
-  </div>
+
+    <div class="card">
+        <h3 style="margin-top:0">🐳 Whale Radar</h3>
+        <div id="signals-list">
+            <p style="text-align:center; opacity:0.5">Intercepting data...</p>
+        </div>
+    </div>
 </div>
 
-<div id="signals" class="tab">
-  
-  <div class="card">
-    <h3>🎁 Free Signal of the Day</h3>
-    <p style="font-size:12px;color:var(--muted)">High-confidence setup (Public).</p>
-    <div id="free-signal-container" style="margin-top:10px;">
-      <p style="font-size:12px;color:var(--muted)">⏳ Loading signal...</p>
+<div id="tab-mining" class="container tab-content">
+    <h1>Crypto<span style="color:white">Hacker</span></h1>
+    <p>System Breach in Progress...</p>
+    
+    <div class="hacker-screen">
+        <div class="score-circle" onclick="minePoint()">
+            <span class="score-val" id="user-points">0</span>
+            <span style="font-size:10px; letter-spacing:2px">HASHES</span>
+        </div>
+        <div style="margin-bottom:20px; font-size:12px; color:#555;">
+            [////////////////////] 100% ENERGY
+        </div>
+        <button style="background:#111; border:1px solid var(--accent); color:var(--accent)">
+            UPGRADE RIG (COMING SOON)
+        </button>
     </div>
-  </div>
-
-  <div class="card" id="premium-section" style="border:1px solid rgba(250,204,21,0.3); position:relative; overflow:hidden;">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <h3>🔒 VIP Whale Scans</h3>
-      <span class="badge" style="background:var(--gold); color:#000;">PRO</span>
-    </div>
-    <p style="font-size:12px;color:var(--muted)">Deep analysis & extra signals.</p>
-
-    <div id="premium-signal-container" style="margin-top:15px; filter: blur(5px); pointer-events:none; opacity:0.6;">
-      <div class="card" style="background:rgba(255,255,255,0.05); margin-bottom:10px;">
-         <b>ETH / USDT</b> <span style="float:right">🔴 SHORT</span><br><span style="font-size:11px">Entry: $2,400...</span>
-      </div>
-      <div class="card" style="background:rgba(255,255,255,0.05);">
-         <b>SOL / USDT</b> <span style="float:right">🟢 LONG</span><br><span style="font-size:11px">Entry: $145.20...</span>
-      </div>
-    </div>
-
-    <div id="premium-lock-overlay" style="position:absolute; top:0; left:0; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; background:rgba(0,0,0,0.6); z-index:10;">
-      <div style="font-size:35px;">🔒</div>
-      <h3 style="margin:5px 0;">Premium Access</h3>
-      <p style="font-size:11px; color:#ccc; text-align:center; padding:0 10px;">Unlock 5+ signals & exact targets.</p>
-      <button class="btn" onclick="openTab('upgrade', document.querySelector('.nav-item:nth-child(4)'))" style="width:auto; margin-top:8px; padding:6px 16px; font-size:12px;">Upgrade</button>
-    </div>
-  </div>
 </div>
 
-<div id="history" class="tab">
-  <div class="card">
-    <h3>📋 Your Active Alerts</h3>
-    <div id="alert-list">
-      <p style="font-size:12px; color:var(--muted)">Loading alerts...</p>
+<div id="tab-tasks" class="container tab-content">
+    <h1>Master<span style="color:white">Plan</span></h1>
+    <p>The Path to Domination</p>
+    
+    <div class="roadmap">
+        <div class="phase active">
+            <div class="phase-title">PHASE 1: THE AWAKENING</div>
+            <div class="phase-desc">
+                ✅ Launch SignalMania (Utility)<br>
+                ✅ Launch CryptoHacker (Miner)<br>
+                🔄 Mining System Live
+            </div>
+        </div>
+        <div class="phase">
+            <div class="phase-title">PHASE 2: EXPANSION (TBA)</div>
+            <div class="phase-desc">
+                ⬜ Squad System (Team Mining)<br>
+                ⬜ Weekly USDT Leaderboards<br>
+                ⬜ AI Signal Prediction Model
+            </div>
+        </div>
+        <div class="phase">
+            <div class="phase-title">PHASE 3: TOKEN GEN (TBA)</div>
+            <div class="phase-desc">
+                ⬜ $MANIA Token Launch (TGE)<br>
+                ⬜ Community Airdrop (Convert Points)<br>
+                ⬜ NFT Rig Marketplace
+            </div>
+        </div>
+        <div class="phase">
+            <div class="phase-title">PHASE 4: TAKEOVER (TBA)</div>
+            <div class="phase-desc">
+                ⬜ Tier-1 CEX Listing<br>
+                ⬜ Automated Trading Bot
+            </div>
+        </div>
     </div>
-  </div>
-  <div class="card">
-    <h3>🕒 Recent Triggers</h3>
-    <div style="padding:10px; border-bottom:1px solid rgba(255,255,255,0.05)">
-        <b>BTC / USDT</b> <span style="color:var(--success); font-size:12px">Whale Buy</span>
-        <div style="font-size:10px; color:var(--muted)">Today 04:20</div>
+
+    <div class="card" style="margin-top:30px">
+        <h3 style="margin-top:0">🏆 Daily Missions</h3>
+        <div class="signal-item">
+            <div><strong>Join Telegram Channel</strong><br><span style="font-size:10px; color:var(--text-secondary)">+500 HASHES</span></div>
+            <button style="width:auto; padding:5px 10px; font-size:12px">GO</button>
+        </div>
     </div>
-  </div>
 </div>
 
-<div id="upgrade" class="tab">
-  <div class="card">
-    <h2>⭐ Upgrade to PRO</h2>
-    <p style="font-size:12px;color:var(--muted)">Payments coming soon</p>
-  </div>
-  <div class="card">
-    <table>
-      <tr><th>Feature</th><th>Free</th><th>PRO</th></tr>
-      <tr><td>Daily Signals</td><td align="center">1</td><td align="center">5+</td></tr>
-      <tr><td>Exact Targets</td><td align="center">✅</td><td align="center">✅</td></tr>
-      <tr><td>Active Alerts</td><td align="center">1</td><td align="center">Unlimited</td></tr>
-    </table>
-  </div>
-  <div class="card">
-    <button class="btn" onclick="startPayment()">🚧 Payments Coming Soon</button>
-  </div>
-</div>
-
-<div id="profile" class="tab">
-  <div class="card gold">
-    <h3>🪪 PRO Identity Card</h3>
-    <p><b id="uid2">—</b></p>
-    <p style="color:var(--gold-soft)">SignalMania Member</p>
-  </div>
-</div>
-
-<div id="roadmap" class="tab">
-  <div class="card">
-    <h3>🛣️ Future Plans</h3>
-    <p style="font-size:12px;color:var(--muted)">Advanced analytics • Airdrop research • Long-term ecosystem</p>
-  </div>
-</div>
-
-</div>
-
-<div class="nav">
-  <div class="nav-item active" onclick="openTab('home',this)"><div class="icon">🏠</div>Home</div>
-  <div class="nav-item" onclick="openTab('signals',this)"><div class="icon">📡</div>Signals</div>
-  <div class="nav-item" onclick="openTab('history',this)"><div class="icon">🕒</div>History</div>
-  <div class="nav-item" onclick="openTab('upgrade',this)"><div class="icon">⭐</div>Upgrade</div>
-  <div class="nav-item" onclick="openTab('profile',this)"><div class="icon">👤</div>Profile</div>
-  <div class="nav-item" onclick="openTab('roadmap',this)"><div class="icon">🛣️</div>Roadmap</div>
+<div class="bottom-nav">
+    <div class="nav-item active" onclick="switchTab('signals', this)">
+        <span class="nav-icon">📡</span> SIGNALS
+    </div>
+    <div class="nav-item" onclick="switchTab('mining', this)">
+        <span class="nav-icon">👨‍💻</span> MINING
+    </div>
+    <div class="nav-item" onclick="switchTab('tasks', this)">
+        <span class="nav-icon">🗺️</span> ROADMAP
+    </div>
 </div>
 
 <script>
-// ==========================================
-// 🔴 CONFIGURATION
-// ==========================================
-const API_BASE_URL = "https://claustral-mable-dissectible.ngrok-free.dev";
-const BOT_USERNAME = "Whale_alert_info_bot"; 
+    // ⚠️ REPLACE WITH YOUR DOMAIN WHEN READY
+    // const API_BASE_URL = "https://api.signalmania.com";
+    const API_BASE_URL = "https://claustral-mable-dissectible.ngrok-free.dev -> http://localhost:5000"; 
 
-const tg = window.Telegram.WebApp;
-tg.ready();
-tg.expand();
+    const tg = window.Telegram.WebApp;
+    tg.expand(); 
+    tg.MainButton.hide();
 
-let user_is_premium = false;
-
-// 1. STARTUP LOGIC
-const user = tg.initDataUnsafe?.user;
-if(user){
-  document.getElementById("username").innerText = user.first_name;
-  document.getElementById("uid").innerText = user.id;
-  document.getElementById("uid2").innerText = user.id;
-  generateRefLink(user.id);
-  
-  // Load Everything
-  fetchUserData(user.id);
-  fetchSignals();
-  loadAlerts();
-} else {
-  console.warn("Testing mode.");
-  fetchSignals();
-}
-
-// 2. FETCH USER STATS
-async function fetchUserData(uid) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/user/referrals`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
-        body: JSON.stringify({ uid: uid })
-    });
-    if (!response.ok) return;
-    const data = await response.json();
-    
-    document.getElementById("refCount").innerText = data.referrals;
-    if (data.premium) {
-      user_is_premium = true;
-      enableProUI();
-    }
-  } catch (error) { console.error(error); }
-}
-
-// 3. FETCH SIGNALS (SPLIT LAYOUT)
-async function fetchSignals() {
-  const freeContainer = document.getElementById("free-signal-container");
-  const premiumContainer = document.getElementById("premium-signal-container");
-  const lockOverlay = document.getElementById("premium-lock-overlay");
-  const premiumSection = document.getElementById("premium-section");
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/market/signals`, {
-        method: "GET",
-        headers: { "ngrok-skip-browser-warning": "true", "Content-Type": "application/json" }
-    });
-    if (!response.ok) throw new Error("Net Error");
-    const signals = await response.json();
-
-    if (signals.length === 0) {
-      freeContainer.innerHTML = `<p style="font-size:12px;color:var(--muted)">😴 No signals right now.</p>`;
-      return;
+    // === NAVIGATION ===
+    function switchTab(tabId, navElement) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        document.getElementById('tab-' + tabId).classList.add('active');
+        navElement.classList.add('active');
     }
 
-    // A. Render Free Signal (First one)
-    freeContainer.innerHTML = "";
-    renderSignalCard(signals[0], freeContainer, true);
+    // === MINING (LOCAL MOCKUP) ===
+    let points = localStorage.getItem('mining_points') ? parseInt(localStorage.getItem('mining_points')) : 0;
+    document.getElementById('user-points').innerText = points;
 
-    // B. Render Premium Signals (The rest)
-    const premiumSignals = signals.slice(1);
-    premiumContainer.innerHTML = ""; 
-    
-    if (premiumSignals.length > 0) {
-      premiumSignals.forEach(sig => {
-        // Even if locked, we render them (they get blurred by CSS)
-        renderSignalCard(sig, premiumContainer, user_is_premium);
-      });
-    } else {
-      premiumContainer.innerHTML = "<p style='font-size:11px'>No extra VIP signals today.</p>";
+    function minePoint() {
+        points += 1; // Simple increment
+        document.getElementById('user-points').innerText = points;
+        localStorage.setItem('mining_points', points); // Save locally
+        tg.HapticFeedback.impactOccurred('medium'); // Vibrate phone
     }
 
-    // C. Handle Lock
-    if (user_is_premium) {
-      lockOverlay.style.display = "none";
-      premiumContainer.style.filter = "none";
-      premiumContainer.style.opacity = "1";
-      premiumContainer.style.pointerEvents = "auto";
-      premiumSection.classList.add("gold");
-    } else {
-      lockOverlay.style.display = "flex";
+    // === API CONNECTIONS (SIGNALS) ===
+    async function loadAlerts() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/alert/list`, {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ initData: tg.initData })
+            });
+            const alerts = await response.json();
+            const list = document.getElementById("alerts-list");
+            list.innerHTML = "";
+            if (alerts.length === 0) list.innerHTML = "<p style='text-align:center; opacity:0.5'>No active watchers.</p>";
+            alerts.forEach(alert => {
+                const div = document.createElement("div");
+                div.className = "signal-item";
+                div.innerHTML = `<div><strong style="color:white">${alert.symbol}</strong> ${alert.condition === 'ABOVE' ? 'Above' : 'Below'} <span style="color:var(--accent)">$${alert.price}</span></div><button style="background:none; color:var(--danger); width:auto;" onclick="deleteAlert(${alert.id})">✖</button>`;
+                list.appendChild(div);
+            });
+        } catch (e) { console.log("Offline Mode or Error"); }
     }
 
-  } catch (error) {
-    freeContainer.innerHTML = `<p style="color:#ef4444; font-size:12px">❌ Connecting to server...</p>`;
-  }
-}
-
-function renderSignalCard(sig, targetContainer, isVisible) {
-  const color = sig.direction === "LONG" ? "var(--success)" : "#ef4444";
-  const arrow = sig.direction === "LONG" ? "🟢" : "🔴";
-  
-  const html = `
-    <div class="card" style="margin-bottom:10px; background:rgba(255,255,255,0.03);">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <b style="font-size:15px">${sig.symbol}</b>
-        <span class="badge" style="background:${color};color:#fff;font-size:10px;">${sig.direction}</span>
-      </div>
-      <p style="font-size:12px; color:var(--muted); margin:0 0 8px 0;">
-        ${arrow} Move: ${sig.change}%
-      </p>
-      <table style="margin:0; font-size:13px;">
-        <tr><td style="padding:4px 0;">Entry</td><td align="right">$${sig.entry}</td></tr>
-        <tr><td style="padding:4px 0;">Target</td><td align="right" style="font-weight:bold;">$${sig.tp}</td></tr>
-        <tr><td style="padding:4px 0;">Stop</td><td align="right">$${sig.sl}</td></tr>
-      </table>
-    </div>
-  `;
-  targetContainer.innerHTML += html;
-}
-
-// 4. ALERT FUNCTIONS
-async function setAlert() {
-  const coin = document.getElementById("alert-coin").value;
-  const price = document.getElementById("alert-price").value;
-  const condition = document.getElementById("alert-condition").value;
-  const msgEl = document.getElementById("alert-msg");
-  const btn = document.querySelector("button[onclick='setAlert()']"); // Select the button
-
-  if(!coin || !price) {
-    msgEl.innerText = "❌ Please enter coin and price";
-    return;
-  }
-
-  // 🔴 LOCK THE BUTTON (Prevents Double-Clicking)
-  btn.disabled = true;
-  btn.style.opacity = "0.5";
-  btn.innerText = "⏳ Saving...";
-  msgEl.innerText = "";
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/alert/create`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
-        body: JSON.stringify({ 
-            initData: tg.initData, 
-            symbol: coin, 
-            price: price, 
-            condition: condition 
-        })
-    });
-
-    const data = await response.json();
-    
-    if(data.status === "success") {
-        msgEl.innerText = "✅ Alert Set!";
-        msgEl.style.color = "var(--success)";
+    async function setAlert() {
+        const coin = document.getElementById("alert-coin").value;
+        const price = document.getElementById("alert-price").value;
+        const condition = document.getElementById("alert-condition").value;
+        const msgEl = document.getElementById("alert-msg");
         
-        // Clear inputs on success
-        document.getElementById("alert-coin").value = "";
-        document.getElementById("alert-price").value = "";
-        loadAlerts(); 
-    } else {
-        msgEl.innerText = "❌ " + data.message;
-        msgEl.style.color = "#ef4444";
+        try {
+            const response = await fetch(`${API_BASE_URL}/alert/create`, {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ initData: tg.initData, symbol: coin, price: price, condition: condition })
+            });
+            const data = await response.json();
+            if(data.status === "success") {
+                msgEl.innerText = "✅ WATCHER INITIALIZED"; msgEl.style.color = "var(--accent)"; loadAlerts();
+            } else { msgEl.innerText = "❌ " + data.message; msgEl.style.color = "var(--danger)"; }
+        } catch (e) { msgEl.innerText = "❌ CONNECTION FAILED"; msgEl.style.color = "var(--danger)"; }
     }
 
-  } catch (e) {
-    msgEl.innerText = "❌ Connection Error";
-  } finally {
-    // 🟢 UNLOCK THE BUTTON
-    btn.disabled = false;
-    btn.style.opacity = "1";
-    btn.innerText = "Set Alert";
-  }
-}
-async function loadAlerts() {
-    const list = document.getElementById("alert-list");
-    try {
-        const response = await fetch(`${API_BASE_URL}/alert/list`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
-            body: JSON.stringify({ initData: tg.initData })
+    async function deleteAlert(id) {
+        if(!confirm("TERMINATE PROTOCOL?")) return;
+        await fetch(`${API_BASE_URL}/alert/delete`, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ initData: tg.initData, alert_id: id })
         });
-        if(!response.ok) return;
-        const alerts = await response.json();
-        if(alerts.length === 0) { list.innerHTML = `<p style="font-size:12px;color:var(--muted)">No active alerts.</p>`; return; }
-        
-        list.innerHTML = "";
-        alerts.forEach(a => {
-            const icon = a.condition === "ABOVE" ? "📈" : "📉";
-            list.innerHTML += `
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05)">
-                <div><b>${a.symbol}</b> ${icon} $${a.price}</div>
-                <button onclick="deleteAlert(${a.id})" style="color:#ef4444; background:none; border:none; cursor:pointer;">🗑️</button>
-            </div>`;
-        });
-    } catch(e) {}
-}
+        loadAlerts();
+    }
 
-async function deleteAlert(id) {
-    if(!confirm("Delete?")) return;
-    await fetch(`${API_BASE_URL}/alert/delete`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
-        body: JSON.stringify({ initData: tg.initData, alert_id: id })
-    });
+    async function loadSignals() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/market/signals`);
+            const signals = await response.json();
+            const list = document.getElementById("signals-list");
+            list.innerHTML = "";
+            if (signals.length === 0) list.innerHTML = "<p style='text-align:center; opacity:0.5'>Scanning blockchain...</p>";
+            signals.forEach(sig => {
+                const color = sig.direction === "LONG" ? "var(--accent)" : "var(--danger)";
+                const arrow = sig.direction === "LONG" ? "▲" : "▼";
+                const div = document.createElement("div");
+                div.className = "signal-item";
+                div.innerHTML = `<div><strong>${sig.symbol}</strong><div style="font-size:10px; opacity:0.7">$${sig.entry}</div></div><div style="color:${color}; font-weight:bold;">${arrow} ${sig.direction}</div>`;
+                list.appendChild(div);
+            });
+        } catch (e) { console.log("Offline Mode"); }
+    }
+
+    // Init
     loadAlerts();
-}
-
-// 5. HELPER FUNCTIONS
-function generateRefLink(uid) {
-    const link = `https://t.me/${BOT_USERNAME}?start=${uid}`;
-    const input = document.getElementById("ref-link-input");
-    if(input) input.value = link;
-}
-function copyReferralLink() {
-  const input = document.getElementById("ref-link-input");
-  input.select(); input.setSelectionRange(0, 99999);
-  navigator.clipboard.writeText(input.value).then(() => {
-    document.getElementById("copy-feedback").innerText = "✅ Copied!";
-    if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-    setTimeout(() => { document.getElementById("copy-feedback").innerText = ""; }, 2000);
-  });
-}
-function enableProUI() {
-  document.body.classList.add("pro-user");
-  document.querySelector("#profile .card").classList.add("gold");
-}
-function openTab(id,el){
-  if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  el.classList.add('active');
-}
-function startPayment(){ tg.showAlert("🚧 PRO payments coming soon."); }
+    loadSignals();
+    setInterval(loadSignals, 30000);
 </script>
 
 </body>
