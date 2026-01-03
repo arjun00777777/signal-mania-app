@@ -382,26 +382,55 @@ async function setAlert() {
   const price = document.getElementById("alert-price").value;
   const condition = document.getElementById("alert-condition").value;
   const msgEl = document.getElementById("alert-msg");
+  const btn = document.querySelector("button[onclick='setAlert()']"); // Select the button
 
-  if(!coin || !price) { msgEl.innerText = "❌ Enter coin & price"; return; }
-  msgEl.innerText = "⏳ Saving...";
+  if(!coin || !price) {
+    msgEl.innerText = "❌ Please enter coin and price";
+    return;
+  }
+
+  // 🔴 LOCK THE BUTTON (Prevents Double-Clicking)
+  btn.disabled = true;
+  btn.style.opacity = "0.5";
+  btn.innerText = "⏳ Saving...";
+  msgEl.innerText = "";
 
   try {
     const response = await fetch(`${API_BASE_URL}/alert/create`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
-        body: JSON.stringify({ initData: tg.initData, symbol: coin, price: price, condition: condition })
+        body: JSON.stringify({ 
+            initData: tg.initData, 
+            symbol: coin, 
+            price: price, 
+            condition: condition 
+        })
     });
-    const data = await response.json();
-    if(data.status === "success") {
-        msgEl.innerText = "✅ Saved!"; msgEl.style.color = "var(--success)";
-        loadAlerts();
-    } else {
-        msgEl.innerText = "❌ " + (data.message || "Error"); msgEl.style.color = "#ef4444";
-    }
-  } catch (e) { msgEl.innerText = "❌ Server updating..."; }
-}
 
+    const data = await response.json();
+    
+    if(data.status === "success") {
+        msgEl.innerText = "✅ Alert Set!";
+        msgEl.style.color = "var(--success)";
+        
+        // Clear inputs on success
+        document.getElementById("alert-coin").value = "";
+        document.getElementById("alert-price").value = "";
+        loadAlerts(); 
+    } else {
+        msgEl.innerText = "❌ " + data.message;
+        msgEl.style.color = "#ef4444";
+    }
+
+  } catch (e) {
+    msgEl.innerText = "❌ Connection Error";
+  } finally {
+    // 🟢 UNLOCK THE BUTTON
+    btn.disabled = false;
+    btn.style.opacity = "1";
+    btn.innerText = "Set Alert";
+  }
+}
 async function loadAlerts() {
     const list = document.getElementById("alert-list");
     try {
