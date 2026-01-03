@@ -159,6 +159,7 @@
         input, select { background: #000; border: 1px solid #333; color: var(--accent); padding: 12px; width: 100%; border-radius: 4px; box-sizing: border-box; }
         button.action-btn { background-color: var(--accent); color: black; border: none; padding: 14px; width: 100%; font-weight: 900; cursor: pointer; text-transform: uppercase; border-radius: 4px; }
         button.action-btn:active { transform: scale(0.98); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
 
         /* Bottom Nav */
         .bottom-nav {
@@ -187,7 +188,7 @@
     <div class="card">
         <h3 style="margin-top:0">📡 Active Watchers</h3>
         <div id="alerts-list">
-            <p style="text-align:center; opacity:0.5; font-size:12px;">Waiting for protocols...</p>
+            <p style="text-align:center; opacity:0.5; font-size:12px;">Loading watchers...</p>
         </div>
     </div>
 
@@ -251,8 +252,8 @@
 
         <div class="card" style="margin-top:20px;">
             <h3 style="margin-top:0">Upgrades</h3>
-            <button class="action-btn" style="margin-bottom:10px" onclick="buyPack('time')">🕒 +5m (50 SP)</button>
-            <button class="action-btn" onclick="buyPack('boost')">🚀 x1.5 (100 SP)</button>
+            <button class="action-btn" style="margin-bottom:10px" onclick="buyPack('time')">🕒 +5m (50 HASHES)</button>
+            <button class="action-btn" onclick="buyPack('boost')">🚀 x1.5 (100 HASHES)</button>
         </div>
     </div>
 </div>
@@ -315,7 +316,7 @@
     <div class="card">
         <h3 style="margin-top:0">Daily Missions</h3>
         <p>Complete a 5-min mining session</p>
-        <button class="action-btn" onclick="completeMission()">Claim Reward</button>
+        <button class="action-btn" onclick="completeMission()">Claim Reward (+100 Hashes)</button>
         
         <h3 style="margin-top:20px">Streak</h3>
         <p id="streak-display">Current Streak: 🔥 0 Days</p>
@@ -331,7 +332,6 @@
 
 <script>
     // === ⚙️ CONFIGURATION ===
-    // YOUR NGROK URL HERE
     const API_BASE_URL = "https://claustral-mable-dissectible.ngrok-free.dev"; 
     const BOT_USERNAME = "Whale_alert_info_bot"; 
 
@@ -346,17 +346,16 @@
     let isAutoMining = false;
     let miningInterval;
     let miningTime = 0;
-    let MAX_MINING_TIME = 300;
+    let MAX_MINING_TIME = 300; // default 5 mins
 
     // === 🚀 INIT APP ===
     function initApp() {
         if (user) {
             document.getElementById('user-name').innerText = user.first_name;
             if (user.photo_url) document.getElementById('user-pic').src = user.photo_url;
-            
-            // Stats
             document.getElementById('ref-link-hidden').value = `https://t.me/${BOT_USERNAME}?start=ref_${user.id}`;
             fetchStats();
+            loadAlerts(); // Load watchlist on start
         }
         updateDisplay();
     }
@@ -364,28 +363,26 @@
     // === 📡 API CALLS ===
     async function fetchStats() {
         try {
+            // Referrals
             const res = await fetch(`${API_BASE_URL}/user/referrals`, {
                 method: "POST",
-                headers: { 
-                    "Content-Type": "application/json",
-                    "ngrok-skip-browser-warning": "true"
-                },
+                headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
                 body: JSON.stringify({ uid: user.id })
             });
             const data = await res.json();
             document.getElementById('referral-count').innerText = data.referrals || 0;
             
-            // Get Real Mining Stats (Using Mock Endpoint for now)
+            // Mining Stats
             const mineRes = await fetch(`${API_BASE_URL}/user/mining/stats`, {
                 method: "POST",
-                headers: { 
-                    "Content-Type": "application/json",
-                    "ngrok-skip-browser-warning": "true"
-                },
+                headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
                 body: JSON.stringify({ initData: tg.initData })
             });
             const mineData = await mineRes.json();
             miningPoints = mineData.sp || 0;
+            // Update Level / Max Time
+            if (mineData.max_time) MAX_MINING_TIME = mineData.max_time;
+            
             updateDisplay();
         } catch (e) { console.error("API Error", e); }
     }
@@ -425,7 +422,7 @@
 
     // === 👨‍💻 MINING LOGIC ===
     function minePoint(event) {
-        if(isAutoMining) return; // Disable tapping during auto-mine
+        if(isAutoMining) return;
         miningPoints++;
         updateDisplay();
         tg.HapticFeedback.impactOccurred('light');
@@ -451,38 +448,110 @@
         }, 1000);
     }
 
-    function finishMining() {
+    async function finishMining() {
         isAutoMining = false;
         miningTime = 0;
-        miningPoints += 100; // Reward
-        updateDisplay();
+        
         document.getElementById('auto-mine-btn').disabled = false;
         document.getElementById('auto-mine-btn').innerText = "START AUTO-MINER";
-        document.getElementById('mining-status-text').innerText = "SESSION COMPLETE (+100 SP)";
-        tg.HapticFeedback.notificationOccurred('success');
+        document.getElementById('mining-status-text').innerText = "SAVING PROGRESS...";
+        
+        try {
+            const res = await fetch(`${API_BASE_URL}/user/mining/complete`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
+                body: JSON.stringify({ initData: tg.initData })
+            });
+            
+            const data = await res.json();
+            if(data.status === "success") {
+                miningPoints = data.new_sp;
+                updateDisplay();
+                document.getElementById('mining-status-text').innerText = "SESSION COMPLETE (+100 SP)";
+                tg.HapticFeedback.notificationOccurred('success');
+            }
+        } catch(e) {
+            document.getElementById('mining-status-text').innerText = "ERROR SAVING";
+        }
     }
 
-    function updateDisplay() {
-        document.getElementById('mining-points-display').innerText = miningPoints.toLocaleString();
-        document.getElementById('total-hashes').innerText = miningPoints.toLocaleString();
+    // === 💾 AUTO-SAVE ===
+    async function syncPoints() {
+        if(miningPoints === 0) return;
+        try {
+            await fetch(`${API_BASE_URL}/user/mining/sync`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
+                body: JSON.stringify({ initData: tg.initData, sp: miningPoints })
+            });
+        } catch (e) { console.error("Sync Failed"); }
     }
+    // Auto-save every 5s
+    setInterval(syncPoints, 5000);
 
-    function spawnParticle(event) {
-        const circle = document.getElementById('mining-btn');
-        const particle = document.createElement('div');
-        particle.className = 'particle';
-        particle.innerText = '+1';
-        const rect = circle.getBoundingClientRect();
-        // If clicked, use click pos. If auto, use center.
-        const x = event ? event.clientX - rect.left : 100;
-        const y = event ? event.clientY - rect.top : 100;
-        particle.style.left = x + 'px';
-        particle.style.top = y + 'px';
-        circle.appendChild(particle);
-        setTimeout(() => particle.remove(), 800);
+    // === 🛒 SHOP ===
+    async function buyPack(type) {
+        await syncPoints(); // Force save first
+
+        let cost = type === 'time' ? 50 : 100;
+        if (miningPoints < cost) {
+            tg.showAlert(`Not enough Hashes! You need ${cost}.`);
+            return;
+        }
+
+        const btn = event.target;
+        btn.innerText = "PURCHASING...";
+        btn.disabled = true;
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/user/mining/upgrade`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
+                body: JSON.stringify({ initData: tg.initData, pack: type })
+            });
+            const data = await res.json();
+
+            if (data.status === "success") {
+                miningPoints = data.new_sp;
+                if(data.new_max_time) MAX_MINING_TIME = data.new_max_time;
+                updateDisplay();
+                tg.showPopup({ title: "UPGRADE SUCCESS", message: `Level Up! Max Time: ${MAX_MINING_TIME}s` });
+            } else {
+                tg.showAlert(data.message);
+            }
+        } catch (e) { tg.showAlert("Connection Error"); } 
+        finally { btn.disabled = false; btn.innerText = (type==='time') ? "🕒 +5m (50 HASHES)" : "🚀 x1.5 (100 HASHES)"; }
     }
 
     // === ➕ ALERTS ===
+    async function loadAlerts() {
+        try {
+            const res = await fetch(`${API_BASE_URL}/alert/list`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
+                body: JSON.stringify({ initData: tg.initData })
+            });
+            const alerts = await res.json();
+            const list = document.getElementById("alerts-list");
+            list.innerHTML = "";
+            
+            if (!alerts || alerts.length === 0) {
+                list.innerHTML = "<p style='text-align:center; opacity:0.5; font-size:12px;'>No active watchers.</p>";
+                return;
+            }
+
+            alerts.forEach(a => {
+                const div = document.createElement("div");
+                div.style.cssText = "display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #333; font-size:12px;";
+                div.innerHTML = `
+                    <span>${a.symbol} ${a.condition === 'ABOVE' ? '>' : '<'} $${a.price}</span>
+                    <button onclick="deleteAlert(${a.id})" style="background:var(--danger); border:none; color:white; border-radius:4px; cursor:pointer;">DEL</button>
+                `;
+                list.appendChild(div);
+            });
+        } catch(e) {}
+    }
+
     async function setAlert() {
         const coin = document.getElementById("alert-coin").value;
         const price = document.getElementById("alert-price").value;
@@ -492,29 +561,36 @@
         try {
             const response = await fetch(`${API_BASE_URL}/alert/create`, {
                 method: "POST", 
-                headers: { 
-                    "Content-Type": "application/json",
-                    "ngrok-skip-browser-warning": "true"
-                },
+                headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
                 body: JSON.stringify({ initData: tg.initData, symbol: coin, price: price, condition: cond })
             });
             const data = await response.json();
             msgEl.innerText = data.status === "success" ? "✅ DEPLOYED" : "❌ " + data.message;
-            if(data.status==="success") msgEl.style.color = "var(--accent)";
+            msgEl.style.color = data.status==="success" ? "var(--accent)" : "var(--danger)";
+            if(data.status==="success") loadAlerts(); // Refresh list
         } catch (e) { msgEl.innerText = "❌ ERROR"; }
+    }
+
+    async function deleteAlert(id) {
+        if(!confirm("Delete this watcher?")) return;
+        await fetch(`${API_BASE_URL}/alert/delete`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
+            body: JSON.stringify({ initData: tg.initData, alert_id: id })
+        });
+        loadAlerts();
     }
 
     // === 💰 SIMULATOR ===
     async function simulatePortfolio() {
         const asset = document.getElementById("sim-asset").value;
         const amount = document.getElementById("sim-amount").value;
+        if(!asset || !amount) return; 
+
         try {
             const res = await fetch(`${API_BASE_URL}/user/portfolio/simulate`, {
                 method: "POST", 
-                headers: { 
-                    "Content-Type": "application/json",
-                    "ngrok-skip-browser-warning": "true"
-                },
+                headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
                 body: JSON.stringify({ initData: tg.initData, asset: asset, amount: amount })
             });
             const data = await res.json();
@@ -524,55 +600,30 @@
         } catch(e) {}
     }
 
-    // === 🛒 SHOP LOGIC ===
-    async function buyPack(type) {
-        // Optimistic check
-        let cost = type === 'time' ? 50 : 100;
-        if (miningPoints < cost) {
-            tg.showAlert(`Not enough SP! You need ${cost}.`);
-            return;
-        }
-
-        const btn = event.target; // Get the button that was clicked
+    // === 🎁 DAILY CLAIM ===
+    async function completeMission() {
+        const btn = event.target;
         const originalText = btn.innerText;
-        btn.innerText = "PURCHASING...";
-        btn.disabled = true;
-
+        btn.innerText = "CLAIMING...";
+        
         try {
-            const res = await fetch(`${API_BASE_URL}/user/mining/upgrade`, {
+            const res = await fetch(`${API_BASE_URL}/user/daily_claim`, {
                 method: "POST",
-                headers: { 
-                    "Content-Type": "application/json",
-                    "ngrok-skip-browser-warning": "true"
-                },
-                body: JSON.stringify({ initData: tg.initData, pack: type })
+                headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
+                body: JSON.stringify({ initData: tg.initData })
             });
-
             const data = await res.json();
-
-            if (data.status === "success") {
+            if(data.status === "success") {
                 miningPoints = data.new_sp;
-                updateDisplay(); // Update the UI score immediately
-                
-                // Update Max Time if level changed
-                if(data.new_max_time) {
-                    // Update global variable (you need to make sure MAX_MINING_TIME is not 'const')
-                    // For now, we will just alert success
-                }
-                
-                tg.showPopup({ title: "UPGRADE SUCCESS", message: `Level Up! You are now Level ${data.new_level}.` });
-                tg.HapticFeedback.notificationOccurred('success');
+                updateDisplay();
+                btn.innerText = "CLAIMED ✅";
+                btn.disabled = true;
+                tg.showPopup({ message: data.message });
             } else {
-                tg.showAlert(data.message);
-                tg.HapticFeedback.notificationOccurred('error');
+                btn.innerText = originalText;
+                tg.showAlert("Already claimed or error.");
             }
-        } catch (e) {
-            console.error(e);
-            tg.showAlert("Connection Error");
-        } finally {
-            btn.innerText = originalText;
-            btn.disabled = false;
-        }
+        } catch(e) { btn.innerText = "ERROR"; }
     }
 
     // === 🖇️ UTILS ===
@@ -591,10 +642,29 @@
         navElement.classList.add('active');
     }
 
+    function updateDisplay() {
+        document.getElementById('mining-points-display').innerText = Math.floor(miningPoints).toLocaleString();
+        document.getElementById('total-hashes').innerText = Math.floor(miningPoints).toLocaleString();
+    }
+
+    function spawnParticle(event) {
+        const circle = document.getElementById('mining-btn');
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.innerText = '+1';
+        const rect = circle.getBoundingClientRect();
+        const x = event ? event.clientX - rect.left : 100;
+        const y = event ? event.clientY - rect.top : 100;
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        circle.appendChild(particle);
+        setTimeout(() => particle.remove(), 800);
+    }
+
     // === START ===
     initApp();
     loadSignals();
-    setInterval(loadSignals, 30000); // Refresh signals every 30s
+    setInterval(loadSignals, 30000);
 </script>
 </body>
 </html>
