@@ -313,14 +313,17 @@
         <input type="text" id="ref-link-hidden" style="position:absolute; left:-9999px;">
     </div>
 
-    <div class="card">
-        <h3 style="margin-top:0">Daily Missions</h3>
-        <p>Complete a 5-min mining session</p>
-        <button class="action-btn" onclick="completeMission()">Claim Reward (+100 Hashes)</button>
-        
-        <h3 style="margin-top:20px">Streak</h3>
-        <p id="streak-display">Current Streak: 🔥 0 Days</p>
-    </div>
+   <div class="card">
+    <h3 style="margin-top:0">Daily Missions</h3>
+    <p>Complete a 5-min mining session</p>
+    
+    <button id="claim-btn" class="action-btn" onclick="completeMission()" disabled style="opacity:0.5; cursor:not-allowed;">
+        🔒 Locked (Mine First)
+    </button>
+    
+    <h3 style="margin-top:20px">Streak</h3>
+    <p id="streak-display">Current Streak: 🔥 0 Days</p>
+</div>
 </div>
 
 <div class="bottom-nav">
@@ -452,9 +455,15 @@
         isAutoMining = false;
         miningTime = 0;
         
+        // UNLOCK THE CLAIM BUTTON HERE
+        document.getElementById('claim-btn').disabled = false;
+        document.getElementById('claim-btn').style.opacity = "1";
+        document.getElementById('claim-btn').style.cursor = "pointer";
+        document.getElementById('claim-btn').innerText = "🎁 CLAIM REWARD (+100)";
+        
         document.getElementById('auto-mine-btn').disabled = false;
         document.getElementById('auto-mine-btn').innerText = "START AUTO-MINER";
-        document.getElementById('mining-status-text').innerText = "SAVING PROGRESS...";
+        // ... rest of the saving logic ...
         
         try {
             const res = await fetch(`${API_BASE_URL}/user/mining/complete`, {
