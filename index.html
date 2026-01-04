@@ -177,7 +177,9 @@ input,select{
       <b>Join Telegram Channel</b>
       <p class="small">+50 SP</p>
     </div>
-    <button class="btn secondary" onclick="completeTask(this)">Do</button>
+   <button class="btn secondary"
+onclick="completeTask(this,'join_tg',50)">Do</button>
+
   </div>
 
   <div class="task">
@@ -185,7 +187,9 @@ input,select{
       <b>Follow X (Twitter)</b>
       <p class="small">+50 SP</p>
     </div>
-    <button class="btn secondary" onclick="completeTask(this)">Do</button>
+   <button class="btn secondary"
+onclick="completeTask(this,'join_tg',50)">Do</button>
+
   </div>
 
   <div class="task">
@@ -193,7 +197,9 @@ input,select{
       <b>Invite a Friend</b>
       <p class="small">+100 SP</p>
     </div>
-    <button class="btn secondary" onclick="completeTask(this)">Do</button>
+   <button class="btn secondary"
+onclick="completeTask(this,'join_tg',50)">Do</button>
+</button>
   </div>
 </div>
 
@@ -322,31 +328,31 @@ function startTimer(sec){
 
 async function loadSignals(){
   const list = document.getElementById("signalsList");
-  list.innerHTML = `<p class="small">Loading whale activity...</p>`;
+  list.innerHTML = "<p class='small'>Loading whales…</p>";
 
   try {
-    const r = await fetch(`${API_BASE}/market/signals`);
+    const r = await fetch(`${API_BASE}/market/signals`, { cache: "no-store" });
     const d = await r.json();
 
     if (!d || d.length === 0) {
-      list.innerHTML = `<p class="small">No whale data yet. Please refresh.</p>`;
+      list.innerHTML = "<p class='small'>No whale data yet</p>";
       return;
     }
 
     list.innerHTML = d.map(x => `
       <div class="signal">
         <b>${x.symbol}</b><br>
-        $${x.price.toLocaleString()} 
+        $${x.price}
         <span style="color:${x.change >= 0 ? '#00f5a0' : '#ef4444'}">
           ${x.change}%
         </span>
       </div>
     `).join("");
-
-  } catch (e) {
-    list.innerHTML = `<p class="small">Failed to load whale data</p>`;
+  } catch {
+    list.innerHTML = "<p class='small'>Failed to load whales</p>";
   }
 }
+
 
 async function createAlert(){
   await fetch(`${API_BASE}/alert/create`,{
@@ -401,12 +407,29 @@ function copyLink(){
   alert("Referral link copied");
 }
 
-function completeTask(btn){
-  btn.innerText="Completed";
-  btn.disabled=true;
-  btn.style.opacity=0.6;
-  document.getElementById("sp").innerText="+"+50+" SP";
+async function completeTask(btn, taskId, reward){
+  btn.disabled = true;
+
+  const r = await fetch(`${API_BASE}/task/complete`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      initData,
+      task_id: taskId,
+      reward
+    })
+  });
+
+  const d = await r.json();
+  if(d.ok){
+    btn.innerText = "Completed ✓";
+    refresh(); // 🔥 pulls SP from backend
+  }else{
+    btn.disabled = false;
+    alert("Task already completed or auth failed");
+  }
 }
+
 
 refresh();
 </script>
