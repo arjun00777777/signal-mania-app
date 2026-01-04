@@ -328,14 +328,14 @@ function startTimer(sec){
 
 async function loadSignals(){
   const list = document.getElementById("signalsList");
-  list.innerHTML = "<p class='small'>Loading whales…</p>";
+  list.innerHTML = "<p class='small'>Loading whale data...</p>";
 
   try {
-    const r = await fetch(`${API_BASE}/market/signals`, { cache: "no-store" });
+    const r = await fetch(`${API_BASE}/market/signals?ts=${Date.now()}`);
     const d = await r.json();
 
-    if (!d || d.length === 0) {
-      list.innerHTML = "<p class='small'>No whale data yet</p>";
+    if(!d || d.length === 0){
+      list.innerHTML = "<p class='small'>No whale data available</p>";
       return;
     }
 
@@ -348,6 +348,7 @@ async function loadSignals(){
         </span>
       </div>
     `).join("");
+
   } catch {
     list.innerHTML = "<p class='small'>Failed to load whales</p>";
   }
