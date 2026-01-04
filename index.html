@@ -9,16 +9,25 @@
         :root { --bg: #0b0f19; --card: #151a25; --primary: #3b82f6; --accent: #10b981; --danger: #ef4444; --text: #e2e8f0; }
         body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding-bottom: 90px; user-select: none; }
         .container { padding: 20px; max-width: 500px; margin: 0 auto; }
+        
         .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.05); }
         .btn { background: var(--primary); color: white; border: none; padding: 14px; width: 100%; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top:10px; }
         .btn:disabled { background: #334155; color: #64748b; }
-        .pulse { width: 10px; height: 10px; border-radius: 50%; background: var(--danger); box-shadow: 0 0 5px var(--danger); display:inline-block; margin-right:5px; }
-        .pulse.active { background: var(--accent); box-shadow: 0 0 10px var(--accent); animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        
+        /* Node UI */
         .progress-bar { width: 100%; height: 6px; background: #1e293b; border-radius: 3px; margin: 15px 0; overflow: hidden; }
         .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 1s linear; }
+        .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); box-shadow: 0 0 5px var(--danger); display:inline-block; margin-right:5px; }
+        .pulse.active { background: var(--accent); box-shadow: 0 0 10px var(--accent); animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* Signal List UI */
         .signal-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .nav { position: fixed; bottom: 0; width: 100%; background: rgba(21, 26, 37, 0.95); display: flex; padding: 15px 0; border-top: 1px solid rgba(255,255,255,0.05); }
+        .coin-name { font-weight: bold; font-size: 14px; }
+        .coin-sub { font-size: 11px; color: #aaa; margin-top: 2px; }
+
+        /* Nav */
+        .nav { position: fixed; bottom: 0; width: 100%; background: rgba(21, 26, 37, 0.95); display: flex; padding: 15px 0; border-top: 1px solid rgba(255,255,255,0.05); z-index: 99; }
         .nav-item { flex: 1; text-align: center; opacity: 0.5; font-size: 20px; cursor: pointer; }
         .nav-item.active { opacity: 1; color: var(--primary); }
         .tab { display: none; }
@@ -37,33 +46,41 @@
         </div>
 
         <div class="card">
-            <h3><span id="node-light" class="pulse"></span> Node Status</h3>
+            <h3><span id="node-light" class="pulse"></span> Connection Status</h3>
             <div class="progress-bar"><div class="progress-fill" id="node-bar"></div></div>
             <p id="node-status" style="text-align:center; font-size:12px; color:#aaa;">Offline</p>
             <button id="connect-btn" class="btn" onclick="connectNode()">📡 CONNECT NODE</button>
         </div>
-
+        
         <div class="card">
-            <h3>⚙️ Upgrades</h3>
+            <h3>⚙️ Hardware</h3>
             <button class="btn" style="background:#1e293b" onclick="upgrade()">⚡ UPGRADE LEVEL (<span id="upg-cost">100</span> BP)</button>
-            <button class="btn" style="background:#1e293b" onclick="boost()">🚀 2X BOOST (50 BP)</button>
         </div>
     </div>
 
-    <div id="tab-data" class="container tab">
-        <h2>Network <span style="color:var(--primary)">Intel</span></h2>
+    <div id="tab-intel" class="container tab">
+        <h2>Market <span style="color:var(--primary)">Intel</span></h2>
         <div class="card" id="intel-list">
-            <p style="text-align:center; padding:20px;">Fetching Data...</p>
+            <p style="text-align:center; padding:20px;">Connecting to Oracle...</p>
+        </div>
+    </div>
+
+    <div id="tab-profile" class="container tab">
+        <h2>Operator <span style="color:var(--primary)">Profile</span></h2>
+        <div class="card" style="text-align:center;">
+            <h3 id="user-name">Unknown</h3>
+            <p>ID: <span id="user-id">--</span></p>
         </div>
     </div>
 
     <div class="nav">
         <div class="nav-item active" onclick="switchTab('node', this)">⚡</div>
-        <div class="nav-item" onclick="switchTab('data', this)">📊</div>
+        <div class="nav-item" onclick="switchTab('intel', this)">📊</div>
+        <div class="nav-item" onclick="switchTab('profile', this)">👤</div>
     </div>
 
 <script>
-    // ⚠️ PASTE NGROK URL HERE
+    // ⚠️ UPDATE THIS URL EACH TIME YOU RESTART NGROK
     const API_URL = "https://your-ngrok-url-here.ngrok-free.app";
 
     const tg = window.Telegram.WebApp;
@@ -72,33 +89,40 @@
     let timerInterval;
 
     async function init() {
+        document.getElementById("user-name").innerText = user.first_name;
+        document.getElementById("user-id").innerText = user.id;
+        
         await fetchStats();
         await fetchIntel();
+        
+        // Auto-refresh data every 30s
+        setInterval(fetchIntel, 30000);
     }
 
     async function fetchStats() {
         try {
             const res = await fetch(`${API_URL}/user/mining/stats`, {
-                method: "POST", headers: { "Content-Type": "application/json" },
+                method: "POST", 
+                headers: { 
+                    "Content-Type": "application/json",
+                    "ngrok-skip-browser-warning": "true" // <--- CRITICAL FIX
+                },
                 body: JSON.stringify({ initData: tg.initData })
             });
             const data = await res.json();
             
-            // Update UI
             document.getElementById("bp-display").innerText = Math.floor(data.hashes) + " BP";
             document.getElementById("upg-cost").innerText = data.level * 100;
             
-            // Popups
-            if (data.just_completed) tg.showPopup({message: `Node Session Complete! +${data.reward_earned} BP`});
+            if (data.just_completed) tg.showPopup({message: `Session Complete! +${data.reward_earned} BP`});
 
-            // Logic
             if (data.mining_active) {
-                setNodeUI(true, "NODE RELAYING DATA...");
+                setNodeUI(true, "NODE ONLINE: RELAYING DATA...");
                 runTimer(data.mining_progress);
             } else {
                 setNodeUI(false, "Node Offline. Connect to earn.");
             }
-        } catch (e) { console.log(e); }
+        } catch (e) { console.log("Stats Error:", e); }
     }
 
     async function connectNode() {
@@ -106,7 +130,11 @@
         btn.innerText = "CONNECTING...";
         try {
             const res = await fetch(`${API_URL}/user/mining/start`, {
-                method: "POST", headers: { "Content-Type": "application/json" },
+                method: "POST", 
+                headers: { 
+                    "Content-Type": "application/json",
+                    "ngrok-skip-browser-warning": "true" // <--- CRITICAL FIX
+                },
                 body: JSON.stringify({ initData: tg.initData })
             });
             const data = await res.json();
@@ -119,34 +147,56 @@
 
     async function fetchIntel() {
         try {
-            const res = await fetch(`${API_URL}/market/signals`);
+            const res = await fetch(`${API_URL}/market/signals`, {
+                method: "GET",
+                headers: { "ngrok-skip-browser-warning": "true" } // <--- CRITICAL FIX
+            });
+            
+            // Check if response is valid JSON
+            const contentType = res.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                console.error("Received HTML instead of JSON. Check ngrok URL.");
+                return;
+            }
+
             const data = await res.json();
             const list = document.getElementById("intel-list");
             list.innerHTML = "";
             
+            if (data.length === 0) {
+                list.innerHTML = "<p style='text-align:center'>Waiting for signals...</p>";
+                return;
+            }
+
             data.forEach(c => {
                 let color = c.change > 0 ? "#10b981" : "#ef4444";
                 list.innerHTML += `
                 <div class="signal-row">
                     <div>
-                        <b>${c.symbol}</b>
-                        <div style="font-size:11px; color:#aaa">RSI: ${c.rsi} | ${c.strategy}</div>
+                        <div class="coin-name">${c.symbol}</div>
+                        <div class="coin-sub">RSI: ${c.rsi} | <span style="color:${color}">${c.strategy}</span></div>
                     </div>
                     <div style="text-align:right">
-                        <div style="color:${color}">${c.change}%</div>
+                        <div style="color:${color}; font-weight:bold;">${c.change}%</div>
                         <div style="font-size:11px;">$${c.price}</div>
                     </div>
                 </div>`;
             });
-        } catch (e) {}
+        } catch (e) { 
+            console.error("Intel Error:", e);
+            document.getElementById("intel-list").innerHTML = "<p style='text-align:center; color:red'>Connection Error</p>";
+        }
     }
 
     async function upgrade() {
-        await fetch(`${API_URL}/user/mining/upgrade`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ initData: tg.initData }) });
-        fetchStats();
-    }
-    async function boost() {
-        await fetch(`${API_URL}/user/boost/activate`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ initData: tg.initData }) });
+        await fetch(`${API_URL}/user/mining/upgrade`, { 
+            method: "POST", 
+            headers: { 
+                "Content-Type": "application/json",
+                "ngrok-skip-browser-warning": "true" 
+            }, 
+            body: JSON.stringify({ initData: tg.initData }) 
+        });
         fetchStats();
     }
 
