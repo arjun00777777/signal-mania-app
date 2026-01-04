@@ -3,692 +3,295 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SignalMania Ecosystem</title>
+    <title>SignalMania</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root {
-            --bg-color: #050505;
-            --card-bg: #111;
-            --text-primary: #00ff41;
-            --text-secondary: #a8b2d1;
-            --accent: #00ff41;
-            --danger: #ff003c;
-            --nav-bg: #0a0a0a;
-            --path-color: #333;
-            --glow-shadow: 0 0 10px rgba(0, 255, 65, 0.4);
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            font-family: 'Courier New', monospace;
-            margin: 0;
-            padding: 0;
-            padding-bottom: 90px;
-            user-select: none;
-            overflow-x: hidden;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        /* Hacker Background */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text fill="rgba(0,255,65,0.05)" font-size="10" y="10%">0101010101</text></svg>') repeat;
-            z-index: -1;
-            animation: scrollMatrix 60s linear infinite;
-        }
-
-        @keyframes scrollMatrix {
-            0% { background-position: 0 0; }
-            100% { background-position: 0 1000px; }
-        }
-
-        /* Animations */
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes pulseGlow {
-            0% { box-shadow: 0 0 5px var(--accent); }
-            50% { box-shadow: 0 0 20px var(--accent), 0 0 10px var(--accent); }
-            100% { box-shadow: 0 0 5px var(--accent); }
-        }
-        @keyframes floatUp {
-            0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-50px) scale(1.5); opacity: 0; }
-        }
-        @keyframes codeScroll {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(100px); }
-        }
-        @keyframes slideIn {
-            from { transform: translateX(100%); }
-            to { transform: translateX(0); }
-        }
-
+        :root { --bg: #050505; --card: #111; --green: #00ff41; --red: #ff003c; }
+        body { background: var(--bg); color: var(--green); font-family: 'Courier New', monospace; margin: 0; padding-bottom: 90px; user-select: none; }
+        
         .container { max-width: 500px; margin: 0 auto; padding: 20px; }
         
-        .header-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #222;
-            margin-bottom: 20px;
-        }
-        h1 { font-size: 22px; text-transform: uppercase; letter-spacing: 2px; margin: 0; text-shadow: var(--glow-shadow); }
-        .status-badge {
-            font-size: 10px;
-            background: rgba(0, 255, 65, 0.1);
-            color: var(--accent);
-            padding: 4px 8px;
-            border: 1px solid var(--accent);
-            border-radius: 4px;
-        }
+        .card { background: var(--card); border: 1px solid #333; padding: 15px; margin-bottom: 15px; border-radius: 6px; border-left: 3px solid var(--green); }
+        
+        h1 { text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
+        h3 { margin-top: 0; color: #fff; }
 
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid #333;
-            border-left: 3px solid var(--accent);
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 4px;
-            position: relative;
-            animation: slideUp 0.4s ease-out forwards;
-        }
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 255, 65, 0.1), transparent);
-            animation: scanLine 3s infinite;
-        }
-        @keyframes scanLine {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
+        .btn { background: var(--green); color: black; border: none; padding: 14px; width: 100%; font-weight: 900; cursor: pointer; border-radius: 4px; font-family: inherit; margin-top: 10px; }
+        .btn:disabled { background: #333; color: #666; cursor: not-allowed; }
+        .btn-del { background: var(--red); color: white; padding: 5px 10px; border: none; cursor: pointer; border-radius: 3px; }
 
-        .terminal {
-            background: #000;
-            border: 1px solid #00ff41;
-            padding: 15px;
-            font-family: 'Courier New';
-            border-radius: 4px;
-            animation: pulseGlow 2s infinite;
-        }
+        .progress-track { width: 100%; height: 12px; background: #222; border: 1px solid var(--green); margin: 15px 0; border-radius: 6px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--green); width: 0%; transition: width 1s linear; }
 
-        .progress-track {
-            width: 100%;
-            height: 10px;
-            background: rgba(0, 255, 65, 0.2);
-            border-radius: 5px;
-            overflow: hidden;
-            margin: 10px 0;
-            border: 1px solid #00ff41;
-        }
-        .progress-fill { height: 100%; background: #00ff41; transition: width 1s linear; }
+        .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #0a0a0a; display: flex; padding: 12px 0; border-top: 1px solid #333; z-index: 100; }
+        .nav-item { flex: 1; text-align: center; opacity: 0.5; font-size: 24px; cursor: pointer; }
+        .nav-item.active { opacity: 1; color: var(--green); text-shadow: 0 0 10px var(--green); }
 
-        .roadmap-container { position: relative; padding: 20px 0; margin-left: 10px; }
-        .roadmap-path { position: absolute; left: 20px; top: 0; bottom: 0; width: 4px; background: #222; }
-        .roadmap-path-active { position: absolute; left: 20px; top: 0; height: 40%; width: 4px; background: var(--accent); box-shadow: var(--glow-shadow); }
-        .milestone { position: relative; margin-left: 50px; margin-bottom: 40px; opacity: 0; animation: slideUp 0.5s ease-out forwards; }
-        .milestone.completed .milestone-title { color: var(--accent); text-decoration: line-through; }
-        .milestone.active .milestone-title { color: white; text-shadow: 0 0 5px white; }
-
-        .profile-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
-        .profile-pic { width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--accent); background: #222; }
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-        .stat-box { background: #080808; border: 1px solid #333; padding: 10px; text-align: center; border-radius: 8px; }
-
-        .input-group { display: flex; gap: 10px; margin-bottom: 15px; }
-        input, select { background: #000; border: 1px solid #333; color: var(--accent); padding: 12px; width: 100%; border-radius: 4px; box-sizing: border-box; }
-        button.action-btn { background-color: var(--accent); color: black; border: none; padding: 14px; width: 100%; font-weight: 900; cursor: pointer; text-transform: uppercase; border-radius: 4px; }
-        button.action-btn:active { transform: scale(0.98); }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            background-color: rgba(10, 10, 10, 0.95);
-            backdrop-filter: blur(10px);
-            display: flex; justify-content: space-around;
-            padding: 12px 0; border-top: 1px solid #333; z-index: 1000;
-        }
-        .nav-item { opacity: 0.5; text-align: center; font-size: 10px; cursor: pointer; flex: 1; transition: opacity 0.2s; }
-        .nav-item.active { opacity: 1; color: var(--accent); text-shadow: 0 0 10px var(--accent); }
-        .nav-icon { font-size: 20px; display: block; margin-bottom: 4px; }
-
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-
-        .notification-popup {
-            position: fixed;
-            top: 10%;
-            right: 10%;
-            background: #111;
-            border: 1px solid #00ff41;
-            padding: 10px;
-            border-radius: 4px;
-            animation: slideIn 0.5s;
-            z-index: 2000;
-        }
+        .tab { display: none; }
+        .tab.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        input, select { background: #000; border: 1px solid #333; color: var(--green); padding: 10px; width: 100%; margin-bottom: 10px; box-sizing: border-box; }
+        
+        .signal-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed #333; }
     </style>
 </head>
 <body>
 
-<div id="tab-signals" class="container tab-content active">
-    <div class="header-container">
+    <div id="tab-signals" class="container tab active">
         <h1>Signal<span style="color:white">Mania</span></h1>
-        <div class="status-badge">SYSTEM ONLINE</div>
-    </div>
+        
+        <div class="card">
+            <h3>🐳 Whale Radar</h3>
+            <div id="signals-list">
+                <p style="text-align:center; opacity:0.5; padding:20px;">Scanning Market...</p>
+            </div>
+        </div>
 
-    <div class="card">
-        <h3 style="margin-top:0">📡 Active Watchers</h3>
-        <div id="alerts-list">
-            <p style="text-align:center; opacity:0.5; font-size:12px;">Loading watchers...</p>
+        <div class="card">
+            <h3>🔔 Set Alert</h3>
+            <input type="text" id="alert-sym" placeholder="Symbol (e.g. BTC)">
+            <div style="display:flex; gap:10px;">
+                <input type="number" id="alert-price" placeholder="Price">
+                <select id="alert-cond" style="width:80px">
+                    <option value="ABOVE">&gt;</option>
+                    <option value="BELOW">&lt;</option>
+                </select>
+            </div>
+            <button class="btn" onclick="createAlert()">DEPLOY WATCHER</button>
+            <div id="active-alerts" style="margin-top:15px;"></div>
         </div>
     </div>
 
-    <div class="card">
-        <h3 style="margin-top:0">➕ Deploy Watcher</h3>
-        <div class="input-group">
-            <input type="text" id="alert-coin" placeholder="ASSET (e.g. BTC)">
-            <select id="alert-condition" style="max-width: 80px;">
-                <option value="ABOVE">&gt;</option>
-                <option value="BELOW">&lt;</option>
-            </select>
-        </div>
-        <div class="input-group">
-            <input type="number" id="alert-price" placeholder="TARGET PRICE">
-        </div>
-        <button class="action-btn" onclick="setAlert()">INITIALIZE</button>
-        <p id="alert-msg" style="margin-top:10px; font-size:12px;"></p>
-    </div>
-
-    <div class="card">
-        <h3 style="margin-top:0">🐳 Whale Radar</h3>
-        <div id="signals-list">
-            <p style="text-align:center; opacity:0.5; padding:20px;">Scanning blockchain...</p>
-        </div>
-    </div>
-
-    <div class="card">
-        <h3 style="margin-top:0">📊 Portfolio Simulator</h3>
-        <div class="input-group">
-            <input type="text" id="sim-asset" placeholder="Asset (BTC)">
-            <input type="number" id="sim-amount" placeholder="Amount ($)">
-        </div>
-        <button class="action-btn" onclick="simulatePortfolio()">Simulate PnL</button>
-        <p id="sim-result" style="margin-top:10px; font-size:12px;"></p>
-    </div>
-</div>
-
-<div id="tab-mining" class="container tab-content">
-    <div class="header-container">
+    <div id="tab-mining" class="container tab">
         <h1>Crypto<span style="color:white">Hacker</span></h1>
-        <div class="status-badge">BRUTEFORCE: ACTIVE</div>
-    </div>
-    
-    <div class="terminal">
-        <h3>HACKING IN PROGRESS...</h3>
-        <div class="progress-track">
-            <div class="progress-fill" id="mining-progress" style="width:0%;"></div>
+        
+        <div class="card" style="text-align:center;">
+            <div style="font-size:32px; font-weight:bold;" id="total-hashes">0</div>
+            <div style="opacity:0.6; font-size:12px;">TOTAL HASHES MINED</div>
         </div>
-        <p id="mining-status-text" style="text-align:center; font-size:12px; margin-top:10px; color:#666;">INITIALIZING HACK...</p>
-        <button id="auto-mine-btn" class="action-btn" style="margin-top:10px;" onclick="startHack()">START AUTO-HACK</button>
-        <button class="action-btn" onclick="activateBoost()">ACTIVATE BOOST (50 Hashes)</button>
-    </div>
 
-    <div class="card" style="margin-top:20px;">
-        <h3 style="margin-top:0">Mining Rig Upgrade</h3>
-        <p id="current-level-display" style="font-size:12px; color:#aaa;">Current Rig: Level 1</p>
-        <button class="action-btn" onclick="buyPack('upgrade')">⬆️ UPGRADE RIG (Level Up)</button>
-        <p style="font-size:10px; text-align:center; margin-top:5px; color:#666;">Costs 100 x Level. Increases Offline Rate & Max Time.</p>
-    </div>
-</div>
-
-<div id="tab-roadmap" class="container tab-content">
-    <div class="header-container">
-        <h1>Project<span style="color:white">Path</span></h1>
-        <div class="status-badge">PHASE: AWAKENING</div>
-    </div>
-
-    <div class="roadmap-container">
-        <div class="roadmap-path"></div>
-        <div class="roadmap-path-active"></div>
-
-        <div class="milestone completed">
-            <div class="milestone-title">PHASE 1: THE AWAKENING</div>
-            <div style="font-size:12px; opacity:0.7">✅ SignalMania Launch<br>✅ Mining Core Alpha</div>
-        </div>
-        <div class="milestone active">
-            <div class="milestone-title">PHASE 2: EXPANSION (Current)</div>
-            <div style="font-size:12px; opacity:0.7">🔄 Squad Systems<br>🔄 Global Leaderboards</div>
-        </div>
-        <div class="milestone">
-            <div class="milestone-title">PHASE 3: TOKEN GEN</div>
-            <div style="font-size:12px; opacity:0.7">⬜ $MANIA TGE<br>⬜ Community Airdrop</div>
+        <div class="card">
+            <h3>System Status</h3>
+            <div class="progress-track">
+                <div class="progress-fill" id="mining-bar"></div>
+            </div>
+            <div id="mining-status" style="text-align:center; font-size:12px; margin-bottom:10px; color:#aaa;">IDLE</div>
+            <button id="mine-btn" class="btn" onclick="startMining()">INITIATE HACK SEQUENCE</button>
         </div>
     </div>
-</div>
 
-<div id="tab-profile" class="container tab-content">
-    <div class="header-container">
+    <div id="tab-profile" class="container tab">
         <h1>Agent<span style="color:white">Profile</span></h1>
-        <div class="status-badge">CLEARANCE: LEVEL 1</div>
+        <div class="card">
+            <h3 id="user-name">Unknown Agent</h3>
+            <p>ID: <span id="user-id">---</span></p>
+            <p>Referrals: <span id="ref-count">0</span></p>
+        </div>
     </div>
 
-    <div class="card">
-        <div class="profile-header">
-            <img id="user-pic" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="profile-pic" alt="User">
-            <div>
-                <div id="user-name" style="font-weight:bold; font-size:18px; color:white">Unknown Agent</div>
-                <div id="user-level" class="status-badge">ROOKIE</div>
-            </div>
-        </div>
-
-        <div class="stats-grid">
-            <div class="stat-box">
-                <div class="stat-val" id="total-hashes">0</div>
-                <div style="font-size:10px; color:#666;">TOTAL HASHES</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-val" id="referral-count">0</div>
-                <div style="font-size:10px; color:#666;">RECRUITS</div>
-            </div>
-        </div>
-
-        <button class="action-btn" onclick="copyReferral()" style="margin-top:10px; background:white; color:black;">COPY RECRUITMENT LINK 🔗</button>
-        <input type="text" id="ref-link-hidden" style="position:absolute; left:-9999px;">
+    <div class="nav">
+        <div class="nav-item active" onclick="switchTab('signals', this)">📡</div>
+        <div class="nav-item" onclick="switchTab('mining', this)">👨‍💻</div>
+        <div class="nav-item" onclick="switchTab('profile', this)">👤</div>
     </div>
-
-   <div class="card">
-    <h3 style="margin-top:0">Daily Missions</h3>
-    <p>Complete a 5-min mining session</p>
-    
-    <button id="claim-btn" class="action-btn" onclick="completeMission(event)" disabled style="opacity:0.5; cursor:not-allowed;">
-        🔒 Locked (Hack First)
-    </button>
-    
-    <h3 style="margin-top:20px">Streak</h3>
-    <p id="streak-display">Current Streak: 🔥 0 Days</p>
-</div>
-</div>
-
-<div class="bottom-nav">
-    <div class="nav-item active" onclick="switchTab('signals', this)"><span class="nav-icon">📡</span> SIGNALS</div>
-    <div class="nav-item" onclick="switchTab('mining', this)"><span class="nav-icon">👨‍💻</span> MINING</div>
-    <div class="nav-item" onclick="switchTab('roadmap', this)"><span class="nav-icon">🗺️</span> PATH</div>
-    <div class="nav-item" onclick="switchTab('profile', this)"><span class="nav-icon">👤</span> PROFILE</div>
-</div>
 
 <script>
-    // === ⚙️ CONFIGURATION ===
-    const API_BASE_URL = "https://claustral-mable-dissectible.ngrok-free.dev"; 
-    const BOT_USERNAME = "Whale_alert_info_bot"; 
+    // ⚠️ REPLACE THIS URL with your new ngrok URL every time you restart!
+    const API_BASE_URL = "https://your-ngrok-url-here.ngrok-free.app";
 
-    // === 📱 TELEGRAM INIT ===
     const tg = window.Telegram.WebApp;
     tg.expand();
-    tg.MainButton.hide();
+    const user = tg.initDataUnsafe?.user || { id: 123, first_name: "Test Agent" };
 
-    // === 💾 STATE ===
-    let user = tg.initDataUnsafe?.user || { id: 123, first_name: "Test Agent" };
-    let hashes = 0;
-    let isHacking = false;
-    let hackInterval;
-    let hackTime = 0;
-    let MAX_HACK_TIME = 300; // default 5 mins
+    let miningInterval = null;
 
-    // === 🚀 INIT APP ===
-    function initApp() {
-        if (user) {
-            document.getElementById('user-name').innerText = user.first_name;
-            if (user.photo_url) document.getElementById('user-pic').src = user.photo_url;
-            document.getElementById('ref-link-hidden').value = `https://t.me/${BOT_USERNAME}?start=${user.id}`;
-            fetchStats();
-            loadAlerts();
-        }
-        updateDisplay();
+    // === STARTUP ===
+    async function init() {
+        // UI Setup
+        document.getElementById("user-name").innerText = user.first_name;
+        document.getElementById("user-id").innerText = user.id;
+
+        // Fetch Data
+        await fetchMiningStats();
+        await fetchSignals();
+        await fetchAlerts();
     }
 
-    // === 📡 API CALLS ===
-    async function fetchStats() {
+    // === MINING LOGIC ===
+    async function fetchMiningStats() {
         try {
-            const res = await fetch(`${API_BASE_URL}/user/referrals`, {
+            const res = await fetch(`${API_BASE_URL}/user/mining/stats`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
-                body: JSON.stringify({ uid: user.id })
-            });
-            const data = await res.json();
-            document.getElementById('referral-count').innerText = data.referrals || 0;
-            
-            const mineRes = await fetch(`${API_BASE_URL}/user/mining/stats`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ initData: tg.initData })
             });
-            const mineData = await mineRes.json();
-            hashes = mineData.hashes || 0;
-            
-            document.getElementById('current-level-display').innerText = `Current Rig: Level ${mineData.level}`;
-            
-            if (mineData.max_time) MAX_HACK_TIME = mineData.max_time;
-            
-            if (mineData.offline_earnings > 0) {
+            const data = await res.json();
+
+            // Update Total Hashes
+            document.getElementById("total-hashes").innerText = data.hashes.toLocaleString();
+
+            // Handle "Just Finished" (Offline reward)
+            if (data.just_completed) {
                 tg.showPopup({ 
-                    title: "WELCOME BACK", 
-                    message: `Your rig mined ${mineData.offline_earnings} hashes while you were away!` 
+                    title: "HACK COMPLETE", 
+                    message: `System mined ${data.reward_earned} hashes while you were away.` 
                 });
             }
-            
-            updateDisplay();
-        } catch (e) { console.error("API Error", e); }
+
+            // Resume Progress Bar if active
+            if (data.mining_active) {
+                const percent = data.mining_progress; // 0.0 to 1.0
+                runVisualTimer(percent);
+                setMiningUI(true, "HACKING IN PROGRESS...");
+            } else {
+                setMiningUI(false, "SYSTEM IDLE");
+                document.getElementById("mining-bar").style.width = "0%";
+            }
+        } catch (e) { console.error("Stats Error", e); }
     }
 
-    async function loadSignals() {
+    async function startMining() {
+        const btn = document.getElementById("mine-btn");
+        btn.disabled = true;
+        btn.innerText = "INITIALIZING...";
+
         try {
-            const response = await fetch(`${API_BASE_URL}/market/signals`, {
-                headers: { "ngrok-skip-browser-warning": "true" }
+            const res = await fetch(`${API_BASE_URL}/user/mining/start`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ initData: tg.initData })
             });
-            const signals = await response.json();
-            const list = document.getElementById("signals-list");
-            list.innerHTML = "";
-            
-            if (!signals || signals.length === 0) {
-                list.innerHTML = "<p style='text-align:center; opacity:0.5'>Scanning blockchain...</p>";
-                return;
-            }
+            const data = await res.json();
 
-            signals.forEach(sig => {
-                const color = sig.change > 0 ? "var(--accent)" : "var(--danger)";
-                const arrow = sig.change > 0 ? "▲" : "▼";
-                const div = document.createElement("div");
-                div.style.cssText = "display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px dashed #333;";
-                div.innerHTML = `
-                    <div>
-                        <strong>${sig.symbol}</strong>
-                        <div style="font-size:10px; opacity:0.7">RSI: ${sig.rsi} | ${sig.sentiment}</div>
-                    </div>
-                    <div style="text-align:right">
-                        <div style="color:${color}; font-weight:bold;">${arrow} ${sig.change}%</div>
-                        <div style="font-size:10px;">$${sig.price}</div>
-                    </div>`;
-                list.appendChild(div);
-            });
-        } catch (e) { console.log("Signal Load Error"); }
+            if (data.status === "started") {
+                runVisualTimer(0);
+                setMiningUI(true, "HACKING IN PROGRESS...");
+            } else if (data.status === "active") {
+                // If backend says already active, just refresh stats to sync
+                fetchMiningStats();
+            }
+        } catch (e) {
+            btn.disabled = false;
+            btn.innerText = "ERROR - RETRY";
+        }
     }
 
-    // === 👨‍💻 HACKING LOGIC ===
-    function startHack() {
-        if (isHacking) return;
-        isHacking = true;
-        document.getElementById('auto-mine-btn').disabled = true;
-        document.getElementById('auto-mine-btn').innerText = "HACKING IN PROGRESS...";
+    function runVisualTimer(startPercent) {
+        if (miningInterval) clearInterval(miningInterval);
         
-        syncHashes();
-        
-        hackInterval = setInterval(() => {
-            hackTime++;
-            const pct = (hackTime / MAX_HACK_TIME) * 100;
-            document.getElementById('mining-progress').style.width = pct + "%";
-            document.getElementById('mining-status-text').innerText = `HACKING: ${hackTime}s / ${MAX_HACK_TIME}s`;
-            
-            if (hackTime >= MAX_HACK_TIME) {
-                clearInterval(hackInterval);
-                finishHack();
+        let percent = startPercent;
+        const totalSeconds = 300; // Assuming lvl 1 (5 mins) for visual smoothness
+        const step = 1 / totalSeconds; 
+
+        miningInterval = setInterval(() => {
+            percent += step;
+            if (percent >= 1.0) {
+                percent = 1.0;
+                clearInterval(miningInterval);
+                document.getElementById("mining-status").innerText = "COMPLETED. REFRESHING...";
+                setTimeout(fetchMiningStats, 2000); // Sync with backend to get reward
             }
+            document.getElementById("mining-bar").style.width = (percent * 100) + "%";
         }, 1000);
     }
 
-    async function finishHack() {
-        isHacking = false;
-        hackTime = 0;
+    function setMiningUI(isActive, text) {
+        const btn = document.getElementById("mine-btn");
+        const status = document.getElementById("mining-status");
         
-        document.getElementById('claim-btn').disabled = false;
-        document.getElementById('claim-btn').style.opacity = "1";
-        document.getElementById('claim-btn').style.cursor = "pointer";
-        document.getElementById('claim-btn').innerText = "🎁 CLAIM REWARD (+100)";
-        
-        document.getElementById('auto-mine-btn').disabled = false;
-        document.getElementById('auto-mine-btn').innerText = "START AUTO-HACK";
-        
-        try {
-            const res = await fetch(`${API_BASE_URL}/user/mining/complete`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
-                body: JSON.stringify({ initData: tg.initData })
-            });
-            
-            const data = await res.json();
-            if (data.status === "success") {
-                hashes = data.new_hashes;
-                updateDisplay();
-                document.getElementById('mining-status-text').innerText = "SESSION COMPLETE (+100 Hashes)";
-                tg.HapticFeedback.notificationOccurred('success');
-            }
-        } catch (e) {
-            document.getElementById('mining-status-text').innerText = "ERROR SAVING";
+        if (isActive) {
+            btn.disabled = true;
+            btn.innerText = "MINING ACTIVE";
+            status.innerText = text;
+            status.style.color = "#00ff41";
+        } else {
+            btn.disabled = false;
+            btn.innerText = "INITIATE HACK SEQUENCE";
+            status.innerText = text;
+            status.style.color = "#aaa";
         }
     }
 
-    // === 💾 AUTO-SAVE ===
-    async function syncHashes() {
+    // === SIGNALS & ALERTS ===
+    async function fetchSignals() {
         try {
-            await fetch(`${API_BASE_URL}/user/mining/sync`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
-                body: JSON.stringify({ initData: tg.initData, hashes: hashes })
+            const res = await fetch(`${API_BASE_URL}/market/signals`, { 
+                headers: {"ngrok-skip-browser-warning": "true"} 
             });
-        } catch (e) { console.error("Sync Failed"); }
-    }
-    setInterval(syncHashes, 5000);
-
-    // === 🛒 SHOP ===
-    async function buyPack(type) {
-        try {
-            await syncHashes();
-            
-            tg.MainButton.setText("UPGRADING...");
-            tg.MainButton.show();
-
-            const res = await fetch(`${API_BASE_URL}/user/mining/upgrade`, {
-                method: "POST", 
-                headers: { 
-                    "Content-Type": "application/json",
-                    "ngrok-skip-browser-warning": "true" 
-                },
-                body: JSON.stringify({ initData: tg.initData, pack: type })
-            });
-
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.message || "Server Error");
-            }
-
             const data = await res.json();
-            if (data.status === "success") {
-                hashes = data.new_hashes;
-                if (data.new_max_time) MAX_HACK_TIME = data.new_max_time;
-                
-                document.getElementById('current-level-display').innerText = `Current Rig: Level ${data.new_level}`;
-                
-                updateDisplay();
-                tg.showPopup({ title: "SUCCESS", message: data.message });
-            }
-        } catch (e) {
-            tg.showAlert("Upgrade Failed: " + e.message);
-        } finally {
-            tg.MainButton.hide();
-        }
-    }
-
-    async function activateBoost() {
-        try {
-            await syncHashes();
-            
-            const res = await fetch(`${API_BASE_URL}/user/boost/activate`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
-                body: JSON.stringify({ initData: tg.initData })
-            });
-            
-            const data = await res.json();
-            if (data.status === "success") {
-                hashes = data.new_hashes;
-                updateDisplay();
-                tg.showPopup({ title: "BOOST ACTIVATED", message: "2x earnings for 1 hour!" });
-            } else {
-                tg.showAlert("Not enough Hashes or already active.");
-            }
-        } catch (e) {
-            tg.showAlert("Boost Failed");
-        }
-    }
-
-    // === ➕ ALERTS ===
-    async function loadAlerts() {
-        try {
-            const res = await fetch(`${API_BASE_URL}/alert/list`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
-                body: JSON.stringify({ initData: tg.initData })
-            });
-            const alerts = await res.json();
-            const list = document.getElementById("alerts-list");
+            const list = document.getElementById("signals-list");
             list.innerHTML = "";
-            
-            if (!alerts || alerts.length === 0) {
-                list.innerHTML = "<p style='text-align:center; opacity:0.5; font-size:12px;'>No active watchers.</p>";
+
+            if (data.length === 0) {
+                list.innerHTML = "<p style='text-align:center; opacity:0.5'>No high-volatility whales found yet.</p>";
                 return;
             }
 
-            alerts.forEach(a => {
-                const div = document.createElement("div");
-                div.style.cssText = "display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #333; font-size:12px;";
-                div.innerHTML = `
-                    <span>${a.symbol} ${a.condition === 'ABOVE' ? '>' : '<'} $${a.price}</span>
-                    <button onclick="deleteAlert(${a.id})" style="background:var(--danger); border:none; color:white; border-radius:4px; cursor:pointer;">DEL</button>
-                `;
-                list.appendChild(div);
+            data.forEach(s => {
+                const color = s.change > 0 ? "var(--green)" : "var(--red)";
+                list.innerHTML += `
+                <div class="signal-row">
+                    <strong>${s.symbol}</strong>
+                    <span style="color:${color}">${s.change > 0 ? '+' : ''}${s.change}%</span>
+                </div>`;
             });
-        } catch (e) {}
+        } catch (e) { console.error("Signal Error", e); }
     }
 
-    async function setAlert() {
-        const coin = document.getElementById("alert-coin").value;
-        const price = document.getElementById("alert-price").value;
-        const cond = document.getElementById("alert-condition").value;
-        const msgEl = document.getElementById("alert-msg");
-        
+    async function fetchAlerts() {
         try {
-            const response = await fetch(`${API_BASE_URL}/alert/create`, {
-                method: "POST", 
-                headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
-                body: JSON.stringify({ initData: tg.initData, symbol: coin, price: price, condition: cond })
-            });
-            const data = await response.json();
-            msgEl.innerText = data.status === "success" ? "✅ DEPLOYED" : "❌ " + data.message;
-            msgEl.style.color = data.status === "success" ? "var(--accent)" : "var(--danger)";
-            if (data.status === "success") loadAlerts();
-        } catch (e) { msgEl.innerText = "❌ ERROR"; }
-    }
-
-    async function deleteAlert(id) {
-        if (!confirm("Delete this watcher?")) return;
-        await fetch(`${API_BASE_URL}/alert/delete`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
-            body: JSON.stringify({ initData: tg.initData, alert_id: id })
-        });
-        loadAlerts();
-    }
-
-    // === 💰 SIMULATOR ===
-    async function simulatePortfolio() {
-        const asset = document.getElementById("sim-asset").value;
-        const amount = document.getElementById("sim-amount").value;
-        if (!asset || !amount) return; 
-
-        try {
-            const res = await fetch(`${API_BASE_URL}/user/portfolio/simulate`, {
-                method: "POST", 
-                headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
-                body: JSON.stringify({ initData: tg.initData, asset: asset, amount: amount })
-            });
-            const data = await res.json();
-            const el = document.getElementById("sim-result");
-            el.innerText = `Simulated PnL: $${data.simulated_impact}`;
-            el.style.color = data.simulated_impact >= 0 ? "var(--accent)" : "var(--danger)";
-        } catch (e) {}
-    }
-
-    // === 🎁 DAILY CLAIM ===
-    async function completeMission(event) {
-        const btn = event.target;
-        const originalText = btn.innerText;
-        btn.innerText = "CLAIMING...";
-        
-        try {
-            const res = await fetch(`${API_BASE_URL}/user/daily_claim`, {
+            const res = await fetch(`${API_BASE_URL}/alert/list`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ initData: tg.initData })
             });
             const data = await res.json();
-            if (data.status === "success") {
-                hashes = data.new_hashes;
-                updateDisplay();
-                btn.innerText = "CLAIMED ✅";
-                btn.disabled = true;
-                tg.showPopup({ message: data.message });
-            } else {
-                btn.innerText = originalText;
-                tg.showAlert("Already claimed or error.");
-            }
-        } catch (e) { btn.innerText = "ERROR"; }
+            const div = document.getElementById("active-alerts");
+            div.innerHTML = "";
+            
+            data.forEach(a => {
+                div.innerHTML += `
+                <div class="signal-row" style="font-size:12px;">
+                    <span>${a.symbol} ${a.condition} ${a.price}</span>
+                    <button class="btn-del" onclick="deleteAlert(${a.id})">X</button>
+                </div>`;
+            });
+        } catch (e) {}
     }
 
-    // === 🖇️ UTILS ===
-    function copyReferral() {
-        const copyText = document.getElementById("ref-link-hidden");
-        copyText.select();
-        navigator.clipboard.writeText(copyText.value).then(() => {
-            tg.showPopup({ title: "COPIED", message: "Recruit agents with this link." });
+    async function createAlert() {
+        const sym = document.getElementById("alert-sym").value;
+        const price = document.getElementById("alert-price").value;
+        const cond = document.getElementById("alert-cond").value;
+        
+        await fetch(`${API_BASE_URL}/alert/create`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ initData: tg.initData, symbol: sym, price: price, condition: cond })
         });
+        fetchAlerts();
     }
 
-    function switchTab(tabId, navElement) {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-        document.getElementById('tab-' + tabId).classList.add('active');
-        navElement.classList.add('active');
+    async function deleteAlert(id) {
+        await fetch(`${API_BASE_URL}/alert/delete`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ initData: tg.initData, alert_id: id })
+        });
+        fetchAlerts();
     }
 
-    function updateDisplay() {
-        document.getElementById('mining-points-display').innerText = Math.floor(hashes).toLocaleString();
-        document.getElementById('total-hashes').innerText = Math.floor(hashes).toLocaleString();
+    // === TABS ===
+    function switchTab(tabId, btn) {
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+        document.getElementById("tab-" + tabId).classList.add("active");
+        btn.classList.add("active");
     }
 
-    function showNotification(message) {
-        const notif = document.createElement('div');
-        notif.className = 'notification-popup';
-        notif.innerHTML = `<p>${message}</p>`;
-        document.body.appendChild(notif);
-        setTimeout(() => notif.remove(), 5000);
-    }
-
-    // === START ===
-    initApp();
-    loadSignals();
-    setInterval(loadSignals, 30000);
+    // Boot
+    init();
 </script>
 </body>
 </html>
