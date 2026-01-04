@@ -13,7 +13,6 @@
   --card:#0b1220;
   --neon:#00f5a0;
   --neon2:#38bdf8;
-  --danger:#ef4444;
   --muted:#9ca3af;
 }
 *{margin:0;padding:0;box-sizing:border-box}
@@ -24,235 +23,118 @@ body{
   height:100vh;
   overflow:hidden;
 }
-.page{
-  display:none;
-  height:100%;
-  overflow-y:auto;
-  padding:20px;
-  padding-bottom:95px;
-}
+.page{display:none;height:100%;overflow-y:auto;padding:20px;padding-bottom:90px}
 .page.active{display:block}
-.card{
-  background:linear-gradient(180deg,#020617,#020617);
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:18px;
-  padding:18px;
-  margin-bottom:16px;
-}
+.card{background:#020617;border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:18px;margin-bottom:16px}
 .center{text-align:center}
 .small{font-size:13px;color:var(--muted)}
-.neon{color:var(--neon)}
 
 .node-circle{
-  width:210px;height:210px;
-  border-radius:50%;
-  margin:20px auto;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  flex-direction:column;
-  border:2px solid var(--neon);
-  box-shadow:0 0 35px rgba(0,245,160,.25);
+  width:210px;height:210px;border-radius:50%;
+  margin:20px auto;display:flex;align-items:center;justify-content:center;flex-direction:column;
+  border:2px solid var(--neon);box-shadow:0 0 30px rgba(0,245,160,.3)
 }
 
 .btn{
   background:linear-gradient(135deg,var(--neon),var(--neon2));
-  color:#020617;
-  border:none;
-  width:100%;
-  padding:14px;
-  border-radius:14px;
-  font-weight:800;
-  font-size:16px;
+  color:#020617;border:none;width:100%;padding:14px;border-radius:14px;font-weight:800
 }
-.btn.secondary{
-  background:#020617;
-  color:white;
-  border:1px solid rgba(255,255,255,.15);
-}
+.btn.secondary{background:#020617;color:white;border:1px solid rgba(255,255,255,.15)}
 .btn:disabled{opacity:.5}
 
-.progress{
-  width:100%;
-  height:8px;
-  background:#020617;
-  border-radius:8px;
-  overflow:hidden;
-  margin-top:8px;
-}
-.progress span{
-  display:block;
-  height:100%;
-  background:linear-gradient(90deg,var(--neon),var(--neon2));
-}
-
-.task{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  background:#020617;
-  padding:14px;
-  border-radius:14px;
-  margin-bottom:12px;
-  animation:fadeIn .4s ease;
-}
-
-.signal{
-  background:#020617;
-  padding:14px;
-  border-radius:14px;
-  margin-bottom:10px;
+.task,.signal{
+  background:#020617;padding:14px;border-radius:14px;margin-bottom:12px
 }
 
 input,select{
-  width:100%;
-  padding:12px;
-  background:#020617;
-  border:1px solid rgba(255,255,255,.15);
-  color:white;
-  border-radius:12px;
-  margin-bottom:10px;
+  width:100%;padding:12px;background:#020617;
+  border:1px solid rgba(255,255,255,.15);color:white;border-radius:12px;margin-bottom:10px
 }
 
 .nav{
-  position:fixed;
-  bottom:0;left:0;width:100%;
-  display:flex;
-  justify-content:space-around;
-  background:#020617;
-  border-top:1px solid rgba(255,255,255,.1);
-  padding:12px 0;
+  position:fixed;bottom:0;left:0;width:100%;
+  display:flex;justify-content:space-around;
+  background:#020617;border-top:1px solid rgba(255,255,255,.1);padding:12px 0
 }
-.nav div{
-  font-size:12px;
-  text-align:center;
-  color:var(--muted);
-}
+.nav div{text-align:center;font-size:12px;color:var(--muted)}
 .nav .active{color:var(--neon)}
-
-@keyframes fadeIn{
-  from{opacity:0;transform:translateY(6px)}
-  to{opacity:1;transform:none}
-}
-@keyframes pulse{
-  0%{box-shadow:0 0 0 rgba(0,245,160,.4)}
-  50%{box-shadow:0 0 25px rgba(0,245,160,.6)}
-  100%{box-shadow:0 0 0 rgba(0,245,160,.4)}
-}
 </style>
 </head>
 
 <body>
 
-<!-- ================= NODE ================= -->
+<!-- NODE -->
 <div id="node" class="page active">
   <div class="card center">
     <h3>Total Hashes</h3>
     <h1 id="sp">0 SP</h1>
-    <p class="small">Secured on-chain computation</p>
+    <p class="small">Secured computation</p>
   </div>
 
-  <div class="node-circle" id="nodeCircle">
+  <div class="node-circle">
     <h3 id="nodeStatus">Node Idle</h3>
     <p id="timer" class="small"></p>
   </div>
 
   <button id="startBtn" class="btn" onclick="startNode()">Start Node (6h)</button>
-
-  <div class="card">
-    <p>🧠 Level <b id="level">1</b></p>
-    <p class="small">Rate: <span id="rate">1 SP/min</span></p>
-    <div class="progress">
-      <span id="levelBar" style="width:20%"></span>
-    </div>
-  </div>
 </div>
 
-<!-- ================= TASKS ================= -->
+<!-- TASKS -->
 <div id="tasks" class="page">
-  <h2>🧩 Daily Tasks</h2>
+  <h2>🧩 Tasks</h2>
 
   <div class="task">
-    <div>
-      <b>Join Telegram Channel</b>
-      <p class="small">+50 SP</p>
-    </div>
-   <button class="btn secondary"
-onclick="completeTask(this,'join_tg',50)">Do</button>
-
+    <div><b>Join Telegram</b><p class="small">+50 SP</p></div>
+    <button class="btn secondary" onclick="completeTask(this,'join_tg',50)">Do</button>
   </div>
 
   <div class="task">
-    <div>
-      <b>Follow X (Twitter)</b>
-      <p class="small">+50 SP</p>
-    </div>
-   <button class="btn secondary"
-onclick="completeTask(this,'join_tg',50)">Do</button>
-
+    <div><b>Follow Twitter</b><p class="small">+50 SP</p></div>
+    <button class="btn secondary" onclick="completeTask(this,'follow_x',50)">Do</button>
   </div>
 
   <div class="task">
-    <div>
-      <b>Invite a Friend</b>
-      <p class="small">+100 SP</p>
-    </div>
-   <button class="btn secondary"
-onclick="completeTask(this,'join_tg',50)">Do</button>
-</button>
+    <div><b>Invite Friend</b><p class="small">+100 SP</p></div>
+    <button class="btn secondary" onclick="completeTask(this,'invite',100)">Do</button>
   </div>
 </div>
 
-<!-- ================= SIGNALS ================= -->
+<!-- SIGNALS -->
 <div id="signals" class="page">
   <h2>🐋 Whale Tracker</h2>
   <div id="signalsList"></div>
 </div>
 
-<!-- ================= ALERTS ================= -->
+<!-- ALERTS -->
 <div id="alerts" class="page">
   <h2>🔔 Price Alerts</h2>
-
   <input id="alertSymbol" placeholder="BTC">
   <input id="alertTarget" placeholder="Target Price">
   <select id="alertCond">
-    <option value="ABOVE">Price Above</option>
-    <option value="BELOW">Price Below</option>
+    <option value="ABOVE">Above</option>
+    <option value="BELOW">Below</option>
   </select>
   <button class="btn" onclick="createAlert()">Create Alert</button>
-
   <div id="alertList"></div>
 </div>
 
-<!-- ================= PROFILE ================= -->
+<!-- PROFILE -->
 <div id="profile" class="page">
   <h2>👤 Profile</h2>
   <div class="card">
-    <p>Your Referral Link</p>
+    <p>Your referral link</p>
     <input id="refLink" readonly>
-    <button class="btn" onclick="copyLink()">Copy Link</button>
+    <button class="btn" onclick="copyLink()">Copy</button>
   </div>
 </div>
 
-<!-- ================= ROADMAP ================= -->
-<div id="roadmap" class="page">
-  <h2>🧭 Roadmap</h2>
-  <div class="card">
-    <p>✅ Node Mining</p>
-    <p>✅ Tasks & Levels</p>
-    <p>✅ Price Alerts</p>
-    <p>🔜 Premium Access</p>
-    <p>🔜 Token Launch</p>
-  </div>
-</div>
-
-<!-- ================= NAV ================= -->
+<!-- NAV -->
 <div class="nav">
-  <div class="active" onclick="show('node',this)">⛏<br>Node</div>
-  <div onclick="show('tasks',this)">🧩<br>Tasks</div>
-  <div onclick="show('signals',this)">📈<br>Signals</div>
-  <div onclick="show('alerts',this)">🔔<br>Alerts</div>
-  <div onclick="show('profile',this)">👤<br>Profile</div>
+  <div class="active" onclick="show('node',this)">⛏ Node</div>
+  <div onclick="show('tasks',this)">🧩 Tasks</div>
+  <div onclick="show('signals',this)">📈 Signals</div>
+  <div onclick="show('alerts',this)">🔔 Alerts</div>
+  <div onclick="show('profile',this)">👤 Profile</div>
 </div>
 
 <script>
@@ -261,112 +143,69 @@ const tg = window.Telegram.WebApp;
 tg.expand();
 const initData = tg.initData;
 
-let timerInterval;
+function headers(json=true){
+  return json
+    ? {"Content-Type":"application/json","ngrok-skip-browser-warning":"true"}
+    : {"ngrok-skip-browser-warning":"true"};
+}
 
 function show(id,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   document.querySelectorAll('.nav div').forEach(n=>n.classList.remove('active'));
   el.classList.add('active');
-
-  if (id === "signals") {
-  loadSignals();
-}
+  if(id==="signals") loadSignals();
   if(id==="alerts") loadAlerts();
   if(id==="profile") loadProfile();
 }
 
 async function refresh(){
   const r=await fetch(`${API_BASE}/user/mining/stats`,{
-    method:"POST",
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({initData})
+    method:"POST",headers:headers(),body:JSON.stringify({initData})
   });
   const d=await r.json();
-
-  document.getElementById("sp").innerText=d.sp+" SP";
-  document.getElementById("level").innerText=d.level;
-  document.getElementById("rate").innerText=d.level+" SP/min";
-  document.getElementById("levelBar").style.width=Math.min(100,(d.sp%500)/5)+"%";
-
-  if(d.running){
-    document.getElementById("nodeStatus").innerText="Node Running";
-    document.getElementById("startBtn").disabled=true;
-    document.getElementById("nodeCircle").style.animation="pulse 2s infinite";
-    startTimer(d.remaining);
-  }else{
-    document.getElementById("nodeStatus").innerText="Node Idle";
-    document.getElementById("startBtn").disabled=false;
-    document.getElementById("nodeCircle").style.animation="none";
-    document.getElementById("timer").innerText="";
-    clearInterval(timerInterval);
-  }
+  sp.innerText=d.sp+" SP";
+  nodeStatus.innerText=d.running?"Node Running":"Node Idle";
 }
 
 async function startNode(){
-  document.getElementById("startBtn").disabled=true;
   await fetch(`${API_BASE}/user/mining/start`,{
-    method:"POST",
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({initData})
+    method:"POST",headers:headers(),body:JSON.stringify({initData})
   });
   refresh();
 }
 
-function startTimer(sec){
-  clearInterval(timerInterval);
-  timerInterval=setInterval(()=>{
-    const h=Math.floor(sec/3600);
-    const m=Math.floor((sec%3600)/60);
-    const s=sec%60;
-    document.getElementById("timer").innerText=`Time left: ${h}h ${m}m ${s}s`;
-    sec--;
-    if(sec<0){
-      clearInterval(timerInterval);
-      refresh();
-    }
-  },1000);
+async function loadSignals(){
+  signalsList.innerHTML="Loading...";
+  const r=await fetch(`${API_BASE}/market/signals?ts=${Date.now()}`,{
+    headers:headers(false),cache:"no-store"
+  });
+  const d=await r.json();
+  signalsList.innerHTML=d.map(x=>`
+    <div class="signal">
+      <b>${x.symbol}</b><br>
+      $${Number(x.price).toLocaleString()}
+      <span style="color:${x.change>=0?'#00f5a0':'#ef4444'}">
+        ${x.change}%
+      </span>
+    </div>
+  `).join("");
 }
 
-  async function loadSignals() {
-  const list = document.getElementById("signalsList");
-  list.innerHTML = "<p class='small'>Loading whale data...</p>";
-
-  try {
-    const res = await fetch(
-      `${API_BASE}/market/signals?ts=${Date.now()}`,
-      { cache: "no-store" }
-    );
-
-    const data = await res.json();
-
-    if (!data || data.length === 0) {
-      list.innerHTML = "<p class='small'>No whale data available</p>";
-      return;
-    }
-
-    list.innerHTML = data.map(c => `
-      <div class="signal">
-        <b>${c.symbol}</b><br>
-        $${Number(c.price).toLocaleString()}
-        <span style="color:${c.change >= 0 ? '#00f5a0' : '#ef4444'}">
-          ${c.change}%
-        </span>
-      </div>
-    `).join("");
-
-  } catch (e) {
-    list.innerHTML = "<p class='small'>Failed to load whale data</p>";
-    console.error(e);
-  }
+async function completeTask(btn,id,reward){
+  btn.disabled=true;
+  const r=await fetch(`${API_BASE}/task/complete`,{
+    method:"POST",headers:headers(),
+    body:JSON.stringify({initData,task_id:id,reward})
+  });
+  const d=await r.json();
+  if(d.ok){btn.innerText="Done ✓";refresh();}
+  else{btn.disabled=false;alert("Already done");}
 }
-
-
 
 async function createAlert(){
   await fetch(`${API_BASE}/alert/create`,{
-    method:"POST",
-    headers:{'Content-Type':'application/json'},
+    method:"POST",headers:headers(),
     body:JSON.stringify({
       initData,
       symbol:alertSymbol.value,
@@ -379,9 +218,7 @@ async function createAlert(){
 
 async function loadAlerts(){
   const r=await fetch(`${API_BASE}/alert/list`,{
-    method:"POST",
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({initData})
+    method:"POST",headers:headers(),body:JSON.stringify({initData})
   });
   const d=await r.json();
   alertList.innerHTML=d.map(a=>`
@@ -394,51 +231,23 @@ async function loadAlerts(){
 
 async function deleteAlert(id){
   await fetch(`${API_BASE}/alert/delete`,{
-    method:"POST",
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({initData,id})
+    method:"POST",headers:headers(),body:JSON.stringify({initData,id})
   });
   loadAlerts();
 }
 
 async function loadProfile(){
   const r=await fetch(`${API_BASE}/user/profile`,{
-    method:"POST",
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({initData})
+    method:"POST",headers:headers(),body:JSON.stringify({initData})
   });
   const d=await r.json();
-  document.getElementById("refLink").value=d.referral_link;
+  refLink.value=d.referral_link;
 }
 
 function copyLink(){
-  navigator.clipboard.writeText(document.getElementById("refLink").value);
-  alert("Referral link copied");
+  navigator.clipboard.writeText(refLink.value);
+  alert("Copied");
 }
-
-async function completeTask(btn, taskId, reward){
-  btn.disabled = true;
-
-  const r = await fetch(`${API_BASE}/task/complete`, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({
-      initData,
-      task_id: taskId,
-      reward
-    })
-  });
-
-  const d = await r.json();
-  if(d.ok){
-    btn.innerText = "Completed ✓";
-    refresh(); // 🔥 pulls SP from backend
-  }else{
-    btn.disabled = false;
-    alert("Task already completed or auth failed");
-  }
-}
-
 
 refresh();
 </script>
