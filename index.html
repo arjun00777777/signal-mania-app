@@ -321,15 +321,31 @@ function startTimer(sec){
 }
 
 async function loadSignals(){
-  const r=await fetch(`${API_BASE}/market/signals`);
-  const d=await r.json();
-  const list=document.getElementById("signalsList");
-  list.innerHTML=d.map(x=>`
-    <div class="signal">
-      <b>${x.symbol}</b><br>
-      $${x.price} (${x.change}%)
-    </div>
-  `).join("");
+  const list = document.getElementById("signalsList");
+  list.innerHTML = `<p class="small">Loading whale activity...</p>`;
+
+  try {
+    const r = await fetch(`${API_BASE}/market/signals`);
+    const d = await r.json();
+
+    if (!d || d.length === 0) {
+      list.innerHTML = `<p class="small">No whale data yet. Please refresh.</p>`;
+      return;
+    }
+
+    list.innerHTML = d.map(x => `
+      <div class="signal">
+        <b>${x.symbol}</b><br>
+        $${x.price.toLocaleString()} 
+        <span style="color:${x.change >= 0 ? '#00f5a0' : '#ef4444'}">
+          ${x.change}%
+        </span>
+      </div>
+    `).join("");
+
+  } catch (e) {
+    list.innerHTML = `<p class="small">Failed to load whale data</p>`;
+  }
 }
 
 async function createAlert(){
