@@ -251,9 +251,10 @@
         </div>
 
         <div class="card" style="margin-top:20px;">
-            <h3 style="margin-top:0">Upgrades</h3>
-            <button id="upgrade-time-btn" class="action-btn" style="margin-bottom:10px" onclick="buyPack('time')">🕒 +5m (50 HASHES)</button>
-            <button id="upgrade-boost-btn" class="action-btn" onclick="buyPack('boost')">🚀 x1.5 (100 HASHES)</button>
+            <h3 style="margin-top:0">Mining Rig Upgrade</h3>
+            <p id="current-level-display" style="font-size:12px; color:#aaa;">Current Rig: Level 1</p>
+            <button class="action-btn" onclick="buyPack('upgrade')">⬆️ UPGRADE RIG (Level Up)</button>
+            <p style="font-size:10px; text-align:center; margin-top:5px; color:#666;">Costs 100 x Level. Increases Offline Rate & Max Time.</p>
         </div>
     </div>
 </div>
@@ -286,7 +287,7 @@
 <div id="tab-profile" class="container tab-content">
     <div class="header-container">
         <h1>Agent<span style="color:white">Profile</span></h1>
-        <div id="user-level" class="status-badge">LEVEL 1</div>
+        <div class="status-badge">CLEARANCE: LEVEL 1</div>
     </div>
 
     <div class="card">
@@ -294,7 +295,7 @@
             <img id="user-pic" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="profile-pic" alt="User">
             <div>
                 <div id="user-name" style="font-weight:bold; font-size:18px; color:white">Unknown Agent</div>
-                <div style="font-size:10px; color:var(--accent)">VERIFIED OPERATIVE</div>
+                <div id="user-level" class="status-badge">ROOKIE</div>
             </div>
         </div>
 
@@ -313,17 +314,17 @@
         <input type="text" id="ref-link-hidden" style="position:absolute; left:-9999px;">
     </div>
 
-    <div class="card">
-        <h3 style="margin-top:0">Daily Missions</h3>
-        <p>Complete a 5-min mining session</p>
-        
-        <button id="claim-btn" class="action-btn" onclick="completeMission()" disabled style="opacity:0.5; cursor:not-allowed;">
-            🔒 Locked (Mine First)
-        </button>
-        
-        <h3 style="margin-top:20px">Streak</h3>
-        <p id="streak-display">Current Streak: 🔥 0 Days</p>
-    </div>
+   <div class="card">
+    <h3 style="margin-top:0">Daily Missions</h3>
+    <p>Complete a 5-min mining session</p>
+    
+    <button id="claim-btn" class="action-btn" onclick="completeMission()" disabled style="opacity:0.5; cursor:not-allowed;">
+        🔒 Locked (Mine First)
+    </button>
+    
+    <h3 style="margin-top:20px">Streak</h3>
+    <p id="streak-display">Current Streak: 🔥 0 Days</p>
+</div>
 </div>
 
 <div class="bottom-nav">
@@ -384,14 +385,19 @@
             const mineData = await mineRes.json();
             miningPoints = mineData.sp || 0;
             
-            // Update Level / Max Time / Badge
+            // Show Level
+            document.getElementById('current-level-display').innerText = `Current Rig: Level ${mineData.level}`;
+
+            // Update Max Time
             if (mineData.max_time) MAX_MINING_TIME = mineData.max_time;
-            const currentLevel = mineData.level || 1;
-            document.getElementById('user-level').innerText = "LEVEL " + currentLevel;
-            
-            // Update Button Prices dynamically
-            document.getElementById('upgrade-time-btn').innerText = `🕒 +5m (${50 * currentLevel} HASHES)`;
-            document.getElementById('upgrade-boost-btn').innerText = `🚀 x1.5 (${100 * currentLevel} HASHES)`;
+
+            // CHECK OFFLINE EARNINGS
+            if (mineData.offline_earnings > 0) {
+                 tg.showPopup({ 
+                    title: "WELCOME BACK", 
+                    message: `Your rig mined ${mineData.offline_earnings} hashes while you were away!` 
+                });
+            }
             
             updateDisplay();
         } catch (e) { console.error("API Error", e); }
@@ -445,6 +451,9 @@
         document.getElementById('auto-mine-btn').disabled = true;
         document.getElementById('auto-mine-btn').innerText = "MINING IN PROGRESS...";
         
+        // Initial sync to set timestamp in DB
+        syncPoints(); 
+
         miningInterval = setInterval(() => {
             miningTime++;
             const pct = (miningTime / MAX_MINING_TIME) * 100;
@@ -493,7 +502,6 @@
 
     // === 💾 AUTO-SAVE ===
     async function syncPoints() {
-        if(miningPoints === 0) return;
         try {
             await fetch(`${API_BASE_URL}/user/mining/sync`, {
                 method: "POST",
@@ -506,58 +514,44 @@
     setInterval(syncPoints, 5000);
 
     // === 🛒 SHOP ===
-async function buyPack(type) {
-    try {
-        await syncPoints(); 
-        
-        // --- FIX: Show dynamic costs even in checks ---
-        // (We assume we don't know the server level yet perfectly, but we will catch the error from server)
-        
-        // Show a loading indicator
-        tg.MainButton.setText("PROCESSING...");
-        tg.MainButton.show();
-
-        const res = await fetch(`${API_BASE_URL}/user/mining/upgrade`, {
-            method: "POST",
-            headers: { 
-                "Content-Type": "application/json",
-                "ngrok-skip-browser-warning": "true" 
-            },
-            body: JSON.stringify({ initData: tg.initData, pack: type })
-        });
-
-        if (!res.ok) {
-            const errorData = await res.json();
-            throw new Error(errorData.message || "Server Error");
-        }
-
-        const data = await res.json();
-        if (data.status === "success") {
-            miningPoints = data.new_sp;
+    async function buyPack(type) {
+        try {
+            await syncPoints(); 
             
-            // --- FIX: Update all globals and UI instantly ---
-            if(data.new_max_time) MAX_MINING_TIME = data.new_max_time;
-            
-            // Update Level Badge
-            document.getElementById('user-level').innerText = "LEVEL " + data.new_level;
-            
-            // Update Button Prices for NEXT purchase
-            if(data.next_cost) {
-                // Update specific button based on what was bought
-                const btnId = type === 'time' ? 'upgrade-time-btn' : 'upgrade-boost-btn';
-                const label = type === 'time' ? "🕒 +5m" : "🚀 x1.5";
-                document.getElementById(btnId).innerText = `${label} (${data.next_cost} HASHES)`;
+            // Show a loading indicator
+            tg.MainButton.setText("UPGRADING...");
+            tg.MainButton.show();
+
+            const res = await fetch(`${API_BASE_URL}/user/mining/upgrade`, {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json",
+                    "ngrok-skip-browser-warning": "true" 
+                },
+                body: JSON.stringify({ initData: tg.initData, pack: type })
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.message || "Server Error");
             }
 
-            updateDisplay();
-            tg.showPopup({ title: "SUCCESS", message: "Upgraded to Level " + data.new_level });
+            const data = await res.json();
+            if (data.status === "success") {
+                miningPoints = data.new_sp;
+                if(data.new_max_time) MAX_MINING_TIME = data.new_max_time;
+                
+                document.getElementById('current-level-display').innerText = `Current Rig: Level ${data.new_level}`;
+                
+                updateDisplay();
+                tg.showPopup({ title: "SUCCESS", message: data.message });
+            }
+        } catch (e) {
+            tg.showAlert("Upgrade Failed: " + e.message);
+        } finally {
+            tg.MainButton.hide();
         }
-    } catch (e) {
-        tg.showAlert(e.message);
-    } finally {
-        tg.MainButton.hide();
     }
-}
 
     // === ➕ ALERTS ===
     async function loadAlerts() {
