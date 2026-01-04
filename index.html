@@ -30,7 +30,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Hacking Background */
+        /* Hacker Background */
         body::before {
             content: '';
             position: fixed;
@@ -38,7 +38,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text fill="rgba(0,255,65,0.05)" font-size="10" y="10%">1001010101</text></svg>') repeat;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text fill="rgba(0,255,65,0.05)" font-size="10" y="10%">0101010101</text></svg>') repeat;
             z-index: -1;
             animation: scrollMatrix 60s linear infinite;
         }
@@ -61,6 +61,14 @@
         @keyframes floatUp {
             0% { transform: translateY(0) scale(1); opacity: 1; }
             100% { transform: translateY(-50px) scale(1.5); opacity: 0; }
+        }
+        @keyframes codeScroll {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(100px); }
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
         }
 
         .container { max-width: 500px; margin: 0 auto; padding: 20px; }
@@ -108,39 +116,26 @@
             100% { left: 100%; }
         }
 
-        /* Mining Circle */
-        .mining-circle {
-            width: 200px; height: 200px;
-            background: radial-gradient(circle, #1a1a1a 0%, #000 70%);
-            border: 2px dashed #333;
-            border-radius: 50%;
-            margin: 0 auto 20px auto;
-            display: flex; flex-direction: column; justify-content: center;
-            align-items: center;
-            box-shadow: 0 0 20px rgba(0, 255, 65, 0.1);
+        .terminal {
+            background: #000;
+            border: 1px solid #00ff41;
+            padding: 15px;
+            font-family: 'Courier New';
+            border-radius: 4px;
             animation: pulseGlow 2s infinite;
-            position: relative;
-            overflow: hidden;
-            cursor: pointer;
-        }
-        .score-val { font-size: 32px; font-weight: bold; color: var(--accent); text-shadow: 0 0 10px var(--accent); }
-        .particle {
-            position: absolute;
-            color: var(--accent);
-            font-weight: bold;
-            pointer-events: none;
-            animation: floatUp 0.8s ease-out forwards;
         }
 
         .progress-track {
-            width: 100%; height: 10px;
+            width: 100%;
+            height: 10px;
             background: rgba(0, 255, 65, 0.2);
-            border-radius: 5px; overflow: hidden;
-            margin: 10px 0; border: 1px solid #00ff41;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 10px 0;
+            border: 1px solid #00ff41;
         }
         .progress-fill { height: 100%; background: #00ff41; transition: width 1s linear; }
 
-        /* Roadmap */
         .roadmap-container { position: relative; padding: 20px 0; margin-left: 10px; }
         .roadmap-path { position: absolute; left: 20px; top: 0; bottom: 0; width: 4px; background: #222; }
         .roadmap-path-active { position: absolute; left: 20px; top: 0; height: 40%; width: 4px; background: var(--accent); box-shadow: var(--glow-shadow); }
@@ -148,20 +143,17 @@
         .milestone.completed .milestone-title { color: var(--accent); text-decoration: line-through; }
         .milestone.active .milestone-title { color: white; text-shadow: 0 0 5px white; }
 
-        /* Profile */
         .profile-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
         .profile-pic { width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--accent); background: #222; }
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
         .stat-box { background: #080808; border: 1px solid #333; padding: 10px; text-align: center; border-radius: 8px; }
 
-        /* Inputs & Buttons */
         .input-group { display: flex; gap: 10px; margin-bottom: 15px; }
         input, select { background: #000; border: 1px solid #333; color: var(--accent); padding: 12px; width: 100%; border-radius: 4px; box-sizing: border-box; }
         button.action-btn { background-color: var(--accent); color: black; border: none; padding: 14px; width: 100%; font-weight: 900; cursor: pointer; text-transform: uppercase; border-radius: 4px; }
         button.action-btn:active { transform: scale(0.98); }
         button:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* Bottom Nav */
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; width: 100%;
             background-color: rgba(10, 10, 10, 0.95);
@@ -175,6 +167,18 @@
 
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+
+        .notification-popup {
+            position: fixed;
+            top: 10%;
+            right: 10%;
+            background: #111;
+            border: 1px solid #00ff41;
+            padding: 10px;
+            border-radius: 4px;
+            animation: slideIn 0.5s;
+            z-index: 2000;
+        }
     </style>
 </head>
 <body>
@@ -232,30 +236,21 @@
         <div class="status-badge">BRUTEFORCE: ACTIVE</div>
     </div>
     
-    <div class="hacker-screen">
-        <div class="mining-circle" id="mining-btn" onclick="minePoint(event)">
-            <span class="score-val" id="mining-points-display">0</span>
-            <span style="font-size:10px; letter-spacing:3px; opacity:0.7">HASHES</span>
+    <div class="terminal">
+        <h3>HACKING IN PROGRESS...</h3>
+        <div class="progress-track">
+            <div class="progress-fill" id="mining-progress" style="width:0%;"></div>
         </div>
-        
-        <div class="card" style="margin-top:30px;">
-            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                <span>ENERGY</span>
-                <span id="energy-val">1000/1000</span>
-            </div>
-            <div class="progress-track">
-                <div class="progress-fill" id="mining-progress" style="width:0%;"></div>
-            </div>
-            <p id="mining-status-text" style="text-align:center; font-size:12px; margin-top:10px; color:#666;">TAP TO MINE BLOCKS</p>
-            <button id="auto-mine-btn" class="action-btn" style="margin-top:10px;" onclick="startAutoMining()">START AUTO-MINER</button>
-        </div>
+        <p id="mining-status-text" style="text-align:center; font-size:12px; margin-top:10px; color:#666;">INITIALIZING HACK...</p>
+        <button id="auto-mine-btn" class="action-btn" style="margin-top:10px;" onclick="startHack()">START AUTO-HACK</button>
+        <button class="action-btn" onclick="activateBoost()">ACTIVATE BOOST (50 Hashes)</button>
+    </div>
 
-        <div class="card" style="margin-top:20px;">
-            <h3 style="margin-top:0">Mining Rig Upgrade</h3>
-            <p id="current-level-display" style="font-size:12px; color:#aaa;">Current Rig: Level 1</p>
-            <button class="action-btn" onclick="buyPack('upgrade')">⬆️ UPGRADE RIG (Level Up)</button>
-            <p style="font-size:10px; text-align:center; margin-top:5px; color:#666;">Costs 100 x Level. Increases Offline Rate & Max Time.</p>
-        </div>
+    <div class="card" style="margin-top:20px;">
+        <h3 style="margin-top:0">Mining Rig Upgrade</h3>
+        <p id="current-level-display" style="font-size:12px; color:#aaa;">Current Rig: Level 1</p>
+        <button class="action-btn" onclick="buyPack('upgrade')">⬆️ UPGRADE RIG (Level Up)</button>
+        <p style="font-size:10px; text-align:center; margin-top:5px; color:#666;">Costs 100 x Level. Increases Offline Rate & Max Time.</p>
     </div>
 </div>
 
@@ -302,7 +297,7 @@
         <div class="stats-grid">
             <div class="stat-box">
                 <div class="stat-val" id="total-hashes">0</div>
-                <div style="font-size:10px; color:#666;">TOTAL MINED</div>
+                <div style="font-size:10px; color:#666;">TOTAL HASHES</div>
             </div>
             <div class="stat-box">
                 <div class="stat-val" id="referral-count">0</div>
@@ -318,8 +313,8 @@
     <h3 style="margin-top:0">Daily Missions</h3>
     <p>Complete a 5-min mining session</p>
     
-    <button id="claim-btn" class="action-btn" onclick="completeMission()" disabled style="opacity:0.5; cursor:not-allowed;">
-        🔒 Locked (Mine First)
+    <button id="claim-btn" class="action-btn" onclick="completeMission(event)" disabled style="opacity:0.5; cursor:not-allowed;">
+        🔒 Locked (Hack First)
     </button>
     
     <h3 style="margin-top:20px">Streak</h3>
@@ -346,20 +341,20 @@
 
     // === 💾 STATE ===
     let user = tg.initDataUnsafe?.user || { id: 123, first_name: "Test Agent" };
-    let miningPoints = 0;
-    let isAutoMining = false;
-    let miningInterval;
-    let miningTime = 0;
-    let MAX_MINING_TIME = 300; // default 5 mins
+    let hashes = 0;
+    let isHacking = false;
+    let hackInterval;
+    let hackTime = 0;
+    let MAX_HACK_TIME = 300; // default 5 mins
 
     // === 🚀 INIT APP ===
     function initApp() {
         if (user) {
             document.getElementById('user-name').innerText = user.first_name;
             if (user.photo_url) document.getElementById('user-pic').src = user.photo_url;
-            document.getElementById('ref-link-hidden').value = `https://t.me/${BOT_USERNAME}?start=ref_${user.id}`;
+            document.getElementById('ref-link-hidden').value = `https://t.me/${BOT_USERNAME}?start=${user.id}`;
             fetchStats();
-            loadAlerts(); // Load watchlist on start
+            loadAlerts();
         }
         updateDisplay();
     }
@@ -367,7 +362,6 @@
     // === 📡 API CALLS ===
     async function fetchStats() {
         try {
-            // Referrals
             const res = await fetch(`${API_BASE_URL}/user/referrals`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
@@ -376,24 +370,20 @@
             const data = await res.json();
             document.getElementById('referral-count').innerText = data.referrals || 0;
             
-            // Mining Stats
             const mineRes = await fetch(`${API_BASE_URL}/user/mining/stats`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
                 body: JSON.stringify({ initData: tg.initData })
             });
             const mineData = await mineRes.json();
-            miningPoints = mineData.sp || 0;
+            hashes = mineData.hashes || 0;
             
-            // Show Level
             document.getElementById('current-level-display').innerText = `Current Rig: Level ${mineData.level}`;
-
-            // Update Max Time
-            if (mineData.max_time) MAX_MINING_TIME = mineData.max_time;
-
-            // CHECK OFFLINE EARNINGS
+            
+            if (mineData.max_time) MAX_HACK_TIME = mineData.max_time;
+            
             if (mineData.offline_earnings > 0) {
-                 tg.showPopup({ 
+                tg.showPopup({ 
                     title: "WELCOME BACK", 
                     message: `Your rig mined ${mineData.offline_earnings} hashes while you were away!` 
                 });
@@ -436,50 +426,39 @@
         } catch (e) { console.log("Signal Load Error"); }
     }
 
-    // === 👨‍💻 MINING LOGIC ===
-    function minePoint(event) {
-        if(isAutoMining) return;
-        miningPoints++;
-        updateDisplay();
-        tg.HapticFeedback.impactOccurred('light');
-        spawnParticle(event);
-    }
-
-    function startAutoMining() {
-        if(isAutoMining) return;
-        isAutoMining = true;
+    // === 👨‍💻 HACKING LOGIC ===
+    function startHack() {
+        if (isHacking) return;
+        isHacking = true;
         document.getElementById('auto-mine-btn').disabled = true;
-        document.getElementById('auto-mine-btn').innerText = "MINING IN PROGRESS...";
+        document.getElementById('auto-mine-btn').innerText = "HACKING IN PROGRESS...";
         
-        // Initial sync to set timestamp in DB
-        syncPoints(); 
-
-        miningInterval = setInterval(() => {
-            miningTime++;
-            const pct = (miningTime / MAX_MINING_TIME) * 100;
+        syncHashes();
+        
+        hackInterval = setInterval(() => {
+            hackTime++;
+            const pct = (hackTime / MAX_HACK_TIME) * 100;
             document.getElementById('mining-progress').style.width = pct + "%";
-            document.getElementById('mining-status-text').innerText = `HASHING: ${miningTime}s / ${MAX_MINING_TIME}s`;
+            document.getElementById('mining-status-text').innerText = `HACKING: ${hackTime}s / ${MAX_HACK_TIME}s`;
             
-            if(miningTime >= MAX_MINING_TIME) {
-                clearInterval(miningInterval);
-                finishMining();
+            if (hackTime >= MAX_HACK_TIME) {
+                clearInterval(hackInterval);
+                finishHack();
             }
         }, 1000);
     }
 
-    async function finishMining() {
-        isAutoMining = false;
-        miningTime = 0;
+    async function finishHack() {
+        isHacking = false;
+        hackTime = 0;
         
-        // UNLOCK THE CLAIM BUTTON HERE
         document.getElementById('claim-btn').disabled = false;
         document.getElementById('claim-btn').style.opacity = "1";
         document.getElementById('claim-btn').style.cursor = "pointer";
         document.getElementById('claim-btn').innerText = "🎁 CLAIM REWARD (+100)";
         
         document.getElementById('auto-mine-btn').disabled = false;
-        document.getElementById('auto-mine-btn').innerText = "START AUTO-MINER";
-        // ... rest of the saving logic ...
+        document.getElementById('auto-mine-btn').innerText = "START AUTO-HACK";
         
         try {
             const res = await fetch(`${API_BASE_URL}/user/mining/complete`, {
@@ -489,41 +468,39 @@
             });
             
             const data = await res.json();
-            if(data.status === "success") {
-                miningPoints = data.new_sp;
+            if (data.status === "success") {
+                hashes = data.new_hashes;
                 updateDisplay();
-                document.getElementById('mining-status-text').innerText = "SESSION COMPLETE (+100 SP)";
+                document.getElementById('mining-status-text').innerText = "SESSION COMPLETE (+100 Hashes)";
                 tg.HapticFeedback.notificationOccurred('success');
             }
-        } catch(e) {
+        } catch (e) {
             document.getElementById('mining-status-text').innerText = "ERROR SAVING";
         }
     }
 
     // === 💾 AUTO-SAVE ===
-    async function syncPoints() {
+    async function syncHashes() {
         try {
             await fetch(`${API_BASE_URL}/user/mining/sync`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
-                body: JSON.stringify({ initData: tg.initData, sp: miningPoints })
+                body: JSON.stringify({ initData: tg.initData, hashes: hashes })
             });
         } catch (e) { console.error("Sync Failed"); }
     }
-    // Auto-save every 5s
-    setInterval(syncPoints, 5000);
+    setInterval(syncHashes, 5000);
 
     // === 🛒 SHOP ===
     async function buyPack(type) {
         try {
-            await syncPoints(); 
+            await syncHashes();
             
-            // Show a loading indicator
             tg.MainButton.setText("UPGRADING...");
             tg.MainButton.show();
 
             const res = await fetch(`${API_BASE_URL}/user/mining/upgrade`, {
-                method: "POST",
+                method: "POST", 
                 headers: { 
                     "Content-Type": "application/json",
                     "ngrok-skip-browser-warning": "true" 
@@ -538,8 +515,8 @@
 
             const data = await res.json();
             if (data.status === "success") {
-                miningPoints = data.new_sp;
-                if(data.new_max_time) MAX_MINING_TIME = data.new_max_time;
+                hashes = data.new_hashes;
+                if (data.new_max_time) MAX_HACK_TIME = data.new_max_time;
                 
                 document.getElementById('current-level-display').innerText = `Current Rig: Level ${data.new_level}`;
                 
@@ -550,6 +527,29 @@
             tg.showAlert("Upgrade Failed: " + e.message);
         } finally {
             tg.MainButton.hide();
+        }
+    }
+
+    async function activateBoost() {
+        try {
+            await syncHashes();
+            
+            const res = await fetch(`${API_BASE_URL}/user/boost/activate`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
+                body: JSON.stringify({ initData: tg.initData })
+            });
+            
+            const data = await res.json();
+            if (data.status === "success") {
+                hashes = data.new_hashes;
+                updateDisplay();
+                tg.showPopup({ title: "BOOST ACTIVATED", message: "2x earnings for 1 hour!" });
+            } else {
+                tg.showAlert("Not enough Hashes or already active.");
+            }
+        } catch (e) {
+            tg.showAlert("Boost Failed");
         }
     }
 
@@ -579,7 +579,7 @@
                 `;
                 list.appendChild(div);
             });
-        } catch(e) {}
+        } catch (e) {}
     }
 
     async function setAlert() {
@@ -596,13 +596,13 @@
             });
             const data = await response.json();
             msgEl.innerText = data.status === "success" ? "✅ DEPLOYED" : "❌ " + data.message;
-            msgEl.style.color = data.status==="success" ? "var(--accent)" : "var(--danger)";
-            if(data.status==="success") loadAlerts(); // Refresh list
+            msgEl.style.color = data.status === "success" ? "var(--accent)" : "var(--danger)";
+            if (data.status === "success") loadAlerts();
         } catch (e) { msgEl.innerText = "❌ ERROR"; }
     }
 
     async function deleteAlert(id) {
-        if(!confirm("Delete this watcher?")) return;
+        if (!confirm("Delete this watcher?")) return;
         await fetch(`${API_BASE_URL}/alert/delete`, {
             method: "POST",
             headers: { "Content-Type": "application/json", "ngrok-skip-browser-warning": "true" },
@@ -615,7 +615,7 @@
     async function simulatePortfolio() {
         const asset = document.getElementById("sim-asset").value;
         const amount = document.getElementById("sim-amount").value;
-        if(!asset || !amount) return; 
+        if (!asset || !amount) return; 
 
         try {
             const res = await fetch(`${API_BASE_URL}/user/portfolio/simulate`, {
@@ -627,11 +627,11 @@
             const el = document.getElementById("sim-result");
             el.innerText = `Simulated PnL: $${data.simulated_impact}`;
             el.style.color = data.simulated_impact >= 0 ? "var(--accent)" : "var(--danger)";
-        } catch(e) {}
+        } catch (e) {}
     }
 
     // === 🎁 DAILY CLAIM ===
-    async function completeMission() {
+    async function completeMission(event) {
         const btn = event.target;
         const originalText = btn.innerText;
         btn.innerText = "CLAIMING...";
@@ -643,8 +643,8 @@
                 body: JSON.stringify({ initData: tg.initData })
             });
             const data = await res.json();
-            if(data.status === "success") {
-                miningPoints = data.new_sp;
+            if (data.status === "success") {
+                hashes = data.new_hashes;
                 updateDisplay();
                 btn.innerText = "CLAIMED ✅";
                 btn.disabled = true;
@@ -653,7 +653,7 @@
                 btn.innerText = originalText;
                 tg.showAlert("Already claimed or error.");
             }
-        } catch(e) { btn.innerText = "ERROR"; }
+        } catch (e) { btn.innerText = "ERROR"; }
     }
 
     // === 🖇️ UTILS ===
@@ -673,22 +673,16 @@
     }
 
     function updateDisplay() {
-        document.getElementById('mining-points-display').innerText = Math.floor(miningPoints).toLocaleString();
-        document.getElementById('total-hashes').innerText = Math.floor(miningPoints).toLocaleString();
+        document.getElementById('mining-points-display').innerText = Math.floor(hashes).toLocaleString();
+        document.getElementById('total-hashes').innerText = Math.floor(hashes).toLocaleString();
     }
 
-    function spawnParticle(event) {
-        const circle = document.getElementById('mining-btn');
-        const particle = document.createElement('div');
-        particle.className = 'particle';
-        particle.innerText = '+1';
-        const rect = circle.getBoundingClientRect();
-        const x = event ? event.clientX - rect.left : 100;
-        const y = event ? event.clientY - rect.top : 100;
-        particle.style.left = x + 'px';
-        particle.style.top = y + 'px';
-        circle.appendChild(particle);
-        setTimeout(() => particle.remove(), 800);
+    function showNotification(message) {
+        const notif = document.createElement('div');
+        notif.className = 'notification-popup';
+        notif.innerHTML = `<p>${message}</p>`;
+        document.body.appendChild(notif);
+        setTimeout(() => notif.remove(), 5000);
     }
 
     // === START ===
