@@ -6,34 +6,36 @@
     <title>SignalMania</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --bg: #050505; --card: #111; --green: #00ff41; --red: #ff003c; }
+        :root { --bg: #050505; --card: #111; --green: #00ff41; --red: #ff003c; --accent: #0088ff; }
         body { background: var(--bg); color: var(--green); font-family: 'Courier New', monospace; margin: 0; padding-bottom: 90px; user-select: none; }
-        
         .container { max-width: 500px; margin: 0 auto; padding: 20px; }
-        
         .card { background: var(--card); border: 1px solid #333; padding: 15px; margin-bottom: 15px; border-radius: 6px; border-left: 3px solid var(--green); }
-        
         h1 { text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
         h3 { margin-top: 0; color: #fff; }
 
+        /* Buttons */
         .btn { background: var(--green); color: black; border: none; padding: 14px; width: 100%; font-weight: 900; cursor: pointer; border-radius: 4px; font-family: inherit; margin-top: 10px; }
         .btn:disabled { background: #333; color: #666; cursor: not-allowed; }
+        .btn-blue { background: var(--accent); color: white; }
         .btn-del { background: var(--red); color: white; padding: 5px 10px; border: none; cursor: pointer; border-radius: 3px; }
 
+        /* Inputs */
+        input, select { background: #000; border: 1px solid #333; color: var(--green); padding: 10px; width: 100%; margin-bottom: 10px; box-sizing: border-box; }
+
+        /* Mining Bar */
         .progress-track { width: 100%; height: 12px; background: #222; border: 1px solid var(--green); margin: 15px 0; border-radius: 6px; overflow: hidden; }
         .progress-fill { height: 100%; background: var(--green); width: 0%; transition: width 1s linear; }
 
+        /* Nav */
         .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #0a0a0a; display: flex; padding: 12px 0; border-top: 1px solid #333; z-index: 100; }
         .nav-item { flex: 1; text-align: center; opacity: 0.5; font-size: 24px; cursor: pointer; }
         .nav-item.active { opacity: 1; color: var(--green); text-shadow: 0 0 10px var(--green); }
-
         .tab { display: none; }
         .tab.active { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
-        input, select { background: #000; border: 1px solid #333; color: var(--green); padding: 10px; width: 100%; margin-bottom: 10px; box-sizing: border-box; }
-        
+
         .signal-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed #333; }
+        .boost-badge { font-size:10px; background:#ff003c; padding:2px 5px; border-radius:3px; color:white; display:none; }
     </style>
 </head>
 <body>
@@ -46,6 +48,16 @@
             <div id="signals-list">
                 <p style="text-align:center; opacity:0.5; padding:20px;">Scanning Market...</p>
             </div>
+        </div>
+
+        <div class="card">
+            <h3>📊 PnL Simulator</h3>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="sim-asset" placeholder="Asset (BTC)">
+                <input type="number" id="sim-amount" placeholder="Amount ($)">
+            </div>
+            <button class="btn btn-blue" onclick="runSim()">SIMULATE IMPACT</button>
+            <p id="sim-result" style="text-align:center; font-size:12px;"></p>
         </div>
 
         <div class="card">
@@ -67,17 +79,26 @@
         <h1>Crypto<span style="color:white">Hacker</span></h1>
         
         <div class="card" style="text-align:center;">
-            <div style="font-size:32px; font-weight:bold;" id="total-hashes">0</div>
-            <div style="opacity:0.6; font-size:12px;">TOTAL HASHES MINED</div>
+            <div style="font-size:32px; font-weight:bold;">
+                <span id="total-hashes">0</span>
+                <span id="boost-badge" class="boost-badge">2X BOOST ACTIVE</span>
+            </div>
+            <div style="opacity:0.6; font-size:12px;">HASHES MINED</div>
         </div>
 
         <div class="card">
-            <h3>System Status</h3>
+            <h3>System Status <span id="rig-level" style="font-size:12px; opacity:0.5; float:right;">Lvl 1</span></h3>
             <div class="progress-track">
                 <div class="progress-fill" id="mining-bar"></div>
             </div>
             <div id="mining-status" style="text-align:center; font-size:12px; margin-bottom:10px; color:#aaa;">IDLE</div>
             <button id="mine-btn" class="btn" onclick="startMining()">INITIATE HACK SEQUENCE</button>
+        </div>
+
+        <div class="card">
+            <h3>🛠️ Black Market (Shop)</h3>
+            <button class="btn btn-blue" onclick="upgradeRig()">⬆️ UPGRADE RIG (Cost: <span id="upgrade-cost">100</span>)</button>
+            <button class="btn" style="background:#ff003c; color:white;" onclick="buyBoost()">🚀 1HR BOOST (Cost: 50)</button>
         </div>
     </div>
 
@@ -97,91 +118,116 @@
     </div>
 
 <script>
-    // ⚠️ REPLACE THIS URL with your new ngrok URL every time you restart!
+    // ⚠️ REPLACE WITH NGROK URL
     const API_BASE_URL = "https://your-ngrok-url-here.ngrok-free.app";
 
     const tg = window.Telegram.WebApp;
     tg.expand();
     const user = tg.initDataUnsafe?.user || { id: 123, first_name: "Test Agent" };
-
     let miningInterval = null;
+    let currentLevel = 1;
 
-    // === STARTUP ===
     async function init() {
-        // UI Setup
         document.getElementById("user-name").innerText = user.first_name;
         document.getElementById("user-id").innerText = user.id;
-
-        // Fetch Data
         await fetchMiningStats();
         await fetchSignals();
         await fetchAlerts();
     }
 
-    // === MINING LOGIC ===
     async function fetchMiningStats() {
         try {
             const res = await fetch(`${API_BASE_URL}/user/mining/stats`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
+                method: "POST", headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ initData: tg.initData })
             });
             const data = await res.json();
 
-            // Update Total Hashes
+            // Stats
             document.getElementById("total-hashes").innerText = data.hashes.toLocaleString();
+            document.getElementById("rig-level").innerText = "Lvl " + data.level;
+            document.getElementById("upgrade-cost").innerText = 100 * data.level;
+            currentLevel = data.level;
 
-            // Handle "Just Finished" (Offline reward)
-            if (data.just_completed) {
-                tg.showPopup({ 
-                    title: "HACK COMPLETE", 
-                    message: `System mined ${data.reward_earned} hashes while you were away.` 
-                });
-            }
+            // Boost
+            document.getElementById("boost-badge").style.display = data.is_boosted ? "inline-block" : "none";
 
-            // Resume Progress Bar if active
+            // Reward Popup
+            if (data.just_completed) tg.showPopup({ title: "HACK COMPLETE", message: `System mined ${data.reward_earned} hashes.` });
+
+            // Timer
             if (data.mining_active) {
-                const percent = data.mining_progress; // 0.0 to 1.0
-                runVisualTimer(percent);
+                runVisualTimer(data.mining_progress);
                 setMiningUI(true, "HACKING IN PROGRESS...");
             } else {
                 setMiningUI(false, "SYSTEM IDLE");
                 document.getElementById("mining-bar").style.width = "0%";
             }
-        } catch (e) { console.error("Stats Error", e); }
+        } catch (e) { console.error(e); }
     }
 
     async function startMining() {
         const btn = document.getElementById("mine-btn");
         btn.disabled = true;
-        btn.innerText = "INITIALIZING...";
-
         try {
             const res = await fetch(`${API_BASE_URL}/user/mining/start`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
+                method: "POST", headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ initData: tg.initData })
             });
             const data = await res.json();
-
             if (data.status === "started") {
                 runVisualTimer(0);
                 setMiningUI(true, "HACKING IN PROGRESS...");
-            } else if (data.status === "active") {
-                // If backend says already active, just refresh stats to sync
-                fetchMiningStats();
             }
-        } catch (e) {
-            btn.disabled = false;
-            btn.innerText = "ERROR - RETRY";
-        }
+        } catch (e) { btn.disabled = false; }
+    }
+
+    async function upgradeRig() {
+        if(!confirm(`Upgrade Rig for ${100 * currentLevel} Hashes?`)) return;
+        try {
+            const res = await fetch(`${API_BASE_URL}/user/mining/upgrade`, {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ initData: tg.initData })
+            });
+            const data = await res.json();
+            if(data.status === "success") {
+                tg.showPopup({message: `Upgraded to Lvl ${data.new_level}!`});
+                fetchMiningStats();
+            } else {
+                tg.showAlert(data.message);
+            }
+        } catch(e) {}
+    }
+
+    async function buyBoost() {
+        try {
+            const res = await fetch(`${API_BASE_URL}/user/boost/activate`, {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ initData: tg.initData })
+            });
+            const data = await res.json();
+            if(data.status === "success") {
+                tg.showPopup({message: "Boost Activated! 2x Rewards for 1 Hour."});
+                fetchMiningStats();
+            } else tg.showAlert(data.message);
+        } catch(e) {}
+    }
+
+    async function runSim() {
+        const asset = document.getElementById("sim-asset").value;
+        const amt = document.getElementById("sim-amount").value;
+        const res = await fetch(`${API_BASE_URL}/user/portfolio/simulate`, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ initData: tg.initData, asset: asset, amount: amt })
+        });
+        const data = await res.json();
+        document.getElementById("sim-result").innerText = `Projected PnL: $${data.simulated_impact}`;
     }
 
     function runVisualTimer(startPercent) {
         if (miningInterval) clearInterval(miningInterval);
-        
         let percent = startPercent;
-        const totalSeconds = 300; // Assuming lvl 1 (5 mins) for visual smoothness
+        const totalSeconds = currentLevel === 1 ? 300 : (currentLevel === 2 ? 600 : 1800);
         const step = 1 / totalSeconds; 
 
         miningInterval = setInterval(() => {
@@ -189,100 +235,55 @@
             if (percent >= 1.0) {
                 percent = 1.0;
                 clearInterval(miningInterval);
-                document.getElementById("mining-status").innerText = "COMPLETED. REFRESHING...";
-                setTimeout(fetchMiningStats, 2000); // Sync with backend to get reward
+                setTimeout(fetchMiningStats, 2000);
             }
             document.getElementById("mining-bar").style.width = (percent * 100) + "%";
         }, 1000);
     }
 
     function setMiningUI(isActive, text) {
-        const btn = document.getElementById("mine-btn");
-        const status = document.getElementById("mining-status");
-        
-        if (isActive) {
-            btn.disabled = true;
-            btn.innerText = "MINING ACTIVE";
-            status.innerText = text;
-            status.style.color = "#00ff41";
-        } else {
-            btn.disabled = false;
-            btn.innerText = "INITIATE HACK SEQUENCE";
-            status.innerText = text;
-            status.style.color = "#aaa";
-        }
+        document.getElementById("mine-btn").disabled = isActive;
+        document.getElementById("mining-status").innerText = text;
+        document.getElementById("mining-status").style.color = isActive ? "#00ff41" : "#aaa";
     }
 
-    // === SIGNALS & ALERTS ===
+    // SIGNALS & ALERTS (Same as before)
     async function fetchSignals() {
-        try {
-            const res = await fetch(`${API_BASE_URL}/market/signals`, { 
-                headers: {"ngrok-skip-browser-warning": "true"} 
-            });
-            const data = await res.json();
-            const list = document.getElementById("signals-list");
-            list.innerHTML = "";
-
-            if (data.length === 0) {
-                list.innerHTML = "<p style='text-align:center; opacity:0.5'>No high-volatility whales found yet.</p>";
-                return;
-            }
-
-            data.forEach(s => {
-                const color = s.change > 0 ? "var(--green)" : "var(--red)";
-                list.innerHTML += `
-                <div class="signal-row">
-                    <strong>${s.symbol}</strong>
-                    <span style="color:${color}">${s.change > 0 ? '+' : ''}${s.change}%</span>
-                </div>`;
-            });
-        } catch (e) { console.error("Signal Error", e); }
+        const res = await fetch(`${API_BASE_URL}/market/signals`, { headers: {"ngrok-skip-browser-warning": "true"} });
+        const data = await res.json();
+        const list = document.getElementById("signals-list");
+        list.innerHTML = "";
+        data.forEach(s => {
+            list.innerHTML += `<div class="signal-row"><strong>${s.symbol}</strong><span style="color:${s.change>0?'#00ff41':'#ff003c'}">${s.change}%</span></div>`;
+        });
     }
 
     async function fetchAlerts() {
-        try {
-            const res = await fetch(`${API_BASE_URL}/alert/list`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ initData: tg.initData })
-            });
-            const data = await res.json();
-            const div = document.getElementById("active-alerts");
-            div.innerHTML = "";
-            
-            data.forEach(a => {
-                div.innerHTML += `
-                <div class="signal-row" style="font-size:12px;">
-                    <span>${a.symbol} ${a.condition} ${a.price}</span>
-                    <button class="btn-del" onclick="deleteAlert(${a.id})">X</button>
-                </div>`;
-            });
-        } catch (e) {}
+        const res = await fetch(`${API_BASE_URL}/alert/list`, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ initData: tg.initData })
+        });
+        const data = await res.json();
+        const div = document.getElementById("active-alerts");
+        div.innerHTML = "";
+        data.forEach(a => {
+            div.innerHTML += `<div class="signal-row" style="font-size:12px;"><span>${a.symbol} ${a.condition} ${a.price}</span><button class="btn-del" onclick="deleteAlert(${a.id})">X</button></div>`;
+        });
     }
 
     async function createAlert() {
-        const sym = document.getElementById("alert-sym").value;
-        const price = document.getElementById("alert-price").value;
-        const cond = document.getElementById("alert-cond").value;
-        
         await fetch(`${API_BASE_URL}/alert/create`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ initData: tg.initData, symbol: sym, price: price, condition: cond })
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ initData: tg.initData, symbol: document.getElementById("alert-sym").value, price: document.getElementById("alert-price").value, condition: document.getElementById("alert-cond").value })
         });
         fetchAlerts();
     }
-
+    
     async function deleteAlert(id) {
-        await fetch(`${API_BASE_URL}/alert/delete`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ initData: tg.initData, alert_id: id })
-        });
+        await fetch(`${API_BASE_URL}/alert/delete`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ initData: tg.initData, alert_id: id }) });
         fetchAlerts();
     }
 
-    // === TABS ===
     function switchTab(tabId, btn) {
         document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
         document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
@@ -290,7 +291,6 @@
         btn.classList.add("active");
     }
 
-    // Boot
     init();
 </script>
 </body>
