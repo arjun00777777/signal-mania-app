@@ -269,7 +269,9 @@ function show(id,el){
   document.querySelectorAll('.nav div').forEach(n=>n.classList.remove('active'));
   el.classList.add('active');
 
-  if(id==="signals") loadSignals();
+  if (id === "signals") {
+  loadSignals();
+}
   if(id==="alerts") loadAlerts();
   if(id==="profile") loadProfile();
 }
@@ -326,33 +328,39 @@ function startTimer(sec){
   },1000);
 }
 
-async function loadSignals(){
+  async function loadSignals() {
   const list = document.getElementById("signalsList");
   list.innerHTML = "<p class='small'>Loading whale data...</p>";
 
   try {
-    const r = await fetch(`${API_BASE}/market/signals?ts=${Date.now()}`);
-    const d = await r.json();
+    const res = await fetch(
+      `${API_BASE}/market/signals?ts=${Date.now()}`,
+      { cache: "no-store" }
+    );
 
-    if(!d || d.length === 0){
+    const data = await res.json();
+
+    if (!data || data.length === 0) {
       list.innerHTML = "<p class='small'>No whale data available</p>";
       return;
     }
 
-    list.innerHTML = d.map(x => `
+    list.innerHTML = data.map(c => `
       <div class="signal">
-        <b>${x.symbol}</b><br>
-        $${x.price}
-        <span style="color:${x.change >= 0 ? '#00f5a0' : '#ef4444'}">
-          ${x.change}%
+        <b>${c.symbol}</b><br>
+        $${Number(c.price).toLocaleString()}
+        <span style="color:${c.change >= 0 ? '#00f5a0' : '#ef4444'}">
+          ${c.change}%
         </span>
       </div>
     `).join("");
 
-  } catch {
-    list.innerHTML = "<p class='small'>Failed to load whales</p>";
+  } catch (e) {
+    list.innerHTML = "<p class='small'>Failed to load whale data</p>";
+    console.error(e);
   }
 }
+
 
 
 async function createAlert(){
