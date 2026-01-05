@@ -40,11 +40,16 @@ body{
   background:linear-gradient(135deg,var(--blue),#2563eb);
   color:#e0f2fe;
 }
+.btn.red{
+  background:linear-gradient(135deg,var(--danger),#ef4444);
+  color:#fff;
+}
+.btn.small{padding:8px 10px;font-size:12px}
 .btn.disabled{opacity:.5;pointer-events:none}
 .small{font-size:13px;color:var(--muted)}
 
 .progress{
-  height:10px;background:#020617;border-radius:8px;overflow:hidden;margin-top:10px
+  height:10px;background:#020617;border-radius:8px;overflow:hidden;margin-top:8px
 }
 .progress > div{
   height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#22c55e);
@@ -66,7 +71,7 @@ body{
 }
 .nav button{
   flex:1;background:none;border:none;color:#9ca3af;
-  padding:12px;font-size:12px
+  padding:10px;font-size:11px
 }
 .nav button.active{color:var(--accent)}
 </style>
@@ -77,7 +82,7 @@ body{
 
 <div class="header">
   <h2>🚀 SignalMania</h2>
-  <div class="small">DPIN Mining • Signals</div>
+  <div class="small">DPIN Mining • Signals • Rewards</div>
 </div>
 
 <!-- HOME / MINING -->
@@ -86,9 +91,7 @@ body{
     <div class="small">Node status</div>
     <b id="nodeStatus">Idle</b>
     <div class="small" id="timerText"></div>
-
     <div class="progress"><div id="progressBar"></div></div>
-
     <br>
     <button id="mineBtn" class="btn" onclick="startMining()">Start Mining</button>
   </div>
@@ -96,19 +99,84 @@ body{
   <div class="card">
     <div>SP: <b id="sp">0</b></div>
     <div>Level: <b id="level">1</b></div>
+    <div class="progress"><div id="levelBar"></div></div>
   </div>
 </div>
 
 <!-- SIGNALS -->
 <div id="signals" class="page" style="display:none">
   <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <b>📈 Market Signals</b>
-      <button class="btn blue" style="width:auto;padding:8px 12px" onclick="loadSignals()">↻</button>
+    <div style="display:flex;justify-content:space-between">
+      <b>📈 Signals</b>
+      <button class="btn blue small" onclick="loadSignals()">↻</button>
     </div>
     <div class="small" id="signalTime"></div>
-    <div id="signalsList" class="list">
-      <div class="small">Fetching signals…</div>
+    <div id="signalsList" class="list"></div>
+  </div>
+</div>
+
+<!-- TASKS / DAILY -->
+<div id="tasks" class="page" style="display:none">
+  <div class="card">
+    <b>🎁 Daily Streak</b>
+    <div class="list" id="dailyGrid"></div>
+    <br>
+    <button class="btn blue" onclick="claimDaily()">Claim Today</button>
+  </div>
+</div>
+
+<!-- ALERTS -->
+<div id="alerts" class="page" style="display:none">
+  <div class="card">
+    <b>🔔 Create Alert</b><br><br>
+    <input id="aSymbol" placeholder="BTC" style="width:100%;padding:10px;border-radius:10px"/>
+    <input id="aTarget" type="number" placeholder="Target price"
+      style="width:100%;padding:10px;border-radius:10px;margin-top:6px"/>
+    <select id="aCond" style="width:100%;padding:10px;border-radius:10px;margin-top:6px">
+      <option value="ABOVE">Above</option>
+      <option value="BELOW">Below</option>
+    </select>
+    <br><br>
+    <button class="btn" onclick="createAlert()">Create Alert</button>
+  </div>
+
+  <div class="card">
+    <b>Your Alerts</b>
+    <div id="alertsList" class="list"></div>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div id="profile" class="page" style="display:none">
+  <div class="card">
+    <b>👤 Profile</b>
+    <div class="small">Referral code</div>
+    <input id="refLink" readonly
+      style="width:100%;padding:10px;border-radius:10px"/>
+    <br><br>
+    <button class="btn blue" onclick="copyRef()">Copy Referral</button>
+  </div>
+
+  <div class="card">
+    <b>Referral Rules</b>
+    <div class="small">
+      • Referrals boost mining<br>
+      • Max reward per referral capped<br>
+      • Mining > referrals (anti-whale)
+    </div>
+  </div>
+</div>
+
+<!-- ROADMAP -->
+<div id="roadmap" class="page" style="display:none">
+  <div class="card">
+    <b>🗺 Roadmap</b>
+    <div class="small">
+      ✅ Mining v2<br>
+      ✅ Signals v2<br>
+      ⏳ Premium mining<br>
+      ⏳ Payments<br>
+      ⏳ Governance
     </div>
   </div>
 </div>
@@ -117,18 +185,19 @@ body{
 
 <!-- NAV -->
 <div class="nav">
-  <button class="active" onclick="nav('home')">Home</button>
+  <button class="active" onclick="nav('home')">Mine</button>
   <button onclick="nav('signals')">Signals</button>
+  <button onclick="nav('tasks')">Daily</button>
+  <button onclick="nav('alerts')">Alerts</button>
+  <button onclick="nav('profile')">Profile</button>
 </div>
 
 <script>
-const API = "https://claustral-mable-dissectible.ngrok-free.dev";
-const tg = Telegram.WebApp;
-tg.ready(); tg.expand();
-const initData = tg.initData;
-
+const API="https://claustral-mable-dissectible.ngrok-free.dev";
+const tg=Telegram.WebApp; tg.ready(); tg.expand();
+const initData=tg.initData;
 let miningTimer=null;
-let totalSeconds=6*60*60;
+const totalSeconds=6*60*60;
 
 function nav(id){
   document.querySelectorAll('.page').forEach(p=>p.style.display='none');
@@ -136,42 +205,34 @@ function nav(id){
   document.getElementById(id).style.display='block';
   event.target.classList.add('active');
   if(id==="signals") loadSignals();
+  if(id==="alerts") loadAlerts();
+  if(id==="tasks") renderDaily();
+  if(id==="profile") loadProfile();
 }
 
 async function refreshMining(){
-  const r=await fetch(API+"/user/mining/stats",{
-    method:"POST",headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({initData})
-  });
+  const r=await fetch(API+"/user/mining/stats",{method:"POST",
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({initData})});
   const d=await r.json();
-
-  document.getElementById("sp").innerText=d.sp;
-  document.getElementById("level").innerText=d.level;
+  sp.innerText=d.sp; level.innerText=d.level;
+  levelBar.style.width=((d.sp%500)/500*100)+"%";
 
   if(!d.running){
-    document.getElementById("nodeStatus").innerText="Idle";
-    document.getElementById("mineBtn").innerText="Start Mining";
-    document.getElementById("mineBtn").classList.remove("disabled");
-    document.getElementById("timerText").innerText="";
-    document.getElementById("progressBar").style.width="0%";
-    if(miningTimer) clearInterval(miningTimer);
-    return;
+    nodeStatus.innerText="Idle";
+    mineBtn.innerText="Start Mining";
+    mineBtn.classList.remove("disabled");
+    timerText.innerText="";
+    progressBar.style.width="0%";
+    clearInterval(miningTimer); return;
   }
 
-  document.getElementById("nodeStatus").innerText="Mining";
-  document.getElementById("mineBtn").innerText="Mining…";
-  document.getElementById("mineBtn").classList.add("disabled");
-
-  let remaining=d.remaining;
-  updateTimer(remaining);
-
-  miningTimer=setInterval(()=>{
-    remaining--;
-    updateTimer(remaining);
-    if(remaining<=0){
-      clearInterval(miningTimer);
-      refreshMining(); // auto-finish
-    }
+  nodeStatus.innerText="Mining";
+  mineBtn.innerText="Mining…";
+  mineBtn.classList.add("disabled");
+  let rem=d.remaining; updateTimer(rem);
+  miningTimer=setInterval(()=>{rem--;updateTimer(rem);
+    if(rem<=0){clearInterval(miningTimer);refreshMining();}
   },1000);
 }
 
@@ -179,46 +240,81 @@ function updateTimer(sec){
   const h=String(Math.floor(sec/3600)).padStart(2,'0');
   const m=String(Math.floor((sec%3600)/60)).padStart(2,'0');
   const s=String(sec%60).padStart(2,'0');
-  document.getElementById("timerText").innerText=`Remaining ${h}:${m}:${s}`;
-  const pct=((totalSeconds-sec)/totalSeconds)*100;
-  document.getElementById("progressBar").style.width=pct+"%";
+  timerText.innerText=`Remaining ${h}:${m}:${s}`;
+  progressBar.style.width=((totalSeconds-sec)/totalSeconds*100)+"%";
 }
 
 async function startMining(){
-  document.getElementById("mineBtn").classList.add("disabled");
-  await fetch(API+"/user/mining/start",{
-    method:"POST",headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({initData})
-  });
+  mineBtn.classList.add("disabled");
+  await fetch(API+"/user/mining/start",{method:"POST",
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({initData})});
   refreshMining();
 }
 
 async function loadSignals(){
-  const box=document.getElementById("signalsList");
-  box.innerHTML='<div class="small">Fetching signals…</div>';
-  try{
-    const r=await fetch(API+"/market/signals");
-    const d=await r.json();
-    box.innerHTML="";
-    if(!d.length){
-      box.innerHTML='<div class="small">No signals right now</div>';
-      return;
-    }
-    document.getElementById("signalTime").innerText="Updated just now";
-    d.forEach(s=>{
-      box.innerHTML+=`
-        <div class="item">
-          ${s.symbol}
-          <span class="${s.change_24h>=0?'green':'red'}">
-            $${s.price}
-          </span>
-        </div>`;
-    });
-  }catch{
-    box.innerHTML='<div class="small">Failed to load signals</div>';
+  signalsList.innerHTML='<div class="small">Loading…</div>';
+  const r=await fetch(API+"/market/signals");
+  const d=await r.json();
+  signalsList.innerHTML="";
+  if(!d.length){signalsList.innerHTML='<div class="small">No signals</div>';return;}
+  d.forEach(s=>{
+    signalsList.innerHTML+=`<div class="item">${s.symbol}
+      <span class="${s.change_24h>=0?'green':'red'}">$${s.price}</span></div>`;
+  });
+}
+
+function renderDaily(){
+  dailyGrid.innerHTML="";
+  for(let i=1;i<=7;i++){
+    dailyGrid.innerHTML+=`<div class="item">Day ${i}</div>`;
   }
 }
 
+async function claimDaily(){
+  await fetch(API+"/claim/daily",{method:"POST",
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({initData})});
+  renderDaily();
+}
+
+async function loadAlerts(){
+  const r=await fetch(API+"/alert/list",{method:"POST",
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({initData})});
+  const d=await r.json();
+  alertsList.innerHTML="";
+  d.forEach(a=>{
+    alertsList.innerHTML+=`
+      <div class="item">${a[1]} ${a[3]} ${a[2]}
+      <button class="btn red small" onclick="delAlert(${a[0]})">X</button></div>`;
+  });
+}
+
+async function createAlert(){
+  await fetch(API+"/alert/create",{method:"POST",
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      initData,
+      symbol:aSymbol.value,
+      target:aTarget.value,
+      condition:aCond.value
+    })});
+  loadAlerts();
+}
+
+async function delAlert(id){
+  await fetch(API+"/alert/delete",{method:"POST",
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({initData,id})});
+  loadAlerts();
+}
+
+function loadProfile(){
+  refLink.value=`https://t.me/Whale_alert_info_bot?start=${tg.initDataUnsafe.user.id}`;
+}
+
+function copyRef(){navigator.clipboard.writeText(refLink.value);}
 refreshMining();
 </script>
 </body>
