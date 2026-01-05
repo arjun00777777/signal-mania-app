@@ -130,36 +130,25 @@ body{
 <script>
 const API = "https://claustral-mable-dissectible.ngrok-free.dev";
 
-let tg = null;
-let initData = "";
-let miningTimer = null;
-const totalSeconds = 6 * 60 * 60;
+let tg=null, initData="", miningTimer=null;
+const totalSeconds = 6*60*60;
 
-/* -------- TELEGRAM INIT (SAFE) -------- */
+/* ---------- TELEGRAM ---------- */
 function initTelegram(){
-  if (window.Telegram && Telegram.WebApp) {
-    tg = Telegram.WebApp;
-    tg.ready();
-    tg.expand();
-    initData = tg.initData || "";
-    console.log("Telegram initialized");
-  } else {
-    console.log("Telegram not ready");
+  if(window.Telegram?.WebApp){
+    tg=Telegram.WebApp;
+    tg.ready(); tg.expand();
+    initData=tg.initData;
   }
 }
+document.addEventListener("DOMContentLoaded",initTelegram);
 
-document.addEventListener("DOMContentLoaded", initTelegram);
-
-/* -------- AUTH GUARD -------- */
 function requireAuth(){
-  if(!initData){
-    alert("Open app from Telegram bot only");
-    throw new Error("No initData");
-  }
+  if(!initData){ alert("Open app from Telegram"); throw ""; }
 }
 
-/* -------- NAV -------- */
-function nav(id, btn){
+/* ---------- NAV ---------- */
+function nav(id,btn){
   document.querySelectorAll('.page').forEach(p=>p.style.display='none');
   document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
   document.getElementById(id).style.display='block';
@@ -171,32 +160,32 @@ function nav(id, btn){
   if(id==="profile") loadProfile();
 }
 
-/* -------- PROFILE -------- */
+/* ---------- PROFILE ---------- */
 async function refreshProfile(){
   requireAuth();
-  const r = await fetch(API+"/user/profile",{
-    method:"POST",
+  const r=await fetch(API+"/user/profile",{method:"POST",
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({initData})
-  });
-  const d = await r.json();
+    body:JSON.stringify({initData})});
+  const d=await r.json();
   sp.innerText=d.sp;
   level.innerText=d.level;
   levelBar.style.width=((d.xp%500)/500*100)+"%";
 }
 
-/* -------- MINING -------- */
+function loadProfile(){
+  if(!tg?.initDataUnsafe) return;
+  refLink.value=`https://t.me/Whale_alert_info_bot?start=${tg.initDataUnsafe.user.id}`;
+}
+
+/* ---------- MINING ---------- */
 async function refreshMining(){
   requireAuth();
-  const r=await fetch(API+"/user/mining/stats",{
-    method:"POST",
+  const r=await fetch(API+"/user/mining/stats",{method:"POST",
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({initData})
-  });
+    body:JSON.stringify({initData})});
   const d=await r.json();
 
-  sp.innerText=d.sp;
-  level.innerText=d.level;
+  sp.innerText=d.sp; level.innerText=d.level;
 
   if(!d.running){
     nodeStatus.innerText="Idle";
@@ -215,9 +204,8 @@ async function refreshMining(){
 
   let rem=d.remaining;
   miningTimer=setInterval(()=>{
-    rem--;
-    updateTimer(rem);
-    if(rem<=0){clearInterval(miningTimer);refreshMining();}
+    rem--; updateTimer(rem);
+    if(rem<=0){ clearInterval(miningTimer); refreshMining(); }
   },1000);
 }
 
@@ -231,76 +219,55 @@ function updateTimer(sec){
 
 async function startMining(){
   requireAuth();
-  await fetch(API+"/user/mining/start",{
-    method:"POST",
+  await fetch(API+"/user/mining/start",{method:"POST",
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({initData})
-  });
+    body:JSON.stringify({initData})});
   refreshMining();
 }
 
-/* -------- SIGNALS -------- */
+/* ---------- SIGNALS ---------- */
 async function loadSignals(){
   signalsList.innerHTML="Loading…";
-  const r = await fetch(API + "/market/signals", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({})
-});
-  const d = await r.json();
-
+  const r=await fetch(API+"/market/signals",{method:"POST"});
+  const d=await r.json();
   signalsList.innerHTML="";
-  if(!d.length){
-    signalsList.innerHTML="No signals";
-    return;
-  }
-
   d.forEach(s=>{
     signalsList.innerHTML+=`
       <div class="item">
         ${s.symbol}
-        <span class="${s.change_24h>=0?'green':'red'}">
-          $${s.price}
-        </span>
+        <span class="${s.change_24h>=0?'green':'red'}">$${s.price}</span>
       </div>`;
   });
 }
 
-/* -------- DAILY -------- */
+/* ---------- DAILY ---------- */
 function renderDaily(){
   dailyGrid.innerHTML="";
-  for(let i=1;i<=7;i++){
-    dailyGrid.innerHTML+=`<div class="item">Day ${i}</div>`;
-  }
+  for(let i=1;i<=7;i++) dailyGrid.innerHTML+=`<div class="item">Day ${i}</div>`;
 }
 
 async function claimDaily(){
   requireAuth();
-  const r = await fetch(API+"/claim/daily",{
-    method:"POST",
+  const r=await fetch(API+"/claim/daily",{method:"POST",
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({initData})
-  });
-  const d = await r.json();
+    body:JSON.stringify({initData})});
+  const d=await r.json();
   if(!d.ok) alert("Already claimed today");
   refreshProfile();
 }
 
-/* -------- ALERTS -------- */
+/* ---------- ALERTS ---------- */
 async function loadAlerts(){
   requireAuth();
-  const r=await fetch(API+"/alert/list",{
-    method:"POST",
+  const r=await fetch(API+"/alert/list",{method:"POST",
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({initData})
-  });
+    body:JSON.stringify({initData})});
   const d=await r.json();
-
   alertsList.innerHTML="";
   d.forEach(a=>{
     alertsList.innerHTML+=`
       <div class="item">
-        ${a[1]} ${a[3]} ${a[2]}
+        ${a[1]} ${a[3]} ${a[2]} ${a[4]==='TRIGGERED'?'🔔':''}
         <button class="btn red small" onclick="delAlert(${a[0]})">X</button>
       </div>`;
   });
@@ -308,45 +275,33 @@ async function loadAlerts(){
 
 async function createAlert(){
   requireAuth();
-  await fetch(API+"/alert/create",{
-    method:"POST",
+  await fetch(API+"/alert/create",{method:"POST",
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
       initData,
       symbol:aSymbol.value,
       target:aTarget.value,
       condition:aCond.value
-    })
-  });
+    })});
   loadAlerts();
 }
 
 async function delAlert(id){
   requireAuth();
-  await fetch(API+"/alert/delete",{
-    method:"POST",
+  await fetch(API+"/alert/delete",{method:"POST",
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({initData,id})
-  });
+    body:JSON.stringify({initData,id})});
   loadAlerts();
 }
 
-/* -------- PROFILE -------- */
-function loadProfile(){
-  if(!tg || !tg.initDataUnsafe) return;
-  refLink.value =
-    `https://t.me/Whale_alert_info_bot?start=${tg.initDataUnsafe.user.id}`;
-}
+/* ---------- AUTO REFRESH ---------- */
+setInterval(()=>{
+  if(signals.style.display==="block") loadSignals();
+  if(alerts.style.display==="block") loadAlerts();
+},15000);
 
-function copyRef(){
-  navigator.clipboard.writeText(refLink.value);
-}
-
-/* -------- INIT -------- */
-setTimeout(()=>{
-  refreshMining();
-  refreshProfile();
-},1000);
+/* ---------- INIT ---------- */
+setTimeout(()=>{ refreshMining(); refreshProfile(); },1000);
 </script>
 </body>
 </html>
