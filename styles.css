@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Inter,system-ui;
+  background:#020617;
+  color:#e5e7eb;
+}
+
+.app{max-width:480px;margin:auto}
+
+header{
+  padding:16px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+nav{
+  display:flex;
+  justify-content:space-around;
+  border-top:1px solid #1f2933;
+  border-bottom:1px solid #1f2933;
+}
+
+nav button{
+  flex:1;
+  background:none;
+  color:#9ca3af;
+  border:none;
+  padding:10px;
+}
+
+nav button:hover{color:#00f5a0}
+
+.page{display:none;padding:16px}
+.page.active{display:block}
+
+.card{
+  background:#020617;
+  border:1px solid #1f2933;
+  border-radius:16px;
+  padding:16px;
+  margin-bottom:12px;
+}
+
+.center{text-align:center}
+.small{font-size:13px}
+.muted{color:#9ca3af}
+.neon{color:#00f5a0}
+
+.btn{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:14px;
+  background:#00f5a0;
+  color:#020617;
+  font-weight:700;
+}
+
+input,select{
+  width:100%;
+  margin-bottom:8px;
+  padding:10px;
+  background:#020617;
+  border:1px solid #1f2933;
+  color:white;
+  border-radius:10px;
+}
+
+.list .card{margin-bottom:8px}
+
+.badge{
+  background:#334155;
+  padding:4px 8px;
+  border-radius:8px;
+  font-size:12px;
+}
+
+.hidden{display:none}
