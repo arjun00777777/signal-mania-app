@@ -1,290 +1,299 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SignalMania</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        body {
-            background: #0f172a;
-            color: white;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-        nav {
-            display: flex;
-            justify-content: space-around;
-            padding: 10px;
-            background: #1e293b;
-        }
-        button {
-            padding: 10px;
-            margin: 5px;
-            background: #3b82f6;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #2563eb;
-        }
-        .page {
-            display: none;
-            padding: 20px;
-        }
-        .page.active {
-            display: block;
-        }
-        input, select {
-            padding: 8px;
-            margin: 5px;
-            background: #374151;
-            color: white;
-            border: 1px solid #4b5563;
-            border-radius: 5px;
-        }
-        #timer {
-            font-size: 1.2em;
-            color: #fbbf24;
-        }
-        #signalsList, #alertList, #taskHistory {
-            margin-top: 20px;
-        }
-        #refLink {
-            width: 80%;
-        }
-    </style>
-</head>
-<body>
-    <nav>
-        <button onclick="show('node')">Node</button>
-        <button onclick="show('tasks')">Tasks</button>
-        <button onclick="show('signals')">Signals</button>
-        <button onclick="show('alerts')">Alerts</button>
-        <button onclick="show('profile')">Profile</button>
-    </nav>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SignalMania</title>
 
-    <section id="node" class="page active">
-        <h3 id="nodeStatus">Idle</h3>
-        <p id="timer"></p>
-        <button id="startBtn" onclick="startNode()">Start Node</button>
-    </section>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-    <section id="tasks" class="page">
-        <button onclick="dailyClaim()">Daily Claim</button>
-        <div id="taskHistory"></div>
-    </section>
-
-    <section id="signals" class="page">
-        <div id="signalsList">Loading signals...</div>
-    </section>
-
-    <section id="alerts" class="page">
-        <input id="alertSymbol" placeholder="BTC" type="text">
-        <input id="alertTarget" placeholder="Target" type="number" step="0.01">
-        <select id="alertCond">
-            <option value="ABOVE">Above</option>
-            <option value="BELOW">Below</option>
-        </select>
-        <button onclick="createAlert()">Create</button>
-        <div id="alertList">Loading alerts...</div>
-    </section>
-
-    <section id="profile" class="page">
-        <p>SP: <span id="p_sp">0</span></p>
-        <p>Level: <span id="p_level">1</span></p>
-        <input id="refLink" readonly>
-        <button onclick="copyRef()">Copy Referral</button>
-    </section>
-
-    <script>
-        let tg, initData;
-        const API = "https://claustral-mable-dissectible.ngrok-free.dev";
-
-
-        // Cache DOM elements for performance
-        const nodeStatus = document.getElementById('nodeStatus');
-        const timer = document.getElementById('timer');
-        const startBtn = document.getElementById('startBtn');
-        const taskHistory = document.getElementById('taskHistory');
-        const signalsList = document.getElementById('signalsList');
-        const alertSymbol = document.getElementById('alertSymbol');
-        const alertTarget = document.getElementById('alertTarget');
-        const alertCond = document.getElementById('alertCond');
-        const alertList = document.getElementById('alertList');
-        const p_sp = document.getElementById('p_sp');
-        const p_level = document.getElementById('p_level');
-        const refLink = document.getElementById('refLink');
-
-        function waitTG() {
-    if (!window.Telegram?.WebApp) {
-        setTimeout(waitTG, 50);
-        return;
-    }
-    tg = window.Telegram.WebApp;
-
-    tg.ready();               // 🔥 REQUIRED
-    tg.expand();              // optional but good
-    initData = tg.initData;   // must be non-empty
-
-    if (!initData) {
-        alert("Telegram initData missing. Open app via bot only.");
-        return;
-    }
-
-    refresh();
+<style>
+:root{
+  --bg:#0b1020;
+  --card:#131a33;
+  --accent:#4ade80;
+  --accent2:#60a5fa;
+  --danger:#f87171;
+  --muted:#9ca3af;
 }
 
-        waitTG();
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont;
+  background:radial-gradient(circle at top,#111827,#020617);
+  color:#fff;
+}
 
-        function show(id) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            if (id === 'signals') loadSignals();
-            if (id === 'alerts') loadAlerts();
-            if (id === 'tasks') loadTasks();
-            if (id === 'profile') loadProfile();
-        }
+/* ---------- LAYOUT ---------- */
+.app{
+  max-width:480px;
+  margin:auto;
+  padding-bottom:80px;
+}
+.header{
+  padding:20px;
+  text-align:center;
+}
+.header h1{
+  margin:0;
+  font-size:22px;
+  font-weight:700;
+}
+.card{
+  background:linear-gradient(180deg,var(--card),#0b122b);
+  border-radius:18px;
+  padding:18px;
+  margin:12px;
+  box-shadow:0 0 30px rgba(0,0,0,.3);
+}
+.row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.btn{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:14px;
+  font-weight:700;
+  font-size:15px;
+  cursor:pointer;
+  background:linear-gradient(135deg,var(--accent),#22c55e);
+  color:#022c22;
+}
+.btn.secondary{
+  background:linear-gradient(135deg,var(--accent2),#2563eb);
+  color:#e0f2fe;
+}
+.btn.disabled{
+  opacity:.5;
+  pointer-events:none;
+}
+.small{
+  font-size:13px;
+  color:var(--muted);
+}
 
-        async function refresh() {
-            try {
-                const r = await fetch(`${API}/user/mining/stats`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ initData })
-                });
-                const d = await r.json();
-                nodeStatus.innerText = d.running ? 'Running' : 'Idle';
-                // Optional: Update timer if backend provides it
-                if (d.timer) timer.innerText = d.timer;
-            } catch (error) {
-                console.error('Error refreshing:', error);
-                nodeStatus.innerText = 'Error loading status';
-            }
-        }
+/* ---------- NAV ---------- */
+.nav{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#020617;
+  border-top:1px solid #1e293b;
+  display:flex;
+}
+.nav button{
+  flex:1;
+  background:none;
+  border:none;
+  color:#9ca3af;
+  padding:12px;
+  font-size:12px;
+}
+.nav button.active{
+  color:var(--accent);
+}
 
-        async function startNode() {
-            try {
-                startBtn.disabled = true;
-                startBtn.innerText = 'Starting...';
-                await fetch(`${API}/user/mining/start`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ initData })
-                });
-                await refresh();
-            } catch (error) {
-                console.error('Error starting node:', error);
-            } finally {
-                startBtn.disabled = false;
-                startBtn.innerText = 'Start Node';
-            }
-        }
+/* ---------- ANIMATION ---------- */
+.pulse{
+  animation:pulse 1.6s infinite;
+}
+@keyframes pulse{
+  0%{box-shadow:0 0 0 0 rgba(74,222,128,.4)}
+  70%{box-shadow:0 0 0 18px rgba(74,222,128,0)}
+  100%{box-shadow:0 0 0 0 rgba(74,222,128,0)}
+}
 
-        async function dailyClaim() {
-            try {
-                await fetch(`${API}/claim/daily`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ initData })
-                });
-                loadTasks();
-            } catch (error) {
-                console.error('Error claiming daily:', error);
-            }
-        }
+/* ---------- LIST ---------- */
+.list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.item{
+  background:#020617;
+  border-radius:14px;
+  padding:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.green{color:var(--accent)}
+.red{color:var(--danger)}
+</style>
+</head>
 
-        async function loadTasks() {
-            try {
-                const r = await fetch(`${API}/tasks/history`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ initData })
-                });
-                const d = await r.json();
-                taskHistory.innerHTML = d.map(t => `${t[0]} +${t[1]}`).join('<br>');
-            } catch (error) {
-                console.error('Error loading tasks:', error);
-                taskHistory.innerHTML = 'Error loading tasks.';
-            }
-        }
+<body>
+<div class="app">
 
-        async function loadSignals() {
-            try {
-                signalsList.innerHTML = 'Loading signals...';
-                const r = await fetch(`${API}/market/signals`);
-                const d = await r.json();
-                signalsList.innerHTML = d.map(s => `${s.symbol} $${s.price}`).join('<br>');
-            } catch (error) {
-                console.error('Error loading signals:', error);
-                signalsList.innerHTML = 'Error loading signals.';
-            }
-        }
+  <div class="header">
+    <h1>🚀 SignalMania</h1>
+    <div class="small">Mine • Signals • Rewards</div>
+  </div>
 
-        async function createAlert() {
-            try {
-                await fetch(`${API}/alert/create`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        initData,
-                        symbol: alertSymbol.value.toUpperCase(),
-                        target: parseFloat(alertTarget.value),
-                        condition: alertCond.value
-                    })
-                });
-                alertSymbol.value = '';
-                alertTarget.value = '';
-                loadAlerts();
-            } catch (error) {
-                console.error('Error creating alert:', error);
-            }
-        }
+  <!-- HOME / MINING -->
+  <div id="home" class="page">
+    <div class="card">
+      <div class="row">
+        <div>
+          <div class="small">Node Status</div>
+          <div id="nodeStatus" style="font-size:18px;font-weight:700">Idle</div>
+        </div>
+        <div id="timer" class="small"></div>
+      </div>
+      <br>
+      <button id="mineBtn" class="btn" onclick="startMining()">Start Mining</button>
+    </div>
 
-        async function loadAlerts() {
-            try {
-                alertList.innerHTML = 'Loading alerts...';
-                const r = await fetch(`${API}/alert/list`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ initData })
-                });
-                const d = await r.json();
-                alertList.innerHTML = d.map(a => `${a[1]} ${a[3]} ${a[2]}`).join('<br>');
-            } catch (error) {
-                console.error('Error loading alerts:', error);
-                alertList.innerHTML = 'Error loading alerts.';
-            }
-        }
+    <div class="card">
+      <div class="row">
+        <div>SP</div><b id="sp">0</b>
+      </div>
+      <div class="row">
+        <div>Level</div><b id="level">1</b>
+      </div>
+    </div>
+  </div>
 
-        async function loadProfile() {
-            try {
-                const r = await fetch(`${API}/user/mining/stats`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ initData })
-                });
-                const d = await r.json();
-                p_sp.innerText = d.sp || 0;
-                p_level.innerText = d.level || 1;
-                refLink.value = `https://t.me/Whale_alert_info_bot?start=${tg.initDataUnsafe.user.id}`;
-            } catch (error) {
-                console.error('Error loading profile:', error);
-            }
-        }
+  <!-- SIGNALS -->
+  <div id="signals" class="page" style="display:none">
+    <div class="card">
+      <b>📈 Market Signals</b>
+      <div id="signalsList" class="list"></div>
+    </div>
+  </div>
 
-        function copyRef() {
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(refLink.value).catch(err => console.error('Clipboard error:', err));
-            } else {
-                // Fallback for older browsers
-                refLink.select();
-                document.execCommand('copy');
-            }
-        }
-    </script>
+  <!-- TASKS -->
+  <div id="tasks" class="page" style="display:none">
+    <div class="card">
+      <b>🎁 Daily Reward</b><br><br>
+      <button class="btn secondary" onclick="claimDaily()">Claim Daily</button>
+    </div>
+    <div class="card">
+      <b>History</b>
+      <div id="tasksList" class="list"></div>
+    </div>
+  </div>
+
+  <!-- ALERTS -->
+  <div id="alerts" class="page" style="display:none">
+    <div class="card">
+      <b>🔔 Alerts</b>
+      <div id="alertsList" class="list"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <button onclick="nav('home')" class="active">Home</button>
+  <button onclick="nav('signals')">Signals</button>
+  <button onclick="nav('tasks')">Tasks</button>
+  <button onclick="nav('alerts')">Alerts</button>
+</div>
+
+<script>
+const API = "https://claustral-mable-dissectible.ngrok-free.dev";
+let tg = Telegram.WebApp;
+tg.ready();
+tg.expand();
+const initData = tg.initData;
+
+function nav(id){
+  document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).style.display='block';
+  event.target.classList.add('active');
+  if(id==="signals") loadSignals();
+  if(id==="tasks") loadTasks();
+  if(id==="alerts") loadAlerts();
+}
+
+async function startMining(){
+  const btn=document.getElementById("mineBtn");
+  btn.classList.add("disabled");
+  await fetch(API+"/user/mining/start",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({initData})
+  });
+  btn.classList.remove("disabled");
+  refresh();
+}
+
+async function refresh(){
+  const r=await fetch(API+"/user/mining/stats",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({initData})
+  });
+  const d=await r.json();
+  document.getElementById("sp").innerText=d.sp;
+  document.getElementById("level").innerText=d.level;
+  document.getElementById("nodeStatus").innerText=d.running?"Running":"Idle";
+  document.getElementById("mineBtn").innerText=d.running?"Mining...":"Start Mining";
+  document.getElementById("mineBtn").classList.toggle("pulse",d.running);
+}
+
+async function claimDaily(){
+  await fetch(API+"/claim/daily",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({initData})
+  });
+  loadTasks();
+}
+
+async function loadTasks(){
+  const r=await fetch(API+"/tasks/history",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({initData})
+  });
+  const d=await r.json();
+  const box=document.getElementById("tasksList");
+  box.innerHTML="";
+  d.forEach(t=>{
+    box.innerHTML+=`<div class="item">${t[0]} <span class="green">+${t[1]}</span></div>`;
+  });
+}
+
+async function loadSignals(){
+  const r=await fetch(API+"/market/signals");
+  const d=await r.json();
+  const box=document.getElementById("signalsList");
+  box.innerHTML="";
+  d.forEach(s=>{
+    box.innerHTML+=`
+      <div class="item">
+        ${s.symbol}
+        <span class="${s.change_24h>=0?'green':'red'}">
+          $${s.price}
+        </span>
+      </div>`;
+  });
+}
+
+async function loadAlerts(){
+  const r=await fetch(API+"/alert/list",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({initData})
+  });
+  const d=await r.json();
+  const box=document.getElementById("alertsList");
+  box.innerHTML="";
+  d.forEach(a=>{
+    box.innerHTML+=`<div class="item">${a[1]} ${a[3]} ${a[2]}</div>`;
+  });
+}
+
+refresh();
+</script>
 </body>
 </html>
