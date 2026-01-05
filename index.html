@@ -120,14 +120,24 @@
         const refLink = document.getElementById('refLink');
 
         function waitTG() {
-            if (!window.Telegram?.WebApp) {
-                setTimeout(waitTG, 50);
-                return;
-            }
-            tg = window.Telegram.WebApp;
-            initData = tg.initData;
-            refresh();
-        }
+    if (!window.Telegram?.WebApp) {
+        setTimeout(waitTG, 50);
+        return;
+    }
+    tg = window.Telegram.WebApp;
+
+    tg.ready();               // 🔥 REQUIRED
+    tg.expand();              // optional but good
+    initData = tg.initData;   // must be non-empty
+
+    if (!initData) {
+        alert("Telegram initData missing. Open app via bot only.");
+        return;
+    }
+
+    refresh();
+}
+
         waitTG();
 
         function show(id) {
