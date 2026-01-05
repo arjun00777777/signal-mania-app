@@ -142,7 +142,7 @@ setTimeout(() => {
 
 /* ---------- API HELPER (🔥 FIX) ---------- */
 async function apiPost(url, data = {}) {
-  data.initData = initData;
+  data.initData = encodeURIComponent(initData); // 🔥 FIX
   const r = await fetch(API + url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -150,6 +150,7 @@ async function apiPost(url, data = {}) {
   });
   return r.json();
 }
+
 
 /* ---------- NAV ---------- */
 function nav(id,btn){
