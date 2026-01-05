@@ -136,6 +136,10 @@ function initTelegram(){
 }
 document.addEventListener("DOMContentLoaded", initTelegram);
 
+setTimeout(() => {
+  alert("initData length = " + (initData ? initData.length : "null"));
+}, 1500);
+
 /* ---------- API HELPER (🔥 FIX) ---------- */
 async function apiPost(url, data = {}) {
   data.initData = initData;
