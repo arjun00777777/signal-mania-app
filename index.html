@@ -8,32 +8,33 @@
 
 <style>
 :root{
-  --bg:#05080f;
-  --card:#0e162b;
+  --bg:#030712;
+  --card:#0b1220;
   --accent:#22c55e;
-  --blue:#38bdf8;
-  --muted:#94a3b8;
   --danger:#ef4444;
   --neon:#00ffcc;
+  --muted:#64748b;
 }
 *{box-sizing:border-box}
 body{
   margin:0;
-  font-family:Inter,system-ui,monospace;
-  background:radial-gradient(circle at top,#0b1225,#02040a);
+  font-family:ui-monospace,monospace;
+  background:radial-gradient(circle at top,#050b18,#02040a);
   color:#e5e7eb;
 }
 .app{max-width:480px;margin:auto;padding-bottom:110px}
-.header{text-align:center;padding:20px}
-.header h2{margin:0;font-weight:800;letter-spacing:1px}
-.header .small{opacity:.7}
+
+.header{text-align:center;padding:18px}
+.header h2{margin:0;letter-spacing:2px}
+.header .small{color:var(--muted)}
 
 .card{
-  background:linear-gradient(180deg,var(--card),#050b1f);
-  border-radius:18px;
+  background:linear-gradient(180deg,var(--card),#020617);
+  border-radius:16px;
   padding:16px;
   margin:12px;
-  box-shadow:0 0 30px rgba(0,255,204,.05);
+  border:1px solid #0f172a;
+  box-shadow:0 0 30px rgba(0,255,204,.04);
 }
 
 .btn{
@@ -42,51 +43,43 @@ body{
   border:none;
   border-radius:14px;
   font-weight:700;
-  cursor:pointer;
   background:linear-gradient(135deg,var(--accent),#16a34a);
   color:#022c22;
 }
-.btn.blue{background:linear-gradient(135deg,var(--blue),#0284c7);color:#02131d}
 .btn.red{background:linear-gradient(135deg,var(--danger),#b91c1c);color:#fff}
 .btn.disabled{opacity:.4;pointer-events:none}
 
-.small{font-size:13px;color:var(--muted)}
-.list{display:flex;flex-direction:column;gap:10px;margin-top:12px}
-
-.item{
-  background:#020617;
-  border-radius:14px;
-  padding:12px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  border:1px solid #0f172a;
-}
-
-.terminal{
-  font-family:monospace;
-  font-size:12px;
-  color:var(--neon);
-  height:120px;
-  overflow:hidden;
-}
+.small{font-size:12px;color:var(--muted)}
 
 .nav{
-  position:fixed;
-  bottom:0;left:0;right:0;
+  position:fixed;bottom:0;left:0;right:0;
   background:#020617;
   border-top:1px solid #0f172a;
-  display:flex;
-  height:70px;
+  display:flex;height:72px
 }
 .nav button{
-  flex:1;
-  background:none;
-  border:none;
-  color:#64748b;
-  font-size:12px;
+  flex:1;border:none;background:none;
+  color:#64748b;font-size:12px
 }
-.nav button.active{color:var(--neon);font-weight:700}
+.nav button.active{color:var(--neon)}
+
+.terminal{
+  background:#020617;
+  border:1px solid #0f172a;
+  border-radius:12px;
+  padding:10px;
+  height:120px;
+  overflow:hidden;
+  font-size:12px;
+  color:var(--neon);
+}
+
+.scanline{
+  animation:scan 2.5s linear infinite;
+}
+@keyframes scan{
+  0%{opacity:.2}50%{opacity:.6}100%{opacity:.2}
+}
 </style>
 </head>
 
@@ -94,91 +87,39 @@ body{
 <div class="app">
 
 <div class="header">
-  <h2>⚡ SIGNALMANIA</h2>
-  <div class="small">Crypto Node • Signals • Rewards</div>
+  <h2>▣ SIGNALMANIA</h2>
+  <div class="small">Secure Node • Market Signals • Rewards</div>
 </div>
 
 <!-- HOME -->
 <div id="home" class="page">
   <div class="card">
-    <div class="small">Node Status</div>
+    <div class="small">NODE STATUS</div>
     <b id="nodeStatus">IDLE</b>
+    <div class="small" id="timerText"></div>
 
-    <div class="terminal" id="terminal"></div><br>
+    <div class="terminal scanline" id="terminal"></div><br>
 
     <button id="mineBtn" class="btn" onclick="startMining()">START NODE</button>
   </div>
 
   <div class="card">
     <div>SP: <b id="sp">0</b></div>
-    <div>Level: <b id="level">1</b></div>
-  </div>
-</div>
-
-<!-- SIGNALS -->
-<div id="signals" class="page" style="display:none">
-  <div class="card">
-    <b>📡 Live Signals</b>
-    <div id="signalsList" class="list"></div>
+    <div>LEVEL: <b id="level">1</b></div>
   </div>
 </div>
 
 <!-- TASKS -->
 <div id="tasks" class="page" style="display:none">
   <div class="card">
-    <b>🎁 Daily Rewards</b>
-    <div class="list">
-      <div class="item">Day 1 <span>+10 SP</span></div>
-      <div class="item">Day 2 <span>+15 SP</span></div>
-      <div class="item">Day 3 <span>+25 SP</span></div>
-      <div class="item">Day 4 <span>+40 SP</span></div>
-      <div class="item">Day 5 <span>+60 SP</span></div>
-      <div class="item">Day 6 <span>+80 SP</span></div>
-      <div class="item">Day 7 <span>+120 SP</span></div>
-    </div><br>
-    <button id="dailyBtn" class="btn blue" onclick="claimDaily()">CLAIM TODAY</button>
+    <b>DAILY TASK</b><br><br>
+    <button id="dailyBtn" class="btn" onclick="claimDaily()">CLAIM DAY</button>
+    <div class="small" id="dailyInfo"></div>
   </div>
 
   <div class="card">
-    <b>👥 Referral Tasks</b>
-    <div class="list">
-      <div class="item">Invite 1 friend <span>+50 SP</span></div>
-      <div class="item">Invite 5 friends <span>+200 SP</span></div>
-      <div class="item">Invite 10 friends <span>+500 SP</span></div>
-    </div>
-    <div class="small" style="margin-top:8px">
-      Rewards credited automatically when backend task logic is enabled.
-    </div>
-  </div>
-</div>
-
-<!-- ALERTS -->
-<div id="alerts" class="page" style="display:none">
-  <div class="card">
-    <b>🔔 Price Alerts</b><br><br>
-    <input id="aSymbol" placeholder="BTC" style="width:100%;padding:10px;border-radius:10px"/>
-    <input id="aTarget" type="number" placeholder="Target" style="width:100%;padding:10px;border-radius:10px;margin-top:6px"/>
-    <select id="aCond" style="width:100%;padding:10px;border-radius:10px;margin-top:6px">
-      <option value="ABOVE">Above</option>
-      <option value="BELOW">Below</option>
-    </select><br><br>
-    <button class="btn" onclick="createAlert()">CREATE ALERT</button>
-  </div>
-  <div class="card">
-    <b>Your Alerts</b>
-    <div id="alertsList" class="list"></div>
-  </div>
-</div>
-
-<!-- PROFILE -->
-<div id="profile" class="page" style="display:none">
-  <div class="card">
-    <b>👤 Operator Profile</b><br><br>
-    <div class="item">User ID <span id="uidTxt"></span></div>
-    <div class="item">Total SP <span id="sp2"></span></div>
-    <div class="item">Level <span id="level2"></span></div><br>
-    <div class="small">Referral Link</div>
-    <input id="refLink" readonly style="width:100%;padding:10px;border-radius:10px"/>
+    <b>TASK HISTORY</b>
+    <div id="taskHistory" class="small"></div>
   </div>
 </div>
 
@@ -186,15 +127,18 @@ body{
 
 <div class="nav">
   <button class="active" onclick="nav('home',this)">NODE</button>
-  <button onclick="nav('signals',this)">SIGNALS</button>
   <button onclick="nav('tasks',this)">TASKS</button>
-  <button onclick="nav('alerts',this)">ALERTS</button>
-  <button onclick="nav('profile',this)">PROFILE</button>
 </div>
+
+<audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3"></audio>
+<audio id="successSound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"></audio>
 
 <script>
 const API="https://claustral-mable-dissectible.ngrok-free.dev";
 const UID=Telegram.WebApp.initDataUnsafe.user.id;
+
+const clickSound=document.getElementById("clickSound");
+const successSound=document.getElementById("successSound");
 
 function apiPost(url,data={}){
   data.uid=UID;
@@ -206,73 +150,73 @@ function apiPost(url,data={}){
 }
 
 function nav(id,btn){
+  clickSound.play();
   document.querySelectorAll('.page').forEach(p=>p.style.display='none');
   document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
   document.getElementById(id).style.display='block';
   btn.classList.add('active');
-  if(id==="signals") loadSignals();
-  if(id==="alerts") loadAlerts();
-  if(id==="profile") loadProfile();
 }
 
 let term=document.getElementById("terminal");
 function logTerm(t){
-  term.innerHTML+=t+"<br>";
+  term.innerHTML+=`&gt; ${t}<br>`;
   term.scrollTop=term.scrollHeight;
 }
 
-function startMining(){
-  logTerm("Initializing node...");
-  apiPost("/user/mining/start");
-  document.getElementById("nodeStatus").innerText="ACTIVE";
-  let msgs=["Connecting peers","Syncing blocks","Validating packets","Node stable"];
-  let i=0;
+async function refreshMining(){
+  const d=await apiPost("/user/mining/stats");
+  sp.innerText=d.sp;
+  level.innerText=d.level;
+
+  if(!d.running){
+    nodeStatus.innerText="IDLE";
+    mineBtn.classList.remove("disabled");
+    mineBtn.innerText="START NODE";
+    timerText.innerText="";
+    return;
+  }
+
+  nodeStatus.innerText="ACTIVE";
+  mineBtn.classList.add("disabled");
+  mineBtn.innerText="NODE RUNNING";
+
+  let rem=d.remaining;
+  updateTimer(rem);
+
   let iv=setInterval(()=>{
-    logTerm(">> "+msgs[i++%msgs.length]);
-  },1200);
+    rem--;
+    updateTimer(rem);
+    logTerm("Processing encrypted packets...");
+    if(rem<=0){clearInterval(iv);refreshMining();}
+  },1000);
 }
 
-function loadSignals(){
-  fetch(API+"/market/signals",{method:"POST"})
-  .then(r=>r.json())
-  .then(d=>{
-    signalsList.innerHTML="";
-    d.forEach(s=>{
-      signalsList.innerHTML+=`<div class="item">${s.symbol}<span>$${s.price}</span></div>`;
-    });
-  });
+function updateTimer(sec){
+  const h=Math.floor(sec/3600);
+  const m=Math.floor((sec%3600)/60);
+  const s=sec%60;
+  timerText.innerText=`TIME LEFT ${h}h ${m}m ${s}s`;
 }
 
-function claimDaily(){
-  const b=document.getElementById("dailyBtn");
-  b.innerText="CLAIMED ✓";
-  b.classList.add("disabled");
-  apiPost("/claim/daily");
+function startMining(){
+  clickSound.play();
+  mineBtn.classList.add("disabled");
+  logTerm("Bootstrapping secure node...");
+  apiPost("/user/mining/start").then(refreshMining);
 }
 
-function loadAlerts(){
-  apiPost("/alert/list").then(d=>{
-    alertsList.innerHTML="";
-    d.forEach(a=>{
-      alertsList.innerHTML+=`<div class="item">${a[1]} ${a[3]} ${a[2]}</div>`;
-    });
-  });
+async function claimDaily(){
+  clickSound.play();
+  const r=await apiPost("/claim/daily");
+  if(r.ok){
+    successSound.play();
+    dailyBtn.classList.add("disabled");
+    dailyBtn.innerText="CLAIMED";
+    taskHistory.innerHTML+=`✔ Claimed Day (+SP) <br>`;
+  }
 }
 
-function createAlert(){
-  apiPost("/alert/create",{symbol:aSymbol.value,target:aTarget.value,condition:aCond.value});
-}
-
-function loadProfile(){
-  apiPost("/user/profile").then(d=>{
-    uidTxt.innerText=UID;
-    sp2.innerText=d.sp;
-    level2.innerText=d.level;
-    refLink.value=`https://t.me/Whale_alert_info_bot?start=${UID}`;
-  });
-}
-
-setTimeout(()=>loadProfile(),800);
+setTimeout(()=>{refreshMining()},800);
 </script>
 </body>
 </html>
