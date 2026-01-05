@@ -247,16 +247,61 @@ function loadSignals(){
   });
 }
 
-let chart=null;
+let chart = null;
+
 function openChart(symbol){
-  chartModal.classList.add("active");
-  chartTitle.innerText=symbol+" PRICE";
-  // mock data until backend chart endpoint added
-  const labels=[...Array(20).keys()];
-  const prices=labels.map(i=>100+i*2);
-  if(chart) chart.destroy();
-  chart=new Chart(priceChart,{type:"line",data:{labels, datasets:[{data:prices,borderColor:"#00ffcc",tension:.3}]}});
+  clickSound.play();
+
+  // switch to chart page
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove("active"));
+  document.getElementById("chartModal").classList.add("active");
+
+  chartTitle.innerText = symbol + " • Live Chart";
+
+  fetch(API + "/market/chart", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ symbol })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (!data || data.length === 0) {
+      alert("No chart data available");
+      return;
+    }
+
+    if (chart) chart.destroy();
+
+    chart = new Chart(priceChart, {
+      type: "line",
+      data: {
+        labels: data.map(x => x.t),
+        datasets: [{
+          data: data.map(x => x.p),
+          borderColor: "#00ffcc",
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.35
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          x: { display: false },
+          y: {
+            ticks: { color: "#9ca3af" },
+            grid: { color: "#0f172a" }
+          }
+        }
+      }
+    });
+  });
 }
+
 function closeChart(){chartModal.classList.remove("active");}
 
 function loadAlerts(){apiPost("/alert/list").then(d=>{alertsList.innerHTML="";d.forEach(a=>{alertsList.innerHTML+=`<div class="item">${a[1]} ${a[3]} ${a[2]}<button class="btn red" onclick="delAlert(${a[0]})">X</button></div>`;});});}
