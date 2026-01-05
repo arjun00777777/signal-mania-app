@@ -1,4 +1,4 @@
-const API_BASE = "https://yourdomain.com"; // 🔴 CHANGE THIS
+const API_BASE = "https://claustral-mable-dissectible.ngrok-free.dev";
 const tg = window.Telegram.WebApp;
 tg.expand();
 
