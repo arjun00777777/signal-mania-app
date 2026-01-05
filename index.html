@@ -242,7 +242,11 @@ async function startMining(){
 /* -------- SIGNALS -------- */
 async function loadSignals(){
   signalsList.innerHTML="Loading…";
-  const r = await fetch(API+"/market/signals");
+  const r = await fetch(API + "/market/signals", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({})
+});
   const d = await r.json();
 
   signalsList.innerHTML="";
