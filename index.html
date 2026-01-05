@@ -7,7 +7,6 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
-/* ---- SAME STYLES, UNCHANGED ---- */
 :root{
   --bg:#0b1020;--card:#121a33;--accent:#4ade80;
   --blue:#60a5fa;--muted:#9ca3af;--danger:#f87171;
@@ -55,7 +54,6 @@ body{
   <div class="small">DPIN Mining • Signals • Rewards</div>
 </div>
 
-<!-- HOME -->
 <div id="home" class="page">
   <div class="card">
     <div class="small">Node status</div>
@@ -72,18 +70,13 @@ body{
   </div>
 </div>
 
-<!-- SIGNALS -->
 <div id="signals" class="page" style="display:none">
   <div class="card">
-    <div style="display:flex;justify-content:space-between">
-      <b>📈 Signals</b>
-      <button class="btn blue small" onclick="loadSignals()">↻</button>
-    </div>
+    <b>📈 Signals</b>
     <div id="signalsList" class="list"></div>
   </div>
 </div>
 
-<!-- DAILY -->
 <div id="tasks" class="page" style="display:none">
   <div class="card">
     <b>🎁 Daily Streak</b>
@@ -92,7 +85,6 @@ body{
   </div>
 </div>
 
-<!-- ALERTS -->
 <div id="alerts" class="page" style="display:none">
   <div class="card">
     <b>Create Alert</b><br><br>
@@ -100,25 +92,26 @@ body{
     <input id="aTarget" type="number" placeholder="Target"
       style="width:100%;padding:10px;border-radius:10px;margin-top:6px"/>
     <select id="aCond" style="width:100%;padding:10px;border-radius:10px;margin-top:6px">
-      <option value="ABOVE">Above</option><option value="BELOW">Below</option>
+      <option value="ABOVE">Above</option>
+      <option value="BELOW">Below</option>
     </select><br><br>
     <button class="btn" onclick="createAlert()">Create Alert</button>
   </div>
   <div class="card"><b>Your Alerts</b><div id="alertsList" class="list"></div></div>
 </div>
 
-<!-- PROFILE -->
 <div id="profile" class="page" style="display:none">
   <div class="card">
-    <b>👤 Profile</b><div class="small">Referral link</div>
+    <b>👤 Profile</b>
+    <div class="small">Referral link</div>
     <input id="refLink" readonly style="width:100%;padding:10px;border-radius:10px"/>
-    <br><br><button class="btn blue" onclick="copyRef()">Copy</button>
+    <br><br>
+    <button class="btn blue" onclick="copyRef()">Copy</button>
   </div>
 </div>
 
 </div>
 
-<!-- NAV -->
 <div class="nav">
   <button class="active" onclick="nav('home',this)">Mine</button>
   <button onclick="nav('signals',this)">Signals</button>
@@ -136,15 +129,22 @@ const totalSeconds = 6*60*60;
 /* ---------- TELEGRAM ---------- */
 function initTelegram(){
   if(window.Telegram?.WebApp){
-    tg=Telegram.WebApp;
+    tg = Telegram.WebApp;
     tg.ready(); tg.expand();
-    initData=tg.initData;
+    initData = tg.initData;
   }
 }
-document.addEventListener("DOMContentLoaded",initTelegram);
+document.addEventListener("DOMContentLoaded", initTelegram);
 
-function requireAuth(){
-  if(!initData){ alert("Open app from Telegram"); throw ""; }
+/* ---------- API HELPER (🔥 FIX) ---------- */
+async function apiPost(url, data = {}) {
+  data.initData = initData;
+  const r = await fetch(API + url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+  return r.json();
 }
 
 /* ---------- NAV ---------- */
@@ -162,11 +162,7 @@ function nav(id,btn){
 
 /* ---------- PROFILE ---------- */
 async function refreshProfile(){
-  requireAuth();
-  const r=await fetch(API+"/user/profile",{method:"POST",
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({initData})});
-  const d=await r.json();
+  const d = await apiPost("/user/profile");
   sp.innerText=d.sp;
   level.innerText=d.level;
   levelBar.style.width=((d.xp%500)/500*100)+"%";
@@ -179,12 +175,7 @@ function loadProfile(){
 
 /* ---------- MINING ---------- */
 async function refreshMining(){
-  requireAuth();
-  const r=await fetch(API+"/user/mining/stats",{method:"POST",
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({initData})});
-  const d=await r.json();
-
+  const d = await apiPost("/user/mining/stats");
   sp.innerText=d.sp; level.innerText=d.level;
 
   if(!d.running){
@@ -218,18 +209,14 @@ function updateTimer(sec){
 }
 
 async function startMining(){
-  requireAuth();
-  await fetch(API+"/user/mining/start",{method:"POST",
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({initData})});
+  await apiPost("/user/mining/start");
   refreshMining();
 }
 
-/* ---------- SIGNALS ---------- */
+/* ---------- SIGNALS (public) ---------- */
 async function loadSignals(){
-  signalsList.innerHTML="Loading…";
-  const r=await fetch(API+"/market/signals",{method:"POST"});
-  const d=await r.json();
+  const r = await fetch(API+"/market/signals",{method:"POST"});
+  const d = await r.json();
   signalsList.innerHTML="";
   d.forEach(s=>{
     signalsList.innerHTML+=`
@@ -247,22 +234,13 @@ function renderDaily(){
 }
 
 async function claimDaily(){
-  requireAuth();
-  const r=await fetch(API+"/claim/daily",{method:"POST",
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({initData})});
-  const d=await r.json();
-  if(!d.ok) alert("Already claimed today");
+  await apiPost("/claim/daily");
   refreshProfile();
 }
 
 /* ---------- ALERTS ---------- */
 async function loadAlerts(){
-  requireAuth();
-  const r=await fetch(API+"/alert/list",{method:"POST",
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({initData})});
-  const d=await r.json();
+  const d = await apiPost("/alert/list");
   alertsList.innerHTML="";
   d.forEach(a=>{
     alertsList.innerHTML+=`
@@ -274,23 +252,16 @@ async function loadAlerts(){
 }
 
 async function createAlert(){
-  requireAuth();
-  await fetch(API+"/alert/create",{method:"POST",
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      initData,
-      symbol:aSymbol.value,
-      target:aTarget.value,
-      condition:aCond.value
-    })});
+  await apiPost("/alert/create",{
+    symbol:aSymbol.value,
+    target:aTarget.value,
+    condition:aCond.value
+  });
   loadAlerts();
 }
 
 async function delAlert(id){
-  requireAuth();
-  await fetch(API+"/alert/delete",{method:"POST",
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({initData,id})});
+  await apiPost("/alert/delete",{id});
   loadAlerts();
 }
 
