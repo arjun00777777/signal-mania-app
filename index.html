@@ -1,208 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>SignalMania</title>
-
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
 :root{
   --bg:#0b1020;
-  --card:#131a33;
+  --card:#121a33;
   --accent:#4ade80;
-  --accent2:#60a5fa;
-  --danger:#f87171;
+  --blue:#60a5fa;
   --muted:#9ca3af;
+  --danger:#f87171;
 }
-
 *{box-sizing:border-box}
 body{
   margin:0;
-  font-family:system-ui,-apple-system,BlinkMacSystemFont;
+  font-family:system-ui;
   background:radial-gradient(circle at top,#111827,#020617);
   color:#fff;
 }
-
-/* ---------- LAYOUT ---------- */
-.app{
-  max-width:480px;
-  margin:auto;
-  padding-bottom:80px;
-}
-.header{
-  padding:20px;
-  text-align:center;
-}
-.header h1{
-  margin:0;
-  font-size:22px;
-  font-weight:700;
-}
+.app{max-width:480px;margin:auto;padding-bottom:90px}
+.header{text-align:center;padding:18px}
 .card{
   background:linear-gradient(180deg,var(--card),#0b122b);
   border-radius:18px;
-  padding:18px;
+  padding:16px;
   margin:12px;
-  box-shadow:0 0 30px rgba(0,0,0,.3);
-}
-.row{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
 }
 .btn{
-  width:100%;
-  padding:14px;
-  border:none;
-  border-radius:14px;
-  font-weight:700;
-  font-size:15px;
-  cursor:pointer;
+  width:100%;padding:14px;border:none;border-radius:14px;
+  font-weight:700;cursor:pointer;
   background:linear-gradient(135deg,var(--accent),#22c55e);
   color:#022c22;
 }
-.btn.secondary{
-  background:linear-gradient(135deg,var(--accent2),#2563eb);
+.btn.blue{
+  background:linear-gradient(135deg,var(--blue),#2563eb);
   color:#e0f2fe;
 }
-.btn.disabled{
-  opacity:.5;
-  pointer-events:none;
+.btn.disabled{opacity:.5;pointer-events:none}
+.small{font-size:13px;color:var(--muted)}
+
+.progress{
+  height:10px;background:#020617;border-radius:8px;overflow:hidden;margin-top:10px
 }
-.small{
-  font-size:13px;
-  color:var(--muted);
+.progress > div{
+  height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#22c55e);
+  transition:width 1s linear;
 }
 
-/* ---------- NAV ---------- */
-.nav{
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  background:#020617;
-  border-top:1px solid #1e293b;
-  display:flex;
-}
-.nav button{
-  flex:1;
-  background:none;
-  border:none;
-  color:#9ca3af;
-  padding:12px;
-  font-size:12px;
-}
-.nav button.active{
-  color:var(--accent);
-}
-
-/* ---------- ANIMATION ---------- */
-.pulse{
-  animation:pulse 1.6s infinite;
-}
-@keyframes pulse{
-  0%{box-shadow:0 0 0 0 rgba(74,222,128,.4)}
-  70%{box-shadow:0 0 0 18px rgba(74,222,128,0)}
-  100%{box-shadow:0 0 0 0 rgba(74,222,128,0)}
-}
-
-/* ---------- LIST ---------- */
-.list{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
+.list{display:flex;flex-direction:column;gap:10px;margin-top:12px}
 .item{
-  background:#020617;
-  border-radius:14px;
-  padding:12px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+  background:#020617;border-radius:14px;padding:12px;
+  display:flex;justify-content:space-between;align-items:center
 }
 .green{color:var(--accent)}
 .red{color:var(--danger)}
+
+.nav{
+  position:fixed;bottom:0;left:0;right:0;
+  background:#020617;border-top:1px solid #1e293b;
+  display:flex
+}
+.nav button{
+  flex:1;background:none;border:none;color:#9ca3af;
+  padding:12px;font-size:12px
+}
+.nav button.active{color:var(--accent)}
 </style>
 </head>
 
 <body>
 <div class="app">
 
-  <div class="header">
-    <h1>🚀 SignalMania</h1>
-    <div class="small">Mine • Signals • Rewards</div>
+<div class="header">
+  <h2>🚀 SignalMania</h2>
+  <div class="small">DPIN Mining • Signals</div>
+</div>
+
+<!-- HOME / MINING -->
+<div id="home" class="page">
+  <div class="card">
+    <div class="small">Node status</div>
+    <b id="nodeStatus">Idle</b>
+    <div class="small" id="timerText"></div>
+
+    <div class="progress"><div id="progressBar"></div></div>
+
+    <br>
+    <button id="mineBtn" class="btn" onclick="startMining()">Start Mining</button>
   </div>
 
-  <!-- HOME / MINING -->
-  <div id="home" class="page">
-    <div class="card">
-      <div class="row">
-        <div>
-          <div class="small">Node Status</div>
-          <div id="nodeStatus" style="font-size:18px;font-weight:700">Idle</div>
-        </div>
-        <div id="timer" class="small"></div>
-      </div>
-      <br>
-      <button id="mineBtn" class="btn" onclick="startMining()">Start Mining</button>
-    </div>
-
-    <div class="card">
-      <div class="row">
-        <div>SP</div><b id="sp">0</b>
-      </div>
-      <div class="row">
-        <div>Level</div><b id="level">1</b>
-      </div>
-    </div>
+  <div class="card">
+    <div>SP: <b id="sp">0</b></div>
+    <div>Level: <b id="level">1</b></div>
   </div>
+</div>
 
-  <!-- SIGNALS -->
-  <div id="signals" class="page" style="display:none">
-    <div class="card">
+<!-- SIGNALS -->
+<div id="signals" class="page" style="display:none">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center">
       <b>📈 Market Signals</b>
-      <div id="signalsList" class="list"></div>
+      <button class="btn blue" style="width:auto;padding:8px 12px" onclick="loadSignals()">↻</button>
+    </div>
+    <div class="small" id="signalTime"></div>
+    <div id="signalsList" class="list">
+      <div class="small">Fetching signals…</div>
     </div>
   </div>
-
-  <!-- TASKS -->
-  <div id="tasks" class="page" style="display:none">
-    <div class="card">
-      <b>🎁 Daily Reward</b><br><br>
-      <button class="btn secondary" onclick="claimDaily()">Claim Daily</button>
-    </div>
-    <div class="card">
-      <b>History</b>
-      <div id="tasksList" class="list"></div>
-    </div>
-  </div>
-
-  <!-- ALERTS -->
-  <div id="alerts" class="page" style="display:none">
-    <div class="card">
-      <b>🔔 Alerts</b>
-      <div id="alertsList" class="list"></div>
-    </div>
-  </div>
+</div>
 
 </div>
 
 <!-- NAV -->
 <div class="nav">
-  <button onclick="nav('home')" class="active">Home</button>
+  <button class="active" onclick="nav('home')">Home</button>
   <button onclick="nav('signals')">Signals</button>
-  <button onclick="nav('tasks')">Tasks</button>
-  <button onclick="nav('alerts')">Alerts</button>
 </div>
 
 <script>
 const API = "https://claustral-mable-dissectible.ngrok-free.dev";
-let tg = Telegram.WebApp;
-tg.ready();
-tg.expand();
+const tg = Telegram.WebApp;
+tg.ready(); tg.expand();
 const initData = tg.initData;
+
+let miningTimer=null;
+let totalSeconds=6*60*60;
 
 function nav(id){
   document.querySelectorAll('.page').forEach(p=>p.style.display='none');
@@ -210,90 +136,90 @@ function nav(id){
   document.getElementById(id).style.display='block';
   event.target.classList.add('active');
   if(id==="signals") loadSignals();
-  if(id==="tasks") loadTasks();
-  if(id==="alerts") loadAlerts();
+}
+
+async function refreshMining(){
+  const r=await fetch(API+"/user/mining/stats",{
+    method:"POST",headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({initData})
+  });
+  const d=await r.json();
+
+  document.getElementById("sp").innerText=d.sp;
+  document.getElementById("level").innerText=d.level;
+
+  if(!d.running){
+    document.getElementById("nodeStatus").innerText="Idle";
+    document.getElementById("mineBtn").innerText="Start Mining";
+    document.getElementById("mineBtn").classList.remove("disabled");
+    document.getElementById("timerText").innerText="";
+    document.getElementById("progressBar").style.width="0%";
+    if(miningTimer) clearInterval(miningTimer);
+    return;
+  }
+
+  document.getElementById("nodeStatus").innerText="Mining";
+  document.getElementById("mineBtn").innerText="Mining…";
+  document.getElementById("mineBtn").classList.add("disabled");
+
+  let remaining=d.remaining;
+  updateTimer(remaining);
+
+  miningTimer=setInterval(()=>{
+    remaining--;
+    updateTimer(remaining);
+    if(remaining<=0){
+      clearInterval(miningTimer);
+      refreshMining(); // auto-finish
+    }
+  },1000);
+}
+
+function updateTimer(sec){
+  const h=String(Math.floor(sec/3600)).padStart(2,'0');
+  const m=String(Math.floor((sec%3600)/60)).padStart(2,'0');
+  const s=String(sec%60).padStart(2,'0');
+  document.getElementById("timerText").innerText=`Remaining ${h}:${m}:${s}`;
+  const pct=((totalSeconds-sec)/totalSeconds)*100;
+  document.getElementById("progressBar").style.width=pct+"%";
 }
 
 async function startMining(){
-  const btn=document.getElementById("mineBtn");
-  btn.classList.add("disabled");
+  document.getElementById("mineBtn").classList.add("disabled");
   await fetch(API+"/user/mining/start",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
+    method:"POST",headers:{'Content-Type':'application/json'},
     body:JSON.stringify({initData})
   });
-  btn.classList.remove("disabled");
-  refresh();
-}
-
-async function refresh(){
-  const r=await fetch(API+"/user/mining/stats",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({initData})
-  });
-  const d=await r.json();
-  document.getElementById("sp").innerText=d.sp;
-  document.getElementById("level").innerText=d.level;
-  document.getElementById("nodeStatus").innerText=d.running?"Running":"Idle";
-  document.getElementById("mineBtn").innerText=d.running?"Mining...":"Start Mining";
-  document.getElementById("mineBtn").classList.toggle("pulse",d.running);
-}
-
-async function claimDaily(){
-  await fetch(API+"/claim/daily",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({initData})
-  });
-  loadTasks();
-}
-
-async function loadTasks(){
-  const r=await fetch(API+"/tasks/history",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({initData})
-  });
-  const d=await r.json();
-  const box=document.getElementById("tasksList");
-  box.innerHTML="";
-  d.forEach(t=>{
-    box.innerHTML+=`<div class="item">${t[0]} <span class="green">+${t[1]}</span></div>`;
-  });
+  refreshMining();
 }
 
 async function loadSignals(){
-  const r=await fetch(API+"/market/signals");
-  const d=await r.json();
   const box=document.getElementById("signalsList");
-  box.innerHTML="";
-  d.forEach(s=>{
-    box.innerHTML+=`
-      <div class="item">
-        ${s.symbol}
-        <span class="${s.change_24h>=0?'green':'red'}">
-          $${s.price}
-        </span>
-      </div>`;
-  });
+  box.innerHTML='<div class="small">Fetching signals…</div>';
+  try{
+    const r=await fetch(API+"/market/signals");
+    const d=await r.json();
+    box.innerHTML="";
+    if(!d.length){
+      box.innerHTML='<div class="small">No signals right now</div>';
+      return;
+    }
+    document.getElementById("signalTime").innerText="Updated just now";
+    d.forEach(s=>{
+      box.innerHTML+=`
+        <div class="item">
+          ${s.symbol}
+          <span class="${s.change_24h>=0?'green':'red'}">
+            $${s.price}
+          </span>
+        </div>`;
+    });
+  }catch{
+    box.innerHTML='<div class="small">Failed to load signals</div>';
+  }
 }
 
-async function loadAlerts(){
-  const r=await fetch(API+"/alert/list",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({initData})
-  });
-  const d=await r.json();
-  const box=document.getElementById("alertsList");
-  box.innerHTML="";
-  d.forEach(a=>{
-    box.innerHTML+=`<div class="item">${a[1]} ${a[3]} ${a[2]}</div>`;
-  });
-}
-
-refresh();
+refreshMining();
 </script>
 </body>
 </html>
