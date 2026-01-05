@@ -1,5 +1,0 @@
-body{background:#0f172a;color:white;font-family:Arial}
-nav{display:flex;justify-content:space-around}
-button{padding:10px;margin:5px}
-.page{display:none}
-.page.active{display:block}
