@@ -2,351 +2,103 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
 <title>SignalMania</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-<style>
-:root{
-  --bg:#020617;
-  --card:#0b1220;
-  --neon:#00f5a0;
-  --neon2:#38bdf8;
-  --danger:#ef4444;
-  --muted:#9ca3af;
-}
-*{margin:0;padding:0;box-sizing:border-box}
-body{
-  background:radial-gradient(circle at top,#0f172a,#020617);
-  color:white;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto;
-  height:100vh;
-  overflow:hidden;
-}
-.page{display:none;height:100%;overflow-y:auto;padding:20px;padding-bottom:90px}
-.page.active{display:block}
-.card{
-  background:#020617;
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:18px;
-  padding:18px;
-  margin-bottom:16px;
-}
-.center{text-align:center}
-.small{font-size:13px;color:var(--muted)}
-.neon{color:var(--neon)}
-
-.node-circle{
-  width:220px;height:220px;
-  margin:20px auto;
-  border-radius:50%;
-  border:2px solid var(--neon);
-  display:flex;align-items:center;justify-content:center;flex-direction:column;
-  box-shadow:0 0 30px rgba(0,245,160,.35);
-}
-
-.btn{
-  width:100%;
-  padding:14px;
-  border:none;
-  border-radius:14px;
-  font-weight:800;
-  background:linear-gradient(135deg,var(--neon),var(--neon2));
-  color:#020617;
-}
-.btn.secondary{
-  background:#020617;
-  color:white;
-  border:1px solid rgba(255,255,255,.15);
-}
-.btn:disabled{opacity:.5}
-
-.task,.signal{
-  background:#020617;
-  padding:14px;
-  border-radius:14px;
-  margin-bottom:12px;
-  animation:fade .4s ease;
-}
-
-input,select{
-  width:100%;
-  padding:12px;
-  background:#020617;
-  border:1px solid rgba(255,255,255,.15);
-  color:white;
-  border-radius:12px;
-  margin-bottom:10px;
-}
-
-.nav{
-  position:fixed;
-  bottom:0;left:0;width:100%;
-  display:flex;
-  justify-content:space-around;
-  background:#020617;
-  border-top:1px solid rgba(255,255,255,.1);
-  padding:12px 0;
-}
-.nav div{text-align:center;font-size:12px;color:var(--muted)}
-.nav .active{color:var(--neon)}
-
-.calendar{
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:8px;
-}
-.day{
-  padding:12px;
-  border-radius:10px;
-  background:#020617;
-  border:1px solid rgba(255,255,255,.1);
-  text-align:center;
-  font-size:12px;
-}
-.day.active{border-color:var(--neon);color:var(--neon)}
-.day.done{background:rgba(0,245,160,.15);color:var(--neon)}
-
-@keyframes fade{
-  from{opacity:0;transform:translateY(6px)}
-  to{opacity:1;transform:none}
-}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
+<div class="app">
+
+<header>
+  <h1>SignalMania</h1>
+  <span id="premiumBadge" class="badge">FREE</span>
+</header>
+
+<nav>
+  <button onclick="show('node')">⛏<br>Node</button>
+  <button onclick="show('tasks')">🧩<br>Tasks</button>
+  <button onclick="show('signals')">📊<br>Signals</button>
+  <button onclick="show('alerts')">🔔<br>Alerts</button>
+  <button onclick="show('profile')">👤<br>Profile</button>
+</nav>
 
 <!-- NODE -->
-<div id="node" class="page active">
+<section id="node" class="page active">
   <div class="card center">
-    <h3>Total Hashes</h3>
-    <h1 id="sp">0 SP</h1>
-    <p class="small">Decentralized node mining</p>
-  </div>
-
-  <div class="node-circle">
     <h3 id="nodeStatus">Node Idle</h3>
     <p id="timer" class="small"></p>
+    <button id="startBtn" class="btn" onclick="startNode()">Start Node (6h)</button>
   </div>
 
-  <button id="startBtn" class="btn" onclick="startNode()">Start Node (6h)</button>
-</div>
+  <div class="card">
+    <h3>⛏ Mining History</h3>
+    <div id="miningHistory" class="list small muted">No history yet</div>
+  </div>
+</section>
 
 <!-- TASKS -->
-<div id="tasks" class="page">
-  <h2>🧩 Tasks</h2>
-  <div id="taskList"></div>
+<section id="tasks" class="page">
+  <div class="card center">
+    <h3>🎁 Daily Claim</h3>
+    <p class="neon" id="dailyReward">+10 SP</p>
+    <button class="btn" onclick="dailyClaim()">Claim Today</button>
+  </div>
 
-  <h3 style="margin-top:20px">🎁 Daily Claim</h3>
-  <div class="calendar" id="calendar"></div>
-  <button class="btn" style="margin-top:12px" onclick="dailyClaim()">Claim Today</button>
-</div>
+  <div class="card">
+    <h3>📜 Task History</h3>
+    <div id="taskHistory" class="list small muted">No tasks completed yet</div>
+  </div>
+</section>
 
 <!-- SIGNALS -->
-<div id="signals" class="page">
-  <h2>🐋 Whale Tracker</h2>
-  <button class="btn secondary" onclick="loadSignals()">Refresh</button>
-  <div id="signalsList" style="margin-top:12px"></div>
-</div>
+<section id="signals" class="page">
+  <div id="premiumLock" class="card center hidden">
+    <h3>🔒 Premium</h3>
+    <p class="small">Unlock full market data & alerts</p>
+  </div>
+
+  <div id="signalsList" class="list"></div>
+</section>
 
 <!-- ALERTS -->
-<div id="alerts" class="page">
-  <h2>🔔 Price Alerts</h2>
-  <input id="alertSymbol" placeholder="BTC">
-  <input id="alertTarget" placeholder="Target price">
-  <select id="alertCond">
-    <option value="ABOVE">Above</option>
-    <option value="BELOW">Below</option>
-  </select>
-  <button class="btn" onclick="createAlert()">Create Alert</button>
-  <div id="alertList"></div>
-</div>
+<section id="alerts" class="page">
+  <div class="card">
+    <input id="alertSymbol" placeholder="BTC">
+    <input id="alertTarget" placeholder="Target price">
+    <select id="alertCond">
+      <option value="ABOVE">Above</option>
+      <option value="BELOW">Below</option>
+    </select>
+    <button class="btn" onclick="createAlert()">Create Alert</button>
+  </div>
+
+  <div class="card">
+    <h3>Active Alerts</h3>
+    <div id="alertList" class="list small muted">No alerts</div>
+  </div>
+</section>
 
 <!-- PROFILE -->
-<div id="profile" class="page">
-  <h2>👤 Profile</h2>
-
+<section id="profile" class="page">
   <div class="card">
-    <p><b>Total SP:</b> <span id="p_sp">0</span></p>
+    <p><b>SP:</b> <span id="p_sp">0</span></p>
     <p><b>Level:</b> <span id="p_level">1</span></p>
-    <p><b>Daily Streak:</b> <span id="p_streak">0</span></p>
+    <p><b>Daily Streak:</b> 🔥 <span id="p_streak">0</span></p>
+    <p><b>Referrals:</b> 👥 <span id="p_refs">0</span></p>
   </div>
 
   <div class="card">
-    <p>Your referral link</p>
+    <p>Your Referral Link</p>
     <input id="refLink" readonly>
-    <button class="btn" onclick="copyLink()">Copy Link</button>
+    <button class="btn" onclick="copyRef()">Copy Link</button>
   </div>
+</section>
+
 </div>
 
-<!-- NAV -->
-<div class="nav">
-  <div class="active" onclick="show('node',this)">⛏<br>Node</div>
-  <div onclick="show('tasks',this)">🧩<br>Tasks</div>
-  <div onclick="show('signals',this)">📈<br>Signals</div>
-  <div onclick="show('alerts',this)">🔔<br>Alerts</div>
-  <div onclick="show('profile',this)">👤<br>Profile</div>
-</div>
-
-<script>
-const API_BASE="https://claustral-mable-dissectible.ngrok-free.dev";
-const tg=window.Telegram.WebApp;
-tg.expand();
-const initData=tg.initData;
-
-function headers(){
-  return {
-    "Content-Type":"application/json",
-    "ngrok-skip-browser-warning":"true"
-  };
-}
-
-function show(id,el){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  document.querySelectorAll('.nav div').forEach(n=>n.classList.remove('active'));
-  el.classList.add('active');
-  if(id==="signals") loadSignals();
-  if(id==="profile") loadProfile();
-}
-
-let timerInt;
-
-async function refresh(){
-  const r=await fetch(`${API_BASE}/user/mining/stats`,{
-    method:"POST",headers:headers(),
-    body:JSON.stringify({initData})
-  });
-  const d=await r.json();
-
-  sp.innerText=d.sp+" SP";
-  nodeStatus.innerText=d.running?"Node Running":"Node Idle";
-  p_sp.innerText=d.sp;
-  p_level.innerText=d.level;
-
-  if(d.running){
-    startBtn.disabled=true;
-    startTimer(d.remaining);
-  }else{
-    startBtn.disabled=false;
-    timer.innerText="";
-    clearInterval(timerInt);
-  }
-}
-
-function startTimer(sec){
-  clearInterval(timerInt);
-  timerInt=setInterval(()=>{
-    let h=Math.floor(sec/3600);
-    let m=Math.floor((sec%3600)/60);
-    let s=sec%60;
-    timer.innerText=`${h}h ${m}m ${s}s`;
-    sec--;
-    if(sec<0){clearInterval(timerInt);refresh();}
-  },1000);
-}
-
-async function startNode(){
-  tg.HapticFeedback.impactOccurred("medium");
-  await fetch(`${API_BASE}/user/mining/start`,{
-    method:"POST",headers:headers(),
-    body:JSON.stringify({initData})
-  });
-  refresh();
-}
-
-async function loadSignals(){
-  signalsList.innerHTML="Loading...";
-  const r=await fetch(`${API_BASE}/market/signals?ts=${Date.now()}`,{
-    headers:{"ngrok-skip-browser-warning":"true"}
-  });
-  const d=await r.json();
-  signalsList.innerHTML=d.map(x=>`
-    <div class="signal">
-      <b>${x.symbol}</b><br>
-      $${x.price.toLocaleString()}
-      <span style="color:${x.change>=0?'#00f5a0':'#ef4444'}">${x.change}%</span>
-    </div>
-  `).join("");
-}
-
-async function createAlert(){
-  await fetch(`${API_BASE}/alert/create`,{
-    method:"POST",headers:headers(),
-    body:JSON.stringify({
-      initData,
-      symbol:alertSymbol.value,
-      target:alertTarget.value,
-      condition:alertCond.value
-    })
-  });
-  loadAlerts();
-}
-
-async function loadAlerts(){
-  const r=await fetch(`${API_BASE}/alert/list`,{
-    method:"POST",headers:headers(),
-    body:JSON.stringify({initData})
-  });
-  const d=await r.json();
-  alertList.innerHTML=d.map(a=>`
-    <div class="signal">
-      ${a[1]} ${a[3]} ${a[2]} — ${a[4]}
-      <button onclick="deleteAlert(${a[0]})">❌</button>
-    </div>
-  `).join("");
-}
-
-async function deleteAlert(id){
-  await fetch(`${API_BASE}/alert/delete`,{
-    method:"POST",headers:headers(),
-    body:JSON.stringify({initData,id})
-  });
-  loadAlerts();
-}
-
-async function dailyClaim(){
-  const r=await fetch(`${API_BASE}/claim/daily`,{
-    method:"POST",headers:headers(),
-    body:JSON.stringify({initData})
-  });
-  const d=await r.json();
-  if(d.ok){
-    tg.HapticFeedback.notificationOccurred("success");
-    refresh();
-    renderCalendar(d.streak);
-  }else{
-    alert("Already claimed today");
-  }
-}
-
-function renderCalendar(streak){
-  calendar.innerHTML="";
-  for(let i=1;i<=7;i++){
-    let cls=i<=streak?"day done":"day";
-    if(i===streak+1) cls="day active";
-    calendar.innerHTML+=`<div class="${cls}">Day ${i}</div>`;
-  }
-}
-
-async function loadProfile(){
-  const r=await fetch(`${API_BASE}/user/profile`,{
-    method:"POST",headers:headers(),
-    body:JSON.stringify({initData})
-  });
-  const d=await r.json();
-  refLink.value=d.referral_link;
-  p_streak.innerText=d.daily_streak||0;
-}
-
-function copyLink(){
-  navigator.clipboard.writeText(refLink.value);
-  tg.HapticFeedback.notificationOccurred("success");
-}
-
-refresh();
-</script>
-
+<script src="app.js"></script>
 </body>
 </html>
