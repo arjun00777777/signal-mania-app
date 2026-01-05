@@ -1,103 +1,54 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>SignalMania</title>
-
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-<div class="app">
-
-<header>
-  <h1>SignalMania</h1>
-  <span id="premiumBadge" class="badge">FREE</span>
-</header>
-
 <nav>
-  <button onclick="show('node')">⛏<br>Node</button>
-  <button onclick="show('tasks')">🧩<br>Tasks</button>
-  <button onclick="show('signals')">📊<br>Signals</button>
-  <button onclick="show('alerts')">🔔<br>Alerts</button>
-  <button onclick="show('profile')">👤<br>Profile</button>
+<button onclick="show('node')">Node</button>
+<button onclick="show('tasks')">Tasks</button>
+<button onclick="show('signals')">Signals</button>
+<button onclick="show('alerts')">Alerts</button>
+<button onclick="show('profile')">Profile</button>
 </nav>
 
-<!-- NODE -->
 <section id="node" class="page active">
-  <div class="card center">
-    <h3 id="nodeStatus">Node Idle</h3>
-    <p id="timer" class="small"></p>
-    <button id="startBtn" class="btn" onclick="startNode()">Start Node (6h)</button>
-  </div>
-
-  <div class="card">
-    <h3>⛏ Mining History</h3>
-    <div id="miningHistory" class="list small muted">No history yet</div>
-  </div>
+<h3 id="nodeStatus">Idle</h3>
+<p id="timer"></p>
+<button id="startBtn" onclick="startNode()">Start Node</button>
 </section>
 
-<!-- TASKS -->
 <section id="tasks" class="page">
-  <div class="card center">
-    <h3>🎁 Daily Claim</h3>
-    <p class="neon" id="dailyReward">+10 SP</p>
-    <button class="btn" onclick="dailyClaim()">Claim Today</button>
-  </div>
-
-  <div class="card">
-    <h3>📜 Task History</h3>
-    <div id="taskHistory" class="list small muted">No tasks completed yet</div>
-  </div>
+<button onclick="dailyClaim()">Daily Claim</button>
+<div id="taskHistory"></div>
 </section>
 
-<!-- SIGNALS -->
 <section id="signals" class="page">
-  <div id="premiumLock" class="card center hidden">
-    <h3>🔒 Premium</h3>
-    <p class="small">Unlock full market data & alerts</p>
-  </div>
-
-  <div id="signalsList" class="list"></div>
+<div id="signalsList"></div>
 </section>
 
-<!-- ALERTS -->
 <section id="alerts" class="page">
-  <div class="card">
-    <input id="alertSymbol" placeholder="BTC">
-    <input id="alertTarget" placeholder="Target price">
-    <select id="alertCond">
-      <option value="ABOVE">Above</option>
-      <option value="BELOW">Below</option>
-    </select>
-    <button class="btn" onclick="createAlert()">Create Alert</button>
-  </div>
-
-  <div class="card">
-    <h3>Active Alerts</h3>
-    <div id="alertList" class="list small muted">No alerts</div>
-  </div>
+<input id="alertSymbol" placeholder="BTC">
+<input id="alertTarget" placeholder="Target">
+<select id="alertCond">
+<option value="ABOVE">Above</option>
+<option value="BELOW">Below</option>
+</select>
+<button onclick="createAlert()">Create</button>
+<div id="alertList"></div>
 </section>
 
-<!-- PROFILE -->
 <section id="profile" class="page">
-  <div class="card">
-    <p><b>SP:</b> <span id="p_sp">0</span></p>
-    <p><b>Level:</b> <span id="p_level">1</span></p>
-    <p><b>Daily Streak:</b> 🔥 <span id="p_streak">0</span></p>
-    <p><b>Referrals:</b> 👥 <span id="p_refs">0</span></p>
-  </div>
-
-  <div class="card">
-    <p>Your Referral Link</p>
-    <input id="refLink" readonly>
-    <button class="btn" onclick="copyRef()">Copy Link</button>
-  </div>
+<p>SP: <span id="p_sp">0</span></p>
+<p>Level: <span id="p_level">1</span></p>
+<input id="refLink" readonly>
+<button onclick="copyRef()">Copy Referral</button>
 </section>
-
-</div>
 
 <script src="app.js"></script>
 </body>
