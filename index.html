@@ -4,7 +4,9 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>SignalMania</title>
+
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 :root{
@@ -16,104 +18,58 @@
   --muted:#64748b;
   --border:#0f172a;
 }
-
 *{box-sizing:border-box}
-
 body{
   margin:0;
   font-family:ui-monospace,monospace;
   background:radial-gradient(circle at top,#050b18,#02040a);
   color:#e5e7eb;
 }
-
 .app{max-width:520px;margin:auto;padding-bottom:40px}
+.header{padding:14px;border-bottom:1px solid var(--border)}
+.header h1{margin:0;font-size:18px;letter-spacing:2px}
+.status{font-size:11px;color:var(--neon)}
 
-/* ---------- HEADER ---------- */
-.header{
-  padding:14px;
-  border-bottom:1px solid var(--border);
-}
-.header h1{
-  margin:0;
-  font-size:18px;
-  letter-spacing:2px;
-}
-.header .status{
-  font-size:11px;
-  color:var(--neon);
-}
-
-/* ---------- TABS ---------- */
-.tabs{
-  display:flex;
-  gap:6px;
-  margin-top:10px;
-  flex-wrap:wrap;
-}
+.tabs{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
 .tabs button{
-  flex:1;
-  padding:8px 10px;
-  background:#020617;
+  flex:1;padding:8px;background:#020617;
   border:1px solid var(--border);
-  color:var(--muted);
-  font-size:11px;
-  border-radius:10px;
+  color:var(--muted);font-size:11px;border-radius:10px
 }
 .tabs button.active{
   color:var(--neon);
   border-color:var(--neon);
-  box-shadow:0 0 12px rgba(0,255,204,.25);
+  box-shadow:0 0 12px rgba(0,255,204,.25)
 }
 
-/* ---------- CARDS ---------- */
 .card{
   background:linear-gradient(180deg,var(--card),#020617);
   border:1px solid var(--border);
-  border-radius:16px;
-  padding:14px;
-  margin:12px;
-  box-shadow:0 0 30px rgba(0,255,204,.04);
+  border-radius:16px;padding:14px;margin:12px
 }
-
 .small{font-size:12px;color:var(--muted)}
-
 .btn{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:12px;
+  width:100%;padding:12px;border:none;border-radius:12px;
   background:linear-gradient(135deg,var(--accent),#16a34a);
-  color:#022c22;
-  font-weight:700;
+  color:#022c22;font-weight:700
 }
 .btn.red{background:linear-gradient(135deg,var(--danger),#b91c1c);color:#fff}
+.btn.blue{background:linear-gradient(135deg,#38bdf8,#2563eb);color:#fff}
 .btn.disabled{opacity:.4;pointer-events:none}
 
-/* ---------- TERMINAL ---------- */
-.terminal{
-  background:#020617;
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:10px;
-  height:120px;
-  overflow:hidden;
-  font-size:12px;
-  color:var(--neon);
-}
-
-/* ---------- LIST ---------- */
 .list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 .item{
-  background:#020617;
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:10px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+  background:#020617;border:1px solid var(--border);
+  border-radius:12px;padding:10px;
+  display:flex;justify-content:space-between;align-items:center
 }
 
-/* ---------- PAGES ---------- */
+.terminal{
+  background:#020617;border:1px solid var(--border);
+  border-radius:12px;padding:10px;height:120px;
+  overflow:hidden;font-size:12px;color:var(--neon)
+}
+
 .page{display:none}
 .page.active{display:block}
 </style>
@@ -146,10 +102,9 @@ body{
     <div class="terminal" id="terminal"></div><br>
     <button id="mineBtn" class="btn" onclick="startMining()">START NODE</button>
   </div>
-
   <div class="card">
-    <div>SP: <b id="sp">0</b></div>
-    <div>LEVEL: <b id="level">1</b></div>
+    <div>SP <b id="sp">0</b></div>
+    <div>LEVEL <b id="level">1</b></div>
   </div>
 </div>
 
@@ -158,6 +113,15 @@ body{
   <div class="card">
     <b>LIVE SIGNALS</b>
     <div id="signalsList" class="list"></div>
+  </div>
+</div>
+
+<!-- CHART MODAL -->
+<div id="chartModal" class="page">
+  <div class="card">
+    <b id="chartTitle"></b><br><br>
+    <canvas id="priceChart"></canvas><br>
+    <button class="btn red" onclick="closeChart()">CLOSE</button>
   </div>
 </div>
 
@@ -173,7 +137,6 @@ body{
     </select><br><br>
     <button class="btn" onclick="createAlert()">CREATE ALERT</button>
   </div>
-
   <div class="card">
     <b>YOUR ALERTS</b>
     <div id="alertsList" class="list"></div>
@@ -207,12 +170,20 @@ body{
 <div id="profile" class="page">
   <div class="card">
     <b>OPERATOR PROFILE</b><br><br>
-    <div class="item">UID <span id="uidTxt"></span></div>
-    <div class="item">SP <span id="sp2"></span></div>
-    <div class="item">LEVEL <span id="level2"></span></div>
-    <div class="item">REFERRALS <span id="refCount"></span></div><br>
+
+    <div class="item">TOTAL SP <span id="sp2">0</span></div>
+    <div class="item">LEVEL <span id="level2">1</span></div>
+
+    <div class="item">MINING SP <span id="miningSp">0</span></div>
+    <div class="item">TASK SP <span id="taskSp">0</span></div>
+    <div class="item">REFERRAL SP <span id="refSp">0</span></div>
+
+    <div class="item">REFERRALS <span id="refCount">0</span></div><br>
+
     <div class="small">REFERRAL LINK</div>
     <input id="refLink" readonly style="width:100%;padding:10px;border-radius:10px"/>
+    <br><br>
+    <button class="btn blue" onclick="copyRef()">COPY LINK</button>
   </div>
 </div>
 
@@ -225,20 +196,11 @@ body{
 <script>
 const API="https://claustral-mable-dissectible.ngrok-free.dev";
 const UID=Telegram.WebApp.initDataUnsafe.user.id;
-
 const clickSound=document.getElementById("clickSound");
 const successSound=document.getElementById("successSound");
 
-function apiPost(url,data={}){
-  data.uid=UID;
-  return fetch(API+url,{
-    method:"POST",
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify(data)
-  }).then(r=>r.json());
-}
+function apiPost(url,data={}){data.uid=UID;return fetch(API+url,{method:"POST",headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(r=>r.json());}
 
-/* ---------- NAV ---------- */
 function nav(id,btn){
   clickSound.play();
   document.querySelectorAll('.page').forEach(p=>p.classList.remove("active"));
@@ -248,135 +210,90 @@ function nav(id,btn){
 
   if(id==="signals") loadSignals();
   if(id==="alerts") loadAlerts();
-  if(id==="tasks") loadTasks();
+  if(id==="tasks"){loadTasks();loadReferralTasks();}
   if(id==="history") loadHistory();
   if(id==="profile") loadProfile();
 }
 
-/* ---------- TERMINAL ---------- */
 const term=document.getElementById("terminal");
-function logTerm(t){
-  term.innerHTML+=`&gt; ${t}<br>`;
-  term.scrollTop=term.scrollHeight;
-}
+function logTerm(t){term.innerHTML+=`&gt; ${t}<br>`;term.scrollTop=term.scrollHeight;}
 
-/* ---------- MINING ---------- */
 async function refreshMining(){
   const d=await apiPost("/user/mining/stats");
-  sp.innerText=d.sp;
-  level.innerText=d.level;
-
+  sp.innerText=d.sp;level.innerText=d.level;
   if(!d.running){
-    nodeStatus.innerText="IDLE";
-    mineBtn.classList.remove("disabled");
-    mineBtn.innerText="START NODE";
-    timerText.innerText="";
-    return;
+    nodeStatus.innerText="IDLE";mineBtn.classList.remove("disabled");
+    mineBtn.innerText="START NODE";timerText.innerText="";return;
   }
-
-  nodeStatus.innerText="ACTIVE";
-  mineBtn.classList.add("disabled");
+  nodeStatus.innerText="ACTIVE";mineBtn.classList.add("disabled");
   mineBtn.innerText="NODE RUNNING";
-
-  let rem=d.remaining;
-  updateTimer(rem);
-
-  setTimeout(refreshMining,1000);
+  updateTimer(d.remaining);setTimeout(refreshMining,1000);
 }
-
 function updateTimer(sec){
-  const h=Math.floor(sec/3600);
-  const m=Math.floor((sec%3600)/60);
-  const s=sec%60;
-  timerText.innerText=`TIME LEFT ${h}h ${m}m ${s}s`;
-  logTerm("Processing encrypted packets...");
+  timerText.innerText=`TIME LEFT ${Math.floor(sec/3600)}h ${Math.floor((sec%3600)/60)}m ${sec%60}s`;
+  logTerm("Encrypting blocks...");
 }
+function startMining(){clickSound.play();mineBtn.classList.add("disabled");logTerm("Booting node...");apiPost("/user/mining/start").then(refreshMining);}
 
-function startMining(){
-  clickSound.play();
-  mineBtn.classList.add("disabled");
-  logTerm("Bootstrapping secure node...");
-  apiPost("/user/mining/start").then(refreshMining);
-}
-
-/* ---------- SIGNALS ---------- */
 function loadSignals(){
-  fetch(API+"/market/signals",{method:"POST"})
-  .then(r=>r.json())
-  .then(d=>{
+  fetch(API+"/market/signals",{method:"POST"}).then(r=>r.json()).then(d=>{
     signalsList.innerHTML="";
     d.forEach(s=>{
       signalsList.innerHTML+=`
-        <div class="item">
-          ${s.symbol}
-          <span>$${s.price}</span>
-        </div>`;
+      <div class="item" onclick="openChart('${s.symbol}')">
+        ${s.symbol}<span>$${s.price}</span>
+      </div>`;
     });
   });
 }
 
-/* ---------- ALERTS ---------- */
-function loadAlerts(){
-  apiPost("/alert/list").then(d=>{
-    alertsList.innerHTML="";
-    d.forEach(a=>{
-      alertsList.innerHTML+=`
-        <div class="item">
-          ${a[1]} ${a[3]} ${a[2]}
-          <button class="btn red" onclick="delAlert(${a[0]})">X</button>
-        </div>`;
-    });
+let chart=null;
+function openChart(symbol){
+  chartModal.classList.add("active");
+  chartTitle.innerText=symbol+" PRICE";
+  // mock data until backend chart endpoint added
+  const labels=[...Array(20).keys()];
+  const prices=labels.map(i=>100+i*2);
+  if(chart) chart.destroy();
+  chart=new Chart(priceChart,{type:"line",data:{labels, datasets:[{data:prices,borderColor:"#00ffcc",tension:.3}]}});
+}
+function closeChart(){chartModal.classList.remove("active");}
+
+function loadAlerts(){apiPost("/alert/list").then(d=>{alertsList.innerHTML="";d.forEach(a=>{alertsList.innerHTML+=`<div class="item">${a[1]} ${a[3]} ${a[2]}<button class="btn red" onclick="delAlert(${a[0]})">X</button></div>`;});});}
+function createAlert(){apiPost("/alert/create",{symbol:aSymbol.value,target:aTarget.value,condition:aCond.value}).then(()=>{successSound.play();loadAlerts();});}
+function delAlert(id){apiPost("/alert/delete",{id}).then(loadAlerts);}
+
+async function loadTasks(){const p=await apiPost("/user/profile");dailyTask.innerHTML=`<div class="item">DAY ${p.daily_day+1}</div>`;dailyBtn.classList.remove("disabled");}
+async function claimDaily(){const r=await apiPost("/claim/daily");if(r.ok){successSound.play();dailyBtn.classList.add("disabled");dailyInfo.innerText="CLAIMED";loadProfile();}}
+
+function loadHistory(){apiPost("/tasks/history").then(d=>{taskHistory.innerHTML="";d.forEach(t=>{taskHistory.innerHTML+=`<div class="item">${t[0]}<span>+${t[1]}</span></div>`;});});}
+
+async function loadReferralTasks(){
+  const data=await apiPost("/referral/status");
+  refTasks.innerHTML="";
+  data.forEach(t=>{
+    let btn=t.claimed?`<span class="small">CLAIMED</span>`:
+      t.eligible?`<button class="btn" onclick="claimReferral(${t.referrals})">CLAIM +${t.reward}</button>`:
+      `<span class="small">${t.referrals} REQUIRED</span>`;
+    refTasks.innerHTML+=`<div class="item">Invite ${t.referrals}${btn}</div>`;
   });
 }
-function createAlert(){
-  apiPost("/alert/create",{symbol:aSymbol.value,target:aTarget.value,condition:aCond.value})
-  .then(()=>{successSound.play();loadAlerts();});
-}
-function delAlert(id){
-  apiPost("/alert/delete",{id}).then(loadAlerts);
+async function claimReferral(r){
+  const res=await apiPost("/referral/claim",{referrals:r});
+  if(res.ok){successSound.play();loadReferralTasks();loadProfile();}
 }
 
-/* ---------- TASKS ---------- */
-async function loadTasks(){
-  const p=await apiPost("/user/profile");
-  dailyTask.innerHTML=`<div class="item">DAY ${p.daily_day+1} <span>REWARD</span></div>`;
-  dailyBtn.classList.remove("disabled");
-}
-
-async function claimDaily(){
-  const r=await apiPost("/claim/daily");
-  if(r.ok){
-    successSound.play();
-    dailyBtn.classList.add("disabled");
-    dailyInfo.innerText="CLAIMED";
-  }
-}
-
-/* ---------- HISTORY ---------- */
-function loadHistory(){
-  apiPost("/tasks/history").then(d=>{
-    taskHistory.innerHTML="";
-    d.forEach(t=>{
-      taskHistory.innerHTML+=`
-        <div class="item">
-          ${t[0]}
-          <span>+${t[1]}</span>
-        </div>`;
-    });
-  });
-}
-
-/* ---------- PROFILE ---------- */
 async function loadProfile(){
   const d=await apiPost("/user/profile");
-  uidTxt.innerText=UID;
-  sp2.innerText=d.sp;
-  level2.innerText=d.level;
+  sp2.innerText=d.sp;level2.innerText=d.level;
+  miningSp.innerText=d.breakdown.mining;
+  taskSp.innerText=d.breakdown.tasks;
+  refSp.innerText=d.breakdown.referrals;
   refCount.innerText=d.referral_count;
   refLink.value=`https://t.me/Whale_alert_info_bot?start=${UID}`;
 }
+function copyRef(){navigator.clipboard.writeText(refLink.value);successSound.play();Telegram.WebApp.showPopup({title:"Copied",message:"Referral link copied",buttons:[{type:"ok"}]});}
 
-/* ---------- INIT ---------- */
 setTimeout(refreshMining,800);
 </script>
 </body>
