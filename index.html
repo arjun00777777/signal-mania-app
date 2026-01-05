@@ -128,11 +128,15 @@ body{
 </div>
 
 <script>
-const API="https://claustral-mable-dissectible.ngrok-free.dev";
+const API = "https://claustral-mable-dissectible.ngrok-free.dev";
+
 let tg = null;
 let initData = "";
+let miningTimer = null;
+const totalSeconds = 6 * 60 * 60;
 
-function initTelegram() {
+/* -------- TELEGRAM INIT (SAFE) -------- */
+function initTelegram(){
   if (window.Telegram && Telegram.WebApp) {
     tg = Telegram.WebApp;
     tg.ready();
@@ -140,23 +144,21 @@ function initTelegram() {
     initData = tg.initData || "";
     console.log("Telegram initialized");
   } else {
-    console.log("Telegram WebApp not available yet");
+    console.log("Telegram not ready");
   }
 }
 
 document.addEventListener("DOMContentLoaded", initTelegram);
 
-let miningTimer=null;
-const totalSeconds=6*60*60;
-
-function requireAuth() {
-  if (!initData) {
-    alert("Please open SignalMania from Telegram bot");
-    throw new Error("No Telegram initData");
+/* -------- AUTH GUARD -------- */
+function requireAuth(){
+  if(!initData){
+    alert("Open app from Telegram bot only");
+    throw new Error("No initData");
   }
 }
 
-/* ---------- NAV FIX ---------- */
+/* -------- NAV -------- */
 function nav(id, btn){
   document.querySelectorAll('.page').forEach(p=>p.style.display='none');
   document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
@@ -169,10 +171,12 @@ function nav(id, btn){
   if(id==="profile") loadProfile();
 }
 
-/* ---------- PROFILE REFRESH (STEP C CORE) ---------- */
+/* -------- PROFILE -------- */
 async function refreshProfile(){
+  requireAuth();
   const r = await fetch(API+"/user/profile",{
-    method:"POST",headers:{'Content-Type':'application/json'},
+    method:"POST",
+    headers:{'Content-Type':'application/json'},
     body:JSON.stringify({initData})
   });
   const d = await r.json();
@@ -181,13 +185,18 @@ async function refreshProfile(){
   levelBar.style.width=((d.xp%500)/500*100)+"%";
 }
 
-/* ---------- MINING ---------- */
+/* -------- MINING -------- */
 async function refreshMining(){
-  const r=await fetch(API+"/user/mining/stats",{method:"POST",
+  requireAuth();
+  const r=await fetch(API+"/user/mining/stats",{
+    method:"POST",
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({initData})});
+    body:JSON.stringify({initData})
+  });
   const d=await r.json();
-  sp.innerText=d.sp; level.innerText=d.level;
+
+  sp.innerText=d.sp;
+  level.innerText=d.level;
 
   if(!d.running){
     nodeStatus.innerText="Idle";
@@ -206,7 +215,8 @@ async function refreshMining(){
 
   let rem=d.remaining;
   miningTimer=setInterval(()=>{
-    rem--; updateTimer(rem);
+    rem--;
+    updateTimer(rem);
     if(rem<=0){clearInterval(miningTimer);refreshMining();}
   },1000);
 }
@@ -219,106 +229,120 @@ function updateTimer(sec){
   progressBar.style.width=((totalSeconds-sec)/totalSeconds*100)+"%";
 }
 
-async function startMining() {
-  requireAuth();   // 👈 ADD THIS LINE
-
-  await fetch(API + "/user/mining/start", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({ initData })
+async function startMining(){
+  requireAuth();
+  await fetch(API+"/user/mining/start",{
+    method:"POST",
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({initData})
   });
-
   refreshMining();
 }
 
-/* ---------- SIGNALS ---------- */
-async function loadSignals() {
-  requireAuth();   // 👈 ADD THIS LINE
-
-  signalsList.innerHTML = "Loading...";
-  const r = await fetch(API + "/market/signals");
+/* -------- SIGNALS -------- */
+async function loadSignals(){
+  signalsList.innerHTML="Loading…";
+  const r = await fetch(API+"/market/signals");
   const d = await r.json();
-  signalsList.innerHTML = "";
 
-  if (!d.length) {
-    signalsList.innerHTML = "No signals";
+  signalsList.innerHTML="";
+  if(!d.length){
+    signalsList.innerHTML="No signals";
     return;
   }
 
-  d.forEach(s => {
-    signalsList.innerHTML += `
-      <div>${s.symbol} - ${s.price}</div>
-    `;
+  d.forEach(s=>{
+    signalsList.innerHTML+=`
+      <div class="item">
+        ${s.symbol}
+        <span class="${s.change_24h>=0?'green':'red'}">
+          $${s.price}
+        </span>
+      </div>`;
   });
 }
 
-
-/* ---------- DAILY ---------- */
+/* -------- DAILY -------- */
 function renderDaily(){
   dailyGrid.innerHTML="";
-  for(let i=1;i<=7;i++) dailyGrid.innerHTML+=`<div class="item">Day ${i}</div>`;
+  for(let i=1;i<=7;i++){
+    dailyGrid.innerHTML+=`<div class="item">Day ${i}</div>`;
+  }
 }
 
-async function claimDaily() {
-  requireAuth();   // 👈 ADD THIS LINE
-
-  await fetch(API + "/claim/daily", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({ initData })
+async function claimDaily(){
+  requireAuth();
+  const r = await fetch(API+"/claim/daily",{
+    method:"POST",
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({initData})
   });
-
+  const d = await r.json();
+  if(!d.ok) alert("Already claimed today");
   refreshProfile();
 }
 
-
-/* ---------- ALERTS ---------- */
-async function loadAlerts() {
-  requireAuth();   // 👈 ADD THIS LINE
-
-  const r = await fetch(API + "/alert/list", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({ initData })
+/* -------- ALERTS -------- */
+async function loadAlerts(){
+  requireAuth();
+  const r=await fetch(API+"/alert/list",{
+    method:"POST",
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({initData})
   });
+  const d=await r.json();
 
-  const d = await r.json();
-  alertsList.innerHTML = "";
-
-  d.forEach(a => {
-    alertsList.innerHTML += `<div>${a[1]} ${a[2]}</div>`;
+  alertsList.innerHTML="";
+  d.forEach(a=>{
+    alertsList.innerHTML+=`
+      <div class="item">
+        ${a[1]} ${a[3]} ${a[2]}
+        <button class="btn red small" onclick="delAlert(${a[0]})">X</button>
+      </div>`;
   });
 }
 
-
 async function createAlert(){
-  await fetch(API+"/alert/create",{method:"POST",
+  requireAuth();
+  await fetch(API+"/alert/create",{
+    method:"POST",
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({initData,symbol:aSymbol.value,target:aTarget.value,condition:aCond.value})});
+    body:JSON.stringify({
+      initData,
+      symbol:aSymbol.value,
+      target:aTarget.value,
+      condition:aCond.value
+    })
+  });
   loadAlerts();
 }
 
 async function delAlert(id){
-  await fetch(API+"/alert/delete",{method:"POST",
+  requireAuth();
+  await fetch(API+"/alert/delete",{
+    method:"POST",
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({initData,id})});
+    body:JSON.stringify({initData,id})
+  });
   loadAlerts();
 }
 
-/* ---------- PROFILE ---------- */
+/* -------- PROFILE -------- */
 function loadProfile(){
-  if (!tg || !tg.initDataUnsafe || !tg.initDataUnsafe.user) {
-    refLink.value = "Open via Telegram bot";
-    return;
-  }
+  if(!tg || !tg.initDataUnsafe) return;
   refLink.value =
     `https://t.me/Whale_alert_info_bot?start=${tg.initDataUnsafe.user.id}`;
 }
-function copyRef(){navigator.clipboard.writeText(refLink.value);}
 
-/* ---------- INIT ---------- */
-refreshMining();
-refreshProfile();
+function copyRef(){
+  navigator.clipboard.writeText(refLink.value);
+}
+
+/* -------- INIT -------- */
+setTimeout(()=>{
+  refreshMining();
+  refreshProfile();
+},1000);
 </script>
 </body>
 </html>
