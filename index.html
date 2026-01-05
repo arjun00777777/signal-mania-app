@@ -129,7 +129,11 @@ body{
 
 <script>
 const API="https://claustral-mable-dissectible.ngrok-free.dev";
-const tg=Telegram.WebApp; tg.ready(); tg.expand();
+const tg = window.Telegram ? Telegram.WebApp : null;
+if (tg) {
+  tg.ready();
+  tg.expand();
+}
 const initData=tg.initData;
 let miningTimer=null;
 const totalSeconds=6*60*60;
