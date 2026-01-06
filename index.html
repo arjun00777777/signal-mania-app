@@ -273,10 +273,8 @@ body{
     <button onclick="nav('history',this)">HISTORY</button>
     <button onclick="nav('profile',this)">PROFILE</button>
     <button onclick="nav('roadmap',this)">ROADMAP</button>
-}
+    <button id="adminTab" onclick="nav('admin',this)">ADMIN</button>
 
-
-    
   </div>
 </div>
 
@@ -438,7 +436,29 @@ body{
   </div>
 </div>
 
+<!-- ADMIN -->
+<div id="admin" class="page">
+  <div class="card">
+    <b>ADMIN DASHBOARD</b><br><br>
 
+    <div class="item">USERS <span id="adUsers">-</span></div>
+    <div class="item">ACTIVE MINERS <span id="adMiners">-</span></div>
+    <div class="item">TOTAL SP <span id="adSp">-</span></div>
+    <div class="item">ACTIVE ALERTS <span id="adAlerts">-</span></div>
+
+    <hr>
+
+    <b>USER GROWTH</b>
+    <canvas id="userGrowthChart" height="120"></canvas>
+
+    <hr>
+
+    <b>SP DISTRIBUTION</b>
+    <canvas id="spChart" height="120"></canvas>
+  </div>
+</div>
+
+  
 <!-- SOUNDS -->
 <audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3"></audio>
 <audio id="successSound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"></audio>
@@ -510,6 +530,7 @@ function nav(id,btn){
   loadMiningHistory();
   loadHistory();}
   if(id==="profile") loadProfile();
+  if(id==="admin") loadAdmin();
   if(id==="roadmap"){}
   if(id === "charts" && chart){
   setTimeout(() => {
@@ -774,6 +795,75 @@ async function loadProfile(){
 }
 function copyRef(){navigator.clipboard.writeText(refLink.value);successSound.play();Telegram.WebApp.showPopup({title:"Copied",message:"Referral link copied",buttons:[{type:"ok"}]});}
 
+// ---------------- ADMIN DASHBOARD ----------------
+
+async function loadAdmin(){
+  const d = await apiPost("/admin/stats");
+
+  if(d.error){
+    document.getElementById("adminTab").style.display = "none";
+    return;
+  }
+
+  adUsers.innerText = d.users;
+  adMiners.innerText = d.active_miners;
+  adSp.innerText = d.total_sp;
+  adAlerts.innerText = d.active_alerts;
+
+  loadAdminAnalytics();
+}
+
+async function loadAdminAnalytics(){
+  const d = await apiPost("/admin/analytics");
+  if(d.error) return;
+
+  drawGrowthChart(d.growth);
+  drawSpChart(d.sp_distribution);
+}
+
+function drawGrowthChart(data){
+  const c = userGrowthChart.getContext("2d");
+  c.clearRect(0,0,300,120);
+
+  const max = Math.max(...data.map(d=>d[1]),1);
+
+  data.forEach((d,i)=>{
+    const x = (i/(data.length-1||1))*300;
+    const y = 120 - (d[1]/max)*100;
+    c.fillStyle = "#00ffcc";
+    c.fillRect(x, y, 6, 120-y);
+  });
+}
+
+function drawSpChart(sp){
+  const c = spChart.getContext("2d");
+  c.clearRect(0,0,300,120);
+
+  const total = sp.mining + sp.tasks + sp.referrals || 1;
+  let x = 0;
+
+  [
+    ["#22c55e", sp.mining],
+    ["#38bdf8", sp.tasks],
+    ["#facc15", sp.referrals]
+  ].forEach(([color,val])=>{
+    const w = (val/total)*300;
+    c.fillStyle = color;
+    c.fillRect(x, 0, w, 120);
+    x += w;
+  });
+}
+
+// Hide admin tab by default
+document.getElementById("adminTab").style.display = "none";
+
+// Show only if admin
+apiPost("/admin/stats").then(d=>{
+  if(!d.error){
+    document.getElementById("adminTab").style.display = "block";
+  }
+});
+  
 setTimeout(refreshMining,800);
 </script>
 </body>
