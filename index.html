@@ -86,10 +86,12 @@ body{
   <div class="tabs">
     <button class="active" onclick="nav('node',this)">NODE</button>
     <button onclick="nav('signals',this)">SIGNALS</button>
+    <button onclick="nav('charts',this)">CHARTS</button>
     <button onclick="nav('alerts',this)">ALERTS</button>
     <button onclick="nav('tasks',this)">TASKS</button>
     <button onclick="nav('history',this)">HISTORY</button>
     <button onclick="nav('profile',this)">PROFILE</button>
+    
   </div>
 </div>
 
@@ -127,6 +129,22 @@ body{
   </div>
 </div>
 
+<!-- CHARTS -->
+<div id="charts" class="page">
+  <div class="card">
+    <b>MARKET CHARTS</b><br><br>
+
+    <select id="chartSymbol"
+      style="width:100%;padding:10px;border-radius:10px"
+      onchange="loadChart()">
+    </select>
+
+    <br><br>
+    <div style="height:280px">
+      <canvas id="priceChart"></canvas>
+    </div>
+  </div>
+</div>
 
 <!-- ALERTS -->
 <div id="alerts" class="page">
@@ -212,6 +230,7 @@ function nav(id,btn){
   btn.classList.add("active");
 
   if(id==="signals") loadSignals();
+  if(id==="charts") populateChartSymbols();
   if(id==="alerts") loadAlerts();
   if(id==="tasks"){loadTasks();loadReferralTasks();}
   if(id==="history") loadHistory();
@@ -250,59 +269,56 @@ function loadSignals(){
   });
 }
 
-let chart = null;
+let chart=null;
 
-function openChart(symbol){
-  clickSound.play();
+function loadChart(){
+  const symbol = chartSymbol.value;
+  if(!symbol) return;
 
-  // switch to chart page
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove("active"));
-  document.getElementById("chartModal").classList.add("active");
-
-  chartTitle.innerText = symbol + " • Live Chart";
-
-  fetch(API + "/market/chart", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ symbol })
+  fetch(API+"/market/chart",{
+    method:"POST",
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({symbol})
   })
-  .then(r => r.json())
-  .then(data => {
-    if (!data || data.length === 0) {
-      alert("No chart data available");
-      return;
-    }
+  .then(r=>r.json())
+  .then(d=>{
+    if(chart) chart.destroy();
 
-    if (chart) chart.destroy();
-
-    chart = new Chart(priceChart, {
-      type: "line",
-      data: {
-        labels: data.map(x => x.t),
-        datasets: [{
-          data: data.map(x => x.p),
-          borderColor: "#00ffcc",
-          borderWidth: 2,
-          pointRadius: 0,
-          tension: 0.35
+    chart = new Chart(priceChart,{
+      type:"line",
+      data:{
+        labels:d.map(x=>x.t),
+        datasets:[{
+          data:d.map(x=>x.p),
+          borderColor:"#00ffcc",
+          borderWidth:2,
+          pointRadius:0,
+          tension:0.3
         }]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false }
-        },
-        scales: {
-          x: { display: false },
-          y: {
-            ticks: { color: "#9ca3af" },
-            grid: { color: "#0f172a" }
-          }
+      options:{
+        responsive:true,
+        plugins:{legend:{display:false}},
+        scales:{
+          x:{display:false},
+          y:{ticks:{color:"#9ca3af"}}
         }
       }
     });
   });
+}
+
+function populateChartSymbols(){
+  fetch(API+"/market/signals",{method:"POST"})
+    .then(r=>r.json())
+    .then(d=>{
+      chartSymbol.innerHTML="";
+      d.forEach(s=>{
+        chartSymbol.innerHTML+=`
+          <option value="${s.symbol}">${s.symbol}</option>`;
+      });
+      loadChart(); // load first coin
+    });
 }
 
 function closeChart(){chartModal.classList.remove("active");}
