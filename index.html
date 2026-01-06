@@ -6,6 +6,7 @@
 <title>SignalMania</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
 
 <style>
 :root{
@@ -69,54 +70,158 @@ body{
   overflow:hidden;font-size:12px;color:var(--neon)
 }
 
-.activity-bar{
-  height:8px;background:#020617;border:1px solid var(--border);
-  border-radius:6px;overflow:hidden;margin-top:6px
-}
-#activityFill{
-  height:100%;width:0%;
-  background:linear-gradient(90deg,var(--neon),#22c55e);
-  animation:activity 2s infinite
-}
-@keyframes activity{
-  0%{width:10%}50%{width:90%}100%{width:10%}
-}
-
 .page{display:none}
 .page.active{display:block}
 
-/* CHART LOCK */
 .chart-locked{
-  position:relative;height:260px;
-  background:#020617;border-radius:14px;
-  filter:blur(6px)
+  position:relative;
+  height:280px;
+  background:#020617;
+  border-radius:14px;
+  filter: blur(6px);
 }
+
 .chart-overlay{
-  position:absolute;inset:0;
-  display:flex;flex-direction:column;
-  justify-content:center;align-items:center;
-  background:rgba(2,6,23,.85);
-  filter:none;z-index:5
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  background:rgba(2,6,23,0.75);
+  backdrop-filter: blur(4px);
+  filter:none;
+  z-index:5;
 }
+
 .glitch{
-  font-size:22px;letter-spacing:3px;
+  font-size:22px;
+  letter-spacing:3px;
   color:var(--neon);
-  animation:glitch 1.5s infinite
+  position:relative;
+  animation:glitch 1.5s infinite;
 }
+
 @keyframes glitch{
   0%{text-shadow:2px 0 red,-2px 0 cyan}
-  50%{text-shadow:-2px 0 red,2px 0 cyan}
+  20%{text-shadow:-2px 0 red,2px 0 cyan}
+  40%{text-shadow:2px 0 cyan,-2px 0 red}
+  60%{text-shadow:-1px 0 cyan,1px 0 red}
   100%{text-shadow:none}
 }
+
+.chart-overlay::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:repeating-linear-gradient(
+    to bottom,
+    rgba(255,255,255,0.04),
+    rgba(255,255,255,0.04) 1px,
+    transparent 2px,
+    transparent 4px
+  );
+  pointer-events:none;
+}
+
+.matrix-line{
+  animation: flicker 0.15s infinite;
+}
+
+@keyframes flicker{
+  0%{opacity:0.4}
+  50%{opacity:1}
+  100%{opacity:0.6}
+}
+
+.pulse{
+  animation:pulse 1.5s infinite;
+}
+
+@keyframes pulse{
+  0%{box-shadow:0 0 5px var(--neon)}
+  50%{box-shadow:0 0 20px var(--neon)}
+  100%{box-shadow:0 0 5px var(--neon)}
+}
+
+.activity-bar{
+  height:8px;
+  background:#020617;
+  border:1px solid var(--border);
+  border-radius:6px;
+  overflow:hidden;
+  margin-top:6px;
+}
+#activityFill{
+  height:100%;
+  width:0%;
+  background:linear-gradient(
+    90deg,
+    #00ffcc,
+    #22c55e,
+    #00ffcc
+  );
+  background-size:200% 100%;
+  animation:activity 2s infinite, shimmer 3s linear infinite;
+}
+
+@keyframes shimmer{
+  0%{background-position:0%}
+  100%{background-position:200%}
+}
+
+@keyframes activity{
+  0%{width:10%}
+  50%{width:90%}
+  100%{width:10%}
+}
+
+@keyframes scan {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 100px; }
+}
+
+.terminal::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(
+    rgba(0,255,204,0.05) 1px,
+    transparent 1px
+  );
+  background-size:100% 4px;
+  animation:scan 2s linear infinite;
+  pointer-events:none;
+}
+
+.btn:active{
+  transform:scale(0.97);
+}
+
+.btn:hover{
+  box-shadow:0 0 15px rgba(0,255,204,0.35);
+}
+
+.item{
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.item:hover{
+  transform:translateX(4px);
+  box-shadow:0 0 10px rgba(0,255,204,.25);
+}
+
+
 </style>
 </head>
 
 <body>
 <div class="app">
 
+<!-- HEADER -->
 <div class="header">
   <h1>SIGNALMANIA ▣</h1>
   <div class="status">SECURE NODE ONLINE</div>
+
   <div class="tabs">
     <button class="active" onclick="nav('node',this)">NODE</button>
     <button onclick="nav('signals',this)">SIGNALS</button>
@@ -126,6 +231,8 @@ body{
     <button onclick="nav('history',this)">HISTORY</button>
     <button onclick="nav('profile',this)">PROFILE</button>
     <button onclick="nav('roadmap',this)">ROADMAP</button>
+
+    
   </div>
 </div>
 
@@ -134,10 +241,12 @@ body{
   <div class="card">
     <div class="small">NODE STATUS</div>
     <b id="nodeStatus">IDLE</b>
-    <div class="small" id="timerText"></div>
-    <div class="terminal" id="terminal"></div>
+    <div class="small" id="timerText"></div><br>
+    <div class="terminal" id="terminal"></div><br>
     <div class="small">NODE ACTIVITY</div>
-    <div class="activity-bar"><div id="activityFill"></div></div>
+<div class="activity-bar">
+  <div id="activityFill"></div>
+</div>
     <button id="mineBtn" class="btn" onclick="startMining()">START NODE</button>
   </div>
   <div class="card">
@@ -148,20 +257,40 @@ body{
 
 <!-- SIGNALS -->
 <div id="signals" class="page">
-  <div class="card"><b>LIVE SIGNALS</b><div id="signalsList" class="list"></div></div>
+  <div class="card">
+    <b>LIVE SIGNALS</b>
+    <div id="signalsList" class="list"></div>
+  </div>
 </div>
 
 <!-- CHARTS -->
 <div id="charts" class="page">
+
   <div class="card">
     <b>MARKET CHARTS</b>
-    <div id="chartBox" class="chart-locked"></div>
-    <div class="chart-overlay">
-      <div class="glitch">🔒 COMING SOON</div>
-      <div class="small">Advanced charts under deployment</div>
+    <div class="small">Select asset</div>
+    <div id="chartSymbols" class="list"></div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;gap:6px;margin-bottom:10px">
+      <button class="btn small" onclick="setTF('1m')">1m</button>
+      <button class="btn small" onclick="setTF('5m')">5m</button>
+      <button class="btn small" onclick="setTF('15m')">15m</button>
+      <button class="btn small" onclick="setTF('1h')">1h</button>
     </div>
+
+    <div id="chartBox" class="chart-locked">
+  <div class="chart-overlay">
+    <div class="glitch">COMING SOON</div>
+    <div class="small">Real-time charts under deployment</div>
   </div>
 </div>
+
+  </div>
+
+</div>
+
 
 <!-- ALERTS -->
 <div id="alerts" class="page">
@@ -175,112 +304,308 @@ body{
     </select><br><br>
     <button class="btn" onclick="createAlert()">CREATE ALERT</button>
   </div>
-  <div class="card"><b>YOUR ALERTS</b><div id="alertsList" class="list"></div></div>
+  <div class="card">
+    <b>YOUR ALERTS</b>
+    <div id="alertsList" class="list"></div>
+  </div>
 </div>
 
 <!-- TASKS -->
 <div id="tasks" class="page">
   <div class="card">
     <b>DAILY TASK</b>
-    <div id="dailyTask" class="list"></div>
+    <div id="dailyTask" class="list"></div><br>
     <button id="dailyBtn" class="btn" onclick="claimDaily()">CLAIM TODAY</button>
     <div class="small" id="dailyInfo"></div>
   </div>
-  <div class="card"><b>REFERRAL TASKS</b><div id="refTasks" class="list"></div></div>
+
+  <div class="card">
+    <b>REFERRAL TASKS</b>
+    <div id="refTasks" class="list"></div>
+  </div>
 </div>
 
 <!-- HISTORY -->
 <div id="history" class="page">
-  <div class="card"><b>TASK HISTORY</b><div id="taskHistory" class="list"></div></div>
+  <div class="card">
+    <b>TASK HISTORY</b>
+    <div id="taskHistory" class="list"></div>
+  </div>
 </div>
 
 <!-- PROFILE -->
 <div id="profile" class="page">
   <div class="card">
-    <b>OPERATOR PROFILE</b>
+    <b>OPERATOR PROFILE</b><br><br>
+
     <div class="item">TOTAL SP <span id="sp2">0</span></div>
     <div class="item">LEVEL <span id="level2">1</span></div>
+
     <div class="item">MINING SP <span id="miningSp">0</span></div>
     <div class="item">TASK SP <span id="taskSp">0</span></div>
     <div class="item">REFERRAL SP <span id="refSp">0</span></div>
-    <div class="item">REFERRALS <span id="refCount">0</span></div>
+
+    <div class="item">REFERRALS <span id="refCount">0</span></div><br>
+
+    <div class="small">REFERRAL LINK</div>
     <input id="refLink" readonly style="width:100%;padding:10px;border-radius:10px"/>
+    <br><br>
     <button class="btn blue" onclick="copyRef()">COPY LINK</button>
   </div>
+</div>
+
 </div>
 
 <!-- ROADMAP -->
 <div id="roadmap" class="page">
   <div class="card">
     <b>PROJECT ROADMAP</b>
-    <div class="item">✅ Phase 1 — Live</div>
-    <div class="small">Mining • Alerts • Tasks</div><br>
-    <div class="item">🔒 Phase 2 — Coming Soon</div>
-    <div class="small">Charts • Insights • Premium (TBD)</div><br>
-    <div class="item">🚀 Phase 3 — Expansion</div>
-    <div class="small">Global rollout (TBD)</div>
+
+    <div class="item">✅ Phase 1 – Core System</div>
+    <div class="small">
+      • Mining engine<br>
+      • Alerts system<br>
+      • Tasks & referrals<br>
+      • Secure backend
+    </div><br>
+
+    <div class="item">🔒 Phase 2 – Pro Features</div>
+    <div class="small">
+      • Advanced charts<br>
+      • Indicators (RSI, EMA)<br>
+      • Premium limits<br>
+      • Admin dashboard
+    </div><br>
+
+    <div class="item">🚀 Phase 3 – Expansion</div>
+    <div class="small">
+      • Token utility<br>
+      • Subscription model<br>
+      • Partner signals<br>
+      • Global scaling
+    </div>
   </div>
 </div>
 
-</div>
+
+<!-- SOUNDS -->
+<audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3"></audio>
+<audio id="successSound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"></audio>
 
 <script>
 const API="https://claustral-mable-dissectible.ngrok-free.dev";
 const UID=Telegram.WebApp.initDataUnsafe.user.id;
-const lines=[
-"Initializing secure tunnel...",
-"Encrypting blocks...",
-"Syncing peers...",
-"Hashing workload...",
-"Submitting proof..."
-];
+const clickSound=document.getElementById("clickSound");
+const successSound=document.getElementById("successSound");
+let chart = null;
+let currentSymbol = null;
+let candleSeries = null;
+let currentTF = "1m";
+const CHARTS_ENABLED = false;
 
-function nav(id,btn){
- document.querySelectorAll('.page').forEach(p=>p.classList.remove("active"));
- document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove("active"));
- document.getElementById(id).classList.add("active");
- btn.classList.add("active");
- if(id==="signals")loadSignals();
- if(id==="alerts")loadAlerts();
- if(id==="tasks")loadTasks();
- if(id==="history")loadHistory();
- if(id==="profile")loadProfile();
+function initChart(){
+  if(chart) return; // 🔥 important
+
+  chart = LightweightCharts.createChart(chartBox, {
+    layout: {
+      background: { color: "#020617" },
+      textColor: "#9ca3af"
+    },
+    grid: {
+      vertLines: { color: "#0f172a" },
+      horzLines: { color: "#0f172a" }
+    },
+    timeScale: { timeVisible: true },
+    crosshair: { mode: 0 }
+  });
+
+  candleSeries = chart.addCandlestickSeries({
+    upColor: "#22c55e",
+    downColor: "#ef4444",
+    wickUpColor: "#22c55e",
+    wickDownColor: "#ef4444",
+    borderVisible: false
+  });
 }
 
+
+function apiPost(url,data={}){data.uid=UID;return fetch(API+url,{method:"POST",headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(r=>r.json());}
+
+function nav(id,btn){
+  clickSound.play();
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  btn.classList.add("active");
+
+  if(id==="signals") loadSignals();
+  if(id==="charts"){
+  if(CHARTS_ENABLED){
+    populateChartSymbols();
+  }
+}
+  if(id==="alerts") loadAlerts();
+  if(id==="tasks"){loadTasks();loadReferralTasks();}
+  if(id==="history") loadHistory();
+  if(id==="profile") loadProfile();
+  if(id==="roadmap"){}
+  if(id === "charts" && chart){
+  setTimeout(() => {
+    chart.resize(chartBox.clientWidth, 280);
+  }, 150);
+}
+
+}
+
+const term=document.getElementById("terminal");
 function logTerm(){
- const l=lines[Math.floor(Math.random()*lines.length)];
- terminal.innerHTML+=`&gt; ${l}<br>`;
- terminal.scrollTop=terminal.scrollHeight;
+  const lines = [
+    "Initializing secure tunnel...",
+    "Verifying node identity...",
+    "Encrypting blocks...",
+    "Syncing peer network...",
+    "Hashing workload...",
+    "Submitting proof...",
+    "Validating results..."
+  ];
+
+  const line = lines[Math.floor(Math.random()*lines.length)];
+  terminal.innerHTML += `<div class="matrix-line">&gt; ${line}</div>`;
+  terminal.scrollTop = terminal.scrollHeight;
 }
 
 async function refreshMining(){
- const d=await apiPost("/user/mining/stats");
- sp.innerText=d.sp;level.innerText=d.level;
- if(!d.running){
-  activityFill.style.width="0%";
-  nodeStatus.innerText="IDLE";
-  mineBtn.classList.remove("disabled");
-  mineBtn.innerText="START NODE";
-  timerText.innerText="";
-  return;
- }
- nodeStatus.innerText="ACTIVE";
- activityFill.style.width="100%";
- mineBtn.classList.add("disabled");
- mineBtn.innerText="NODE ACTIVE";
- timerText.innerText=`TIME LEFT ${Math.floor(d.remaining/3600)}h`;
- logTerm();
- setTimeout(refreshMining,1000);
+  const d=await apiPost("/user/mining/stats");
+  sp.innerText=d.sp;level.innerText=d.level;
+  if(!d.running){
+    activityFill.style.width = "0%";
+    nodeStatus.innerText="IDLE";mineBtn.classList.remove("disabled");
+    mineBtn.innerText="START NODE";timerText.innerText="";return;
+  }
+  nodeStatus.innerText="ACTIVE";mineBtn.classList.add("disabled");
+  activityFill.style.width = "100%";
+  mineBtn.innerText = "NODE ACTIVE";
+  mineBtn.classList.add("disabled");
+
+ updateTimer(d.remaining);
+setTimeout(() => {
+  logTerm();
+  refreshMining();
+}, 1000);
+
+}
+function updateTimer(sec){
+  timerText.innerText=`TIME LEFT ${Math.floor(sec/3600)}h ${Math.floor((sec%3600)/60)}m ${sec%60}s`;
+  logTerm();
 }
 
-function startMining(){
- mineBtn.classList.add("disabled");
- apiPost("/user/mining/start").then(refreshMining);
+function startMining(){clickSound.play();mineBtn.classList.add("disabled");logTerm("Booting node...");apiPost("/user/mining/start").then(refreshMining);}
+
+function selectFromSignal(symbol){
+  currentSymbol = symbol;
+  initChart();
+  loadCandles();
 }
 
-function apiPost(url,data={}){data.uid=UID;return fetch(API+url,{method:"POST",headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(r=>r.json());}
+function loadSignals(){
+  fetch(API+"/market/signals",{method:"POST"}).then(r=>r.json()).then(d=>{
+    signalsList.innerHTML="";
+    d.forEach(s=>{
+      signalsList.innerHTML+=`
+      <div class="item" onclick="nav('charts', document.querySelector('.tabs button:nth-child(3)')); selectFromSignal('${s.symbol}')">
+        ${s.symbol}<span>$${s.price}</span>
+      </div>`;
+    });
+  });
+}
+
+function loadCandles(){
+  if(!currentSymbol) return;
+
+  fetch(API + "/market/chart", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      symbol: currentSymbol,
+      interval: currentTF
+    })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if(!data || data.length === 0) return;
+    candleSeries.setData(data);
+  });
+}
+
+
+function populateChartSymbols(){
+  fetch(API + "/market/signals", { method: "POST" })
+    .then(r => r.json())
+    .then(data => {
+      chartSymbols.innerHTML = "";
+
+      data.forEach(s => {
+        chartSymbols.innerHTML += `
+          <div class="item"
+               onclick="selectChartSymbol('${s.symbol}', this)">
+            ${s.symbol}
+          </div>`;
+      });
+    });
+}
+
+function selectChartSymbol(symbol, el){
+  document.querySelectorAll("#chartSymbols .item")
+    .forEach(i => i.style.borderColor = "var(--border)");
+
+  el.style.borderColor = "var(--neon)";
+  currentSymbol = symbol;
+
+  initChart();
+  loadCandles();
+  chartBox.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+function setTF(tf){
+  currentTF = tf;
+  loadCandles();
+}
+function loadAlerts(){apiPost("/alert/list").then(d=>{alertsList.innerHTML="";d.forEach(a=>{alertsList.innerHTML+=`<div class="item">${a[1]} ${a[3]} ${a[2]}<button class="btn red" onclick="delAlert(${a[0]})">X</button></div>`;});});}
+function createAlert(){apiPost("/alert/create",{symbol:aSymbol.value,target:aTarget.value,condition:aCond.value}).then(()=>{successSound.play();loadAlerts();});}
+function delAlert(id){apiPost("/alert/delete",{id}).then(loadAlerts);}
+
+async function loadTasks(){const p=await apiPost("/user/profile");dailyTask.innerHTML=`<div class="item">DAY ${p.daily_day+1}</div>`;dailyBtn.classList.remove("disabled");}
+async function claimDaily(){const r=await apiPost("/claim/daily");if(r.ok){successSound.play();dailyBtn.classList.add("disabled");dailyInfo.innerText="CLAIMED";loadProfile();}}
+
+function loadHistory(){apiPost("/tasks/history").then(d=>{taskHistory.innerHTML="";d.forEach(t=>{taskHistory.innerHTML+=`<div class="item">${t[0]}<span>+${t[1]}</span></div>`;});});}
+
+async function loadReferralTasks(){
+  const data=await apiPost("/referral/status");
+  refTasks.innerHTML="";
+  data.forEach(t=>{
+    let btn=t.claimed?`<span class="small">CLAIMED</span>`:
+      t.eligible?`<button class="btn" onclick="claimReferral(${t.referrals})">CLAIM +${t.reward}</button>`:
+      `<span class="small">${t.referrals} REQUIRED</span>`;
+    refTasks.innerHTML+=`<div class="item">Invite ${t.referrals}${btn}</div>`;
+  });
+}
+async function claimReferral(r){
+  const res=await apiPost("/referral/claim",{referrals:r});
+  if(res.ok){successSound.play();loadReferralTasks();loadProfile();}
+}
+
+async function loadProfile(){
+  const d=await apiPost("/user/profile");
+  sp2.innerText=d.sp;level2.innerText=d.level;
+  miningSp.innerText=d.breakdown.mining;
+  taskSp.innerText=d.breakdown.tasks;
+  refSp.innerText=d.breakdown.referrals;
+  refCount.innerText=d.referral_count;
+  refLink.value=`https://t.me/Whale_alert_info_bot?start=${UID}`;
+}
+function copyRef(){navigator.clipboard.writeText(refLink.value);successSound.play();Telegram.WebApp.showPopup({title:"Copied",message:"Referral link copied",buttons:[{type:"ok"}]});}
 
 setTimeout(refreshMining,800);
 </script>
 </body>
-</html>
+</html>   
