@@ -249,6 +249,10 @@ body{
   opacity:.35;
 }
 
+#miningHistory .item{
+  border-left:3px solid var(--neon);
+}
+
 </style>
 </head>
 
@@ -367,10 +371,17 @@ body{
 
 <!-- HISTORY -->
 <div id="history" class="page">
+
+  <div class="card">
+    <b>MINING HISTORY</b>
+    <div id="miningHistory" class="list"></div>
+  </div>
+
   <div class="card">
     <b>TASK HISTORY</b>
     <div id="taskHistory" class="list"></div>
   </div>
+
 </div>
 
 <!-- PROFILE -->
@@ -495,7 +506,9 @@ function nav(id,btn){
 }
   if(id==="alerts") loadAlerts();
   if(id==="tasks"){loadTasks();loadReferralTasks();}
-  if(id==="history") loadHistory();
+  if(id==="history"){
+  loadMiningHistory();
+  loadHistory();}
   if(id==="profile") loadProfile();
   if(id==="roadmap"){}
   if(id === "charts" && chart){
@@ -696,6 +709,29 @@ async function claimDaily(){
 
 
 function loadHistory(){apiPost("/tasks/history").then(d=>{taskHistory.innerHTML="";d.forEach(t=>{taskHistory.innerHTML+=`<div class="item">${t[0]}<span>+${t[1]}</span></div>`;});});}
+
+async function loadMiningHistory(){
+  const d = await apiPost("/user/mining/history");
+  miningHistory.innerHTML = "";
+
+  if(!d || d.length === 0){
+    miningHistory.innerHTML =
+      `<div class="small">No mining sessions yet</div>`;
+    return;
+  }
+
+  d.forEach(m=>{
+    const start = new Date(m[0]*1000).toLocaleString();
+    const end = new Date(m[1]*1000).toLocaleString();
+
+    miningHistory.innerHTML += `
+      <div class="item">
+        ⛏️ +${m[2]} SP
+        <div class="small">${start} → ${end}</div>
+      </div>
+    `;
+  });
+}
 
 async function loadReferralTasks(){
   const data=await apiPost("/referral/status");
