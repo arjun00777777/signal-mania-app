@@ -464,7 +464,14 @@ body{
 <audio id="successSound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"></audio>
 
 <script>
-console.log("WebApp initialized");
+if (!window.Telegram || !Telegram.WebApp.initData) {
+  document.body.innerHTML = `
+    <div style="color:white;padding:20px;text-align:center">
+      ❌ Please open SignalMania from Telegram only
+    </div>
+  `;
+  throw new Error("Not opened from Telegram");
+}
 
 const API="https://claustral-mable-dissectible.ngrok-free.dev";
 const clickSound=document.getElementById("clickSound");
