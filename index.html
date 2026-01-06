@@ -72,6 +72,78 @@ body{
 
 .page{display:none}
 .page.active{display:block}
+
+.chart-locked{
+  position:relative;
+  height:280px;
+  background:#020617;
+  border-radius:14px;
+  filter: blur(6px);
+}
+
+.chart-overlay{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  background:rgba(2,6,23,0.75);
+  backdrop-filter: blur(4px);
+  filter:none;
+  z-index:5;
+}
+
+.glitch{
+  font-size:22px;
+  letter-spacing:3px;
+  color:var(--neon);
+  position:relative;
+  animation:glitch 1.5s infinite;
+}
+
+@keyframes glitch{
+  0%{text-shadow:2px 0 red,-2px 0 cyan}
+  20%{text-shadow:-2px 0 red,2px 0 cyan}
+  40%{text-shadow:2px 0 cyan,-2px 0 red}
+  60%{text-shadow:-1px 0 cyan,1px 0 red}
+  100%{text-shadow:none}
+}
+
+.chart-overlay::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:repeating-linear-gradient(
+    to bottom,
+    rgba(255,255,255,0.04),
+    rgba(255,255,255,0.04) 1px,
+    transparent 2px,
+    transparent 4px
+  );
+  pointer-events:none;
+}
+
+.matrix-line{
+  animation: flicker 0.15s infinite;
+}
+
+@keyframes flicker{
+  0%{opacity:0.4}
+  50%{opacity:1}
+  100%{opacity:0.6}
+}
+
+.pulse{
+  animation:pulse 1.5s infinite;
+}
+
+@keyframes pulse{
+  0%{box-shadow:0 0 5px var(--neon)}
+  50%{box-shadow:0 0 20px var(--neon)}
+  100%{box-shadow:0 0 5px var(--neon)}
+}
+
 </style>
 </head>
 
@@ -91,6 +163,8 @@ body{
     <button onclick="nav('tasks',this)">TASKS</button>
     <button onclick="nav('history',this)">HISTORY</button>
     <button onclick="nav('profile',this)">PROFILE</button>
+    <button onclick="nav('roadmap',this)">ROADMAP</button>
+
     
   </div>
 </div>
@@ -135,7 +209,13 @@ body{
       <button class="btn small" onclick="setTF('1h')">1h</button>
     </div>
 
-    <div id="chartBox" style="height:280px"></div>
+    <div id="chartBox" class="chart-locked">
+  <div class="chart-overlay">
+    <div class="glitch">COMING SOON</div>
+    <div class="small">Real-time charts under deployment</div>
+  </div>
+</div>
+
   </div>
 
 </div>
@@ -205,6 +285,38 @@ body{
 
 </div>
 
+<!-- ROADMAP -->
+<div id="roadmap" class="page">
+  <div class="card">
+    <b>PROJECT ROADMAP</b>
+
+    <div class="item">✅ Phase 1 – Core System</div>
+    <div class="small">
+      • Mining engine<br>
+      • Alerts system<br>
+      • Tasks & referrals<br>
+      • Secure backend
+    </div><br>
+
+    <div class="item">🔒 Phase 2 – Pro Features</div>
+    <div class="small">
+      • Advanced charts<br>
+      • Indicators (RSI, EMA)<br>
+      • Premium limits<br>
+      • Admin dashboard
+    </div><br>
+
+    <div class="item">🚀 Phase 3 – Expansion</div>
+    <div class="small">
+      • Token utility<br>
+      • Subscription model<br>
+      • Partner signals<br>
+      • Global scaling
+    </div>
+  </div>
+</div>
+
+
 <!-- SOUNDS -->
 <audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3"></audio>
 <audio id="successSound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"></audio>
@@ -218,6 +330,7 @@ let chart = null;
 let currentSymbol = null;
 let candleSeries = null;
 let currentTF = "1m";
+const CHARTS_ENABLED = false;
 
 function initChart(){
   if(chart) return; // 🔥 important
@@ -255,11 +368,16 @@ function nav(id,btn){
   btn.classList.add("active");
 
   if(id==="signals") loadSignals();
-  if(id==="charts") populateChartSymbols();
+  if(id==="charts"){
+  if(CHARTS_ENABLED){
+    populateChartSymbols();
+  }
+}
   if(id==="alerts") loadAlerts();
   if(id==="tasks"){loadTasks();loadReferralTasks();}
   if(id==="history") loadHistory();
   if(id==="profile") loadProfile();
+  if(id==="roadmap"){}
   if(id === "charts" && chart){
   setTimeout(() => {
     chart.resize(chartBox.clientWidth, 280);
@@ -269,7 +387,21 @@ function nav(id,btn){
 }
 
 const term=document.getElementById("terminal");
-function logTerm(t){term.innerHTML+=`&gt; ${t}<br>`;term.scrollTop=term.scrollHeight;}
+function logTerm(){
+  const lines = [
+    "Initializing secure tunnel...",
+    "Verifying node identity...",
+    "Encrypting blocks...",
+    "Syncing peer network...",
+    "Hashing workload...",
+    "Submitting proof...",
+    "Validating results..."
+  ];
+
+  const line = lines[Math.floor(Math.random()*lines.length)];
+  terminal.innerHTML += `<div class="matrix-line">&gt; ${line}</div>`;
+  terminal.scrollTop = terminal.scrollHeight;
+}
 
 async function refreshMining(){
   const d=await apiPost("/user/mining/stats");
@@ -284,8 +416,9 @@ async function refreshMining(){
 }
 function updateTimer(sec){
   timerText.innerText=`TIME LEFT ${Math.floor(sec/3600)}h ${Math.floor((sec%3600)/60)}m ${sec%60}s`;
-  logTerm("Encrypting blocks...");
+  logTerm();
 }
+
 function startMining(){clickSound.play();mineBtn.classList.add("disabled");logTerm("Booting node...");apiPost("/user/mining/start").then(refreshMining);}
 
 function selectFromSignal(symbol){
