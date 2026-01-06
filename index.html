@@ -65,9 +65,15 @@ body{
 }
 
 .terminal{
-  background:#020617;border:1px solid var(--border);
-  border-radius:12px;padding:10px;height:120px;
-  overflow:hidden;font-size:12px;color:var(--neon)
+  position:relative; /* ADD THIS */
+  background:#020617;
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:10px;
+  height:120px;
+  overflow:hidden;
+  font-size:12px;
+  color:var(--neon);
 }
 
 .page{display:none}
@@ -519,11 +525,8 @@ async function refreshMining(){
   mineBtn.innerText = "NODE ACTIVE";
   mineBtn.classList.add("disabled");
 
- updateTimer(d.remaining);
-setTimeout(() => {
-  logTerm();
-  refreshMining();
-}, 1000);
+updateTimer(d.remaining);
+setTimeout(refreshMining, 1000);
 
 }
 function updateTimer(sec){
