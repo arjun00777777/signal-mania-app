@@ -269,6 +269,8 @@ body{
     <button onclick="nav('history',this)">HISTORY</button>
     <button onclick="nav('profile',this)">PROFILE</button>
     <button onclick="nav('roadmap',this)">ROADMAP</button>
+}
+
 
     
   </div>
@@ -431,7 +433,7 @@ body{
 <audio id="successSound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"></audio>
 
 <script>
-console.log("initData:", Telegram.WebApp.initData);
+console.log("WebApp initialized");
 
 const API="https://claustral-mable-dissectible.ngrok-free.dev";
 const clickSound=document.getElementById("clickSound");
@@ -501,6 +503,13 @@ function nav(id,btn){
     chart.resize(chartBox.clientWidth, 280);
   }, 150);
 }
+if(id === "charts" && !CHARTS_ENABLED){
+  Telegram.WebApp.showPopup({
+    title: "Coming Soon",
+    message: "Advanced charts will unlock in Pro version",
+    buttons: [{ type: "ok" }]
+  });
+}
 
 }
 
@@ -546,8 +555,14 @@ function updateTimer(min){
   logTerm();
 }
 
+async function startMining(){
+  clickSound.play();
+  const r = await apiPost("/user/mining/start");
+  if(r.ok !== false){
+    refreshMining();
+  }
+}
 
-function startMining(){clickSound.play();mineBtn.classList.add("disabled");logTerm("Booting node...");apiPost("/user/mining/start").then(refreshMining);}
 
 function selectFromSignal(symbol){
   currentSymbol = symbol;
@@ -618,7 +633,8 @@ function setTF(tf){
   currentTF = tf;
   loadCandles();
 }
-function loadAlerts(){apiPost("/alert/list").then(d=>{alertsList.innerHTML="";d.forEach(a=>{alertsList.innerHTML+=`<div class="item">${a[1]} ${a[3]} ${a[2]}<button class="btn red" onclick="delAlert(${a[0]})">X</button></div>`;});});}
+function loadAlerts(){apiPost("/alert/list").then(d=>{alertsList.innerHTML="";d.forEach(a=>{alertsList.innerHTML+=`<div class="item">${a[1]} ${a[3]} ${a[2]}<button class="btn red"
+onclick="event.stopPropagation(); delAlert(${a[0]})">X</button></div>`;});});}
 function createAlert(){
   apiPost("/alert/create",{
     symbol:aSymbol.value,
@@ -701,7 +717,13 @@ function vibrate(){
 
 async function claimReferral(r){
   const res=await apiPost("/referral/claim",{referrals:r});
-  if(res.ok){successSound.play();loadReferralTasks();loadProfile();}
+ if(res.ok){
+  successSound.play();
+  loadReferralTasks();
+  loadProfile();
+  loadHistory();
+}
+
 }
 
 async function loadProfile(){
@@ -711,7 +733,8 @@ async function loadProfile(){
   taskSp.innerText=d.breakdown.tasks;
   refSp.innerText=d.breakdown.referrals;
   refCount.innerText=d.referral_count;
-  refLink.value=`https://t.me/Whale_alert_info_bot`;
+  refLink.value =
+`https://t.me/Whale_alert_info_bot?start=${Telegram.WebApp.initDataUnsafe.user.id}`;
 }
 function copyRef(){navigator.clipboard.writeText(refLink.value);successSound.play();Telegram.WebApp.showPopup({title:"Copied",message:"Referral link copied",buttons:[{type:"ok"}]});}
 
