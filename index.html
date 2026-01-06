@@ -210,6 +210,38 @@ body{
   box-shadow:0 0 10px rgba(0,255,204,.25);
 }
 
+.streak-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  margin-top:10px;
+}
+
+.streak-day{
+  padding:10px 6px;
+  text-align:center;
+  border-radius:10px;
+  border:1px solid var(--border);
+  font-size:11px;
+  background:#020617;
+  color:var(--muted);
+}
+
+.streak-day.claimed{
+  background:linear-gradient(135deg,#22c55e,#16a34a);
+  color:#022c22;
+  font-weight:700;
+}
+
+.streak-day.today{
+  border-color:var(--neon);
+  box-shadow:0 0 12px rgba(0,255,204,.4);
+  color:var(--neon);
+}
+
+.streak-day.locked{
+  opacity:.35;
+}
 
 </style>
 </head>
@@ -314,9 +346,9 @@ body{
 <div id="tasks" class="page">
   <div class="card">
     <b>DAILY TASK</b>
-    <div id="dailyTask" class="list"></div><br>
-    <button id="dailyBtn" class="btn" onclick="claimDaily()">CLAIM TODAY</button>
-    <div class="small" id="dailyInfo"></div>
+   <div id="dailyTask" class="streak-grid"></div><br>
+   <button id="dailyBtn" class="btn" onclick="claimDaily()">CLAIM TODAY</button>
+   <div class="small" id="dailyInfo"></div>
   </div>
 
   <div class="card">
@@ -571,11 +603,65 @@ function setTF(tf){
   loadCandles();
 }
 function loadAlerts(){apiPost("/alert/list").then(d=>{alertsList.innerHTML="";d.forEach(a=>{alertsList.innerHTML+=`<div class="item">${a[1]} ${a[3]} ${a[2]}<button class="btn red" onclick="delAlert(${a[0]})">X</button></div>`;});});}
-function createAlert(){apiPost("/alert/create",{symbol:aSymbol.value,target:aTarget.value,condition:aCond.value}).then(()=>{successSound.play();loadAlerts();});}
+function createAlert(){
+  apiPost("/alert/create",{
+    symbol:aSymbol.value,
+    target:aTarget.value,
+    condition:aCond.value
+  }).then(()=>{
+    successSound.play();
+    vibrate();
+    loadAlerts();
+    Telegram.WebApp.showPopup({
+      title:"Alert Set",
+      message:"You will be notified when price hits target",
+      buttons:[{type:"ok"}]
+    });
+  });
+}
+
 function delAlert(id){apiPost("/alert/delete",{id}).then(loadAlerts);}
 
-async function loadTasks(){const p=await apiPost("/user/profile");dailyTask.innerHTML=`<div class="item">DAY ${p.daily_day+1}</div>`;dailyBtn.classList.remove("disabled");}
-async function claimDaily(){const r=await apiPost("/claim/daily");if(r.ok){successSound.play();dailyBtn.classList.add("disabled");dailyInfo.innerText="CLAIMED";loadProfile();}}
+async function loadTasks(){
+  const p = await apiPost("/user/profile");
+  dailyTask.innerHTML = "";
+
+  for(let i=1;i<=7;i++){
+    let cls = "streak-day locked";
+    let label = `DAY ${i}`;
+
+    if(i <= p.daily_day){
+      cls = "streak-day claimed";
+      label = `DAY ${i} ✓`;
+    }else if(i === p.daily_day + 1){
+      cls = "streak-day today";
+      label = `DAY ${i}`;
+    }
+
+    dailyTask.innerHTML += `<div class="${cls}">${label}</div>`;
+  }
+
+  if(p.daily_day >= 7){
+    dailyBtn.classList.add("disabled");
+    dailyInfo.innerText = "STREAK COMPLETED";
+  }else{
+    dailyBtn.classList.remove("disabled");
+    dailyInfo.innerText = "Claim available today";
+  }
+}
+
+async function claimDaily(){
+  const r = await apiPost("/claim/daily");
+  if(r.ok){
+    successSound.play();
+    vibrate();
+    dailyBtn.classList.add("disabled");
+    dailyInfo.innerText = "CLAIMED TODAY";
+    loadTasks();
+    loadProfile();
+  }
+}
+
 
 function loadHistory(){apiPost("/tasks/history").then(d=>{taskHistory.innerHTML="";d.forEach(t=>{taskHistory.innerHTML+=`<div class="item">${t[0]}<span>+${t[1]}</span></div>`;});});}
 
@@ -589,6 +675,14 @@ async function loadReferralTasks(){
     refTasks.innerHTML+=`<div class="item">Invite ${t.referrals}${btn}</div>`;
   });
 }
+
+function vibrate(){
+  if(navigator.vibrate){
+    navigator.vibrate([100, 50, 100]);
+  }
+}
+
+
 async function claimReferral(r){
   const res=await apiPost("/referral/claim",{referrals:r});
   if(res.ok){successSound.play();loadReferralTasks();loadProfile();}
