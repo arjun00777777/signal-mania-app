@@ -432,7 +432,6 @@ body{
 
 <script>
 const API="https://claustral-mable-dissectible.ngrok-free.dev";
-const UID=Telegram.WebApp.initDataUnsafe.user.id;
 const clickSound=document.getElementById("clickSound");
 const successSound=document.getElementById("successSound");
 let chart = null;
@@ -467,7 +466,15 @@ function initChart(){
 }
 
 
-function apiPost(url,data={}){data.uid=UID;return fetch(API+url,{method:"POST",headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(r=>r.json());}
+function apiPost(url, data = {}) {
+  data.initData = Telegram.WebApp.initData;
+
+  return fetch(API + url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  }).then(r => r.json());
+}
 
 function nav(id,btn){
   clickSound.play();
@@ -529,10 +536,14 @@ updateTimer(d.remaining);
 setTimeout(refreshMining, 1000);
 
 }
-function updateTimer(sec){
-  timerText.innerText=`TIME LEFT ${Math.floor(sec/3600)}h ${Math.floor((sec%3600)/60)}m ${sec%60}s`;
+
+function updateTimer(min){
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  timerText.innerText = `TIME LEFT ${h}h ${m}m`;
   logTerm();
 }
+
 
 function startMining(){clickSound.play();mineBtn.classList.add("disabled");logTerm("Booting node...");apiPost("/user/mining/start").then(refreshMining);}
 
@@ -698,7 +709,7 @@ async function loadProfile(){
   taskSp.innerText=d.breakdown.tasks;
   refSp.innerText=d.breakdown.referrals;
   refCount.innerText=d.referral_count;
-  refLink.value=`https://t.me/Whale_alert_info_bot?start=${UID}`;
+  refLink.value=`https://t.me/Whale_alert_info_bot`;
 }
 function copyRef(){navigator.clipboard.writeText(refLink.value);successSound.play();Telegram.WebApp.showPopup({title:"Copied",message:"Referral link copied",buttons:[{type:"ok"}]});}
 
