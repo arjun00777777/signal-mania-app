@@ -6,7 +6,7 @@
 <title>SignalMania</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
 
 <style>
 :root{
@@ -118,33 +118,28 @@ body{
   </div>
 </div>
 
-<!-- CHART MODAL -->
-<div id="chartModal" class="page">
-  <div class="card">
-    <b id="chartTitle"></b><br><br>
-    <div style="height:260px">
-      <canvas id="priceChart"></canvas>
-    </div><br>
-    <button class="btn red" onclick="closeChart()">CLOSE</button>
-  </div>
-</div>
-
 <!-- CHARTS -->
 <div id="charts" class="page">
+
   <div class="card">
-    <b>MARKET CHARTS</b><br><br>
-
-    <select id="chartSymbol"
-      style="width:100%;padding:10px;border-radius:10px"
-      onchange="loadChart()">
-    </select>
-
-    <br><br>
-    <div style="height:280px">
-      <canvas id="priceChart"></canvas>
-    </div>
+    <b>MARKET CHARTS</b>
+    <div class="small">Select asset</div>
+    <div id="chartSymbols" class="list"></div>
   </div>
+
+  <div class="card">
+    <div style="display:flex;gap:6px;margin-bottom:10px">
+      <button class="btn small" onclick="setTF('1m')">1m</button>
+      <button class="btn small" onclick="setTF('5m')">5m</button>
+      <button class="btn small" onclick="setTF('15m')">15m</button>
+      <button class="btn small" onclick="setTF('1h')">1h</button>
+    </div>
+
+    <div id="chartBox" style="height:280px"></div>
+  </div>
+
 </div>
+
 
 <!-- ALERTS -->
 <div id="alerts" class="page">
@@ -219,6 +214,36 @@ const API="https://claustral-mable-dissectible.ngrok-free.dev";
 const UID=Telegram.WebApp.initDataUnsafe.user.id;
 const clickSound=document.getElementById("clickSound");
 const successSound=document.getElementById("successSound");
+let chart = null;
+let currentSymbol = null;
+let candleSeries = null;
+let currentTF = "1m";
+
+function initChart(){
+  if(chart) return; // 🔥 important
+
+  chart = LightweightCharts.createChart(chartBox, {
+    layout: {
+      background: { color: "#020617" },
+      textColor: "#9ca3af"
+    },
+    grid: {
+      vertLines: { color: "#0f172a" },
+      horzLines: { color: "#0f172a" }
+    },
+    timeScale: { timeVisible: true },
+    crosshair: { mode: 0 }
+  });
+
+  candleSeries = chart.addCandlestickSeries({
+    upColor: "#22c55e",
+    downColor: "#ef4444",
+    wickUpColor: "#22c55e",
+    wickDownColor: "#ef4444",
+    borderVisible: false
+  });
+}
+
 
 function apiPost(url,data={}){data.uid=UID;return fetch(API+url,{method:"POST",headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(r=>r.json());}
 
@@ -235,6 +260,12 @@ function nav(id,btn){
   if(id==="tasks"){loadTasks();loadReferralTasks();}
   if(id==="history") loadHistory();
   if(id==="profile") loadProfile();
+  if(id === "charts" && chart){
+  setTimeout(() => {
+    chart.resize(chartBox.clientWidth, 280);
+  }, 150);
+}
+
 }
 
 const term=document.getElementById("terminal");
@@ -257,72 +288,75 @@ function updateTimer(sec){
 }
 function startMining(){clickSound.play();mineBtn.classList.add("disabled");logTerm("Booting node...");apiPost("/user/mining/start").then(refreshMining);}
 
+function selectFromSignal(symbol){
+  currentSymbol = symbol;
+  initChart();
+  loadCandles();
+}
+
 function loadSignals(){
   fetch(API+"/market/signals",{method:"POST"}).then(r=>r.json()).then(d=>{
     signalsList.innerHTML="";
     d.forEach(s=>{
       signalsList.innerHTML+=`
-      <div class="item" onclick="openChart('${s.symbol}')">
+      <div class="item" onclick="nav('charts', document.querySelector('.tabs button:nth-child(3)')); selectFromSignal('${s.symbol}')">
         ${s.symbol}<span>$${s.price}</span>
       </div>`;
     });
   });
 }
 
-let chart=null;
+function loadCandles(){
+  if(!currentSymbol) return;
 
-function loadChart(){
-  const symbol = chartSymbol.value;
-  if(!symbol) return;
-
-  fetch(API+"/market/chart",{
-    method:"POST",
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({symbol})
+  fetch(API + "/market/chart", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      symbol: currentSymbol,
+      interval: currentTF
+    })
   })
-  .then(r=>r.json())
-  .then(d=>{
-    if(chart) chart.destroy();
-
-    chart = new Chart(priceChart,{
-      type:"line",
-      data:{
-        labels:d.map(x=>x.t),
-        datasets:[{
-          data:d.map(x=>x.p),
-          borderColor:"#00ffcc",
-          borderWidth:2,
-          pointRadius:0,
-          tension:0.3
-        }]
-      },
-      options:{
-        responsive:true,
-        plugins:{legend:{display:false}},
-        scales:{
-          x:{display:false},
-          y:{ticks:{color:"#9ca3af"}}
-        }
-      }
-    });
+  .then(r => r.json())
+  .then(data => {
+    if(!data || data.length === 0) return;
+    candleSeries.setData(data);
   });
 }
 
+
 function populateChartSymbols(){
-  fetch(API+"/market/signals",{method:"POST"})
-    .then(r=>r.json())
-    .then(d=>{
-      chartSymbol.innerHTML="";
-      d.forEach(s=>{
-        chartSymbol.innerHTML+=`
-          <option value="${s.symbol}">${s.symbol}</option>`;
+  fetch(API + "/market/signals", { method: "POST" })
+    .then(r => r.json())
+    .then(data => {
+      chartSymbols.innerHTML = "";
+
+      data.forEach(s => {
+        chartSymbols.innerHTML += `
+          <div class="item"
+               onclick="selectChartSymbol('${s.symbol}', this)">
+            ${s.symbol}
+          </div>`;
       });
-      loadChart(); // load first coin
     });
 }
 
-function closeChart(){chartModal.classList.remove("active");}
+function selectChartSymbol(symbol, el){
+  document.querySelectorAll("#chartSymbols .item")
+    .forEach(i => i.style.borderColor = "var(--border)");
 
+  el.style.borderColor = "var(--neon)";
+  currentSymbol = symbol;
+
+  initChart();
+  loadCandles();
+  chartBox.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+function setTF(tf){
+  currentTF = tf;
+  loadCandles();
+}
 function loadAlerts(){apiPost("/alert/list").then(d=>{alertsList.innerHTML="";d.forEach(a=>{alertsList.innerHTML+=`<div class="item">${a[1]} ${a[3]} ${a[2]}<button class="btn red" onclick="delAlert(${a[0]})">X</button></div>`;});});}
 function createAlert(){apiPost("/alert/create",{symbol:aSymbol.value,target:aTarget.value,condition:aCond.value}).then(()=>{successSound.play();loadAlerts();});}
 function delAlert(id){apiPost("/alert/delete",{id}).then(loadAlerts);}
