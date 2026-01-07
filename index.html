@@ -299,10 +299,17 @@ body{
 
 <!-- SIGNALS -->
 <div id="signals" class="page">
+
+  <div class="card">
+    <b>LIVE INTEL FEED</b>
+    <div id="intelFeed" class="list"></div>
+  </div>
+
   <div class="card">
     <b>LIVE SIGNALS</b>
     <div id="signalsList" class="list"></div>
   </div>
+
 </div>
 
 <!-- CHARTS -->
@@ -538,7 +545,10 @@ function nav(id, btn){
   }
 
   // -------- EXISTING LOGIC (UNCHANGED) --------
-  if(id === "signals") loadSignals();
+ if(id === "signals"){
+  loadIntel();
+  loadSignals();
+}
 
   if(id === "charts"){
     if(CHARTS_ENABLED){
@@ -648,6 +658,28 @@ function loadSignals(){
       </div>`;
     });
   });
+}
+
+function loadIntel(){
+  fetch(API + "/market/intel", { method: "POST" })
+    .then(r => r.json())
+    .then(d => {
+      intelFeed.innerHTML = "";
+
+      if(!d || d.length === 0){
+        intelFeed.innerHTML =
+          `<div class="small">No major market events right now</div>`;
+        return;
+      }
+
+      d.forEach(i => {
+        intelFeed.innerHTML += `
+          <div class="item">
+            ${i.msg}
+          </div>
+        `;
+      });
+    });
 }
 
 function loadCandles(){
