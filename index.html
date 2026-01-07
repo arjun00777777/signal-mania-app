@@ -253,6 +253,23 @@ body{
   border-left:3px solid var(--neon);
 }
 
+.intel-bullish{
+  border-left:3px solid #22c55e;
+  box-shadow:0 0 10px rgba(34,197,94,.25);
+}
+.intel-bearish{
+  border-left:3px solid #ef4444;
+  box-shadow:0 0 10px rgba(239,68,68,.25);
+}
+.intel-volatility{
+  border-left:3px solid #00ffcc;
+  box-shadow:0 0 12px rgba(0,255,204,.35);
+}
+.intel-stable{
+  border-left:3px solid #16a34a;
+  opacity:0.85;
+}
+
 </style>
 </head>
 
@@ -528,7 +545,7 @@ function apiPost(url, data = {}) {
 
 function nav(id, btn){
   clickSound.play();
-
+clearTimeout(intelTimer);
   // Hide all pages & deactivate tabs
   document.querySelectorAll('.page').forEach(p => p.classList.remove("active"));
   document.querySelectorAll('.tabs button').forEach(b => b.classList.remove("active"));
@@ -660,26 +677,30 @@ function loadSignals(){
   });
 }
 
+let intelTimer = null;
+
 function loadIntel(){
   fetch(API + "/market/intel", { method: "POST" })
     .then(r => r.json())
     .then(d => {
       intelFeed.innerHTML = "";
 
-      if(!d || d.length === 0){
-        intelFeed.innerHTML =
-          `<div class="small">No major market events right now</div>`;
-        return;
-      }
-
       d.forEach(i => {
+        let cls = "intel-stable";
+
+        if(i.type === "BULLISH") cls = "intel-bullish";
+        else if(i.type === "BEARISH") cls = "intel-bearish";
+        else if(i.type === "VOLATILITY") cls = "intel-volatility";
+
         intelFeed.innerHTML += `
-          <div class="item">
-            ${i.msg}
+          <div class="item ${cls}">
+            <b>[${i.type}]</b> ${i.msg}
           </div>
         `;
       });
     });
+  clearTimeout(intelTimer);
+  intelTimer = setTimeout(loadIntel, 90000);
 }
 
 function loadCandles(){
