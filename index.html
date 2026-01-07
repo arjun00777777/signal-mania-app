@@ -738,10 +738,11 @@ function loadSignals(){
 let intelTimer = null;
 
 function timeAgo(ts){
-  const d = Math.floor((Date.now()/1000 - ts)/60);
-  if(d <= 0) return "just now";
-  if(d === 1) return "1m ago";
-  return d+"m ago";
+  const diff = Math.floor((Date.now()/1000 - ts)/60);
+  if(diff <= 0) return "just now";
+  if(diff === 1) return "1m ago";
+  if(diff < 60) return diff + "m ago";
+  return Math.floor(diff/60) + "h ago";
 }
 
 function loadIntel(){
@@ -760,33 +761,27 @@ function loadIntel(){
         let icon = "🟢";
         let cls = "intel-card";
 
-        // Hero headline
         if(i.type === "VOLATILITY"){
           icon = "🔥";
           cls += " intel-hero";
         }
-        // Soft bearish
         else if(i.type === "BEARISH_GROUP"){
           icon = "🔻";
           cls += " intel-soft-bearish";
         }
-        // Soft bullish
         else if(i.type === "BULLISH"){
           icon = "🚀";
           cls += " intel-soft-bullish";
         }
 
-        // Split message into title + subtitle
-        let parts = i.msg.split("—");
-        let title = parts[0].trim();
-        let sub = parts[1] ? parts[1].trim() : "";
-
         intelFeed.innerHTML += `
           <div class="item ${cls}">
-            <div style="font-weight:600;letter-spacing:.3px">
-              ${icon} ${title}
+            <div style="font-weight:600">
+              ${icon} ${i.msg}
             </div>
-            ${sub ? `<div class="small">${sub}</div>` : ``}
+            <div class="small">
+              ${i.detail} · ${i.window} · ${timeAgo(i.ts)}
+            </div>
           </div>
         `;
       });
