@@ -780,8 +780,13 @@ function loadIntel(){
               ${icon} ${i.msg}
             </div>
             <div class="small">
-              ${i.detail} · ${i.window} · ${timeAgo(i.ts)}
+              ${(i.detail || "Multiple assets across the market")}
+              ·
+              ${(i.window || "24h")}
+              ·
+              ${timeAgo(i.ts)}
             </div>
+
           </div>
         `;
       });
