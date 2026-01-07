@@ -481,6 +481,7 @@ let currentSymbol = null;
 let candleSeries = null;
 let currentTF = "1m";
 const CHARTS_ENABLED = false;
+let miningActive = true;
 
 function initChart(){
   if(chart) return; // 🔥 important
@@ -518,41 +519,53 @@ function apiPost(url, data = {}) {
   }).then(r => r.json());
 }
 
-function nav(id,btn){
+function nav(id, btn){
   clickSound.play();
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove("active"));
-  document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove("active"));
+
+  // Hide all pages & deactivate tabs
+  document.querySelectorAll('.page').forEach(p => p.classList.remove("active"));
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.remove("active"));
+
+  // Activate selected page & tab
   document.getElementById(id).classList.add("active");
   btn.classList.add("active");
 
-  if(id==="signals") loadSignals();
-  if(id==="charts"){
-  if(CHARTS_ENABLED){
-    populateChartSymbols();
+  // 🔴 IMPORTANT FIX: control mining refresh
+  miningActive = (id === "node");
+
+  if(id === "node"){
+    refreshMining(); // resume mining loop safely
   }
-}
-  if(id==="alerts") loadAlerts();
-  if(id==="tasks"){loadTasks();loadReferralTasks();}
-  if(id==="history"){
-  loadMiningHistory();
-  loadHistory();}
-  if(id==="profile") loadProfile();
-  if(id==="admin") loadAdmin();
-  if(id==="roadmap"){}
-  if(id === "charts" && chart){
-  setTimeout(() => {
-    chart.resize(chartBox.clientWidth, 280);
-  }, 150);
-}
-if(id === "charts" && !CHARTS_ENABLED){
-  Telegram.WebApp.showPopup({
-    title: "Coming Soon",
-    message: "Advanced charts will unlock in Pro version",
-    buttons: [{ type: "ok" }]
-  });
+
+  // -------- EXISTING LOGIC (UNCHANGED) --------
+  if(id === "signals") loadSignals();
+
+  if(id === "charts"){
+    if(CHARTS_ENABLED){
+      populateChartSymbols();
+    } else {
+      Telegram.WebApp.showPopup({
+        title: "Coming Soon",
+        message: "Advanced charts will unlock in Pro version",
+        buttons: [{ type: "ok" }]
+      });
+    }
+
+    if(chart){
+      setTimeout(() => {
+        chart.resize(chartBox.clientWidth, 280);
+      }, 150);
+    }
+  }
+
+  if(id === "alerts") loadAlerts();
+  if(id === "tasks"){ loadTasks(); loadReferralTasks(); }
+  if(id === "history"){ loadMiningHistory(); loadHistory(); }
+  if(id === "profile") loadProfile();
+  if(id === "admin") loadAdmin();
+  if(id === "roadmap"){}
 }
 
-}
 
 const term=document.getElementById("terminal");
 function logTerm(){
@@ -572,22 +585,36 @@ function logTerm(){
 }
 
 async function refreshMining(){
-  const d=await apiPost("/user/mining/stats");
-  sp.innerText=d.sp;level.innerText=d.level;
+  if(!miningActive) return; // ⛔ stop background refresh
+
+  const d = await apiPost("/user/mining/stats");
+
+  if(!d || d.error){
+    console.warn("Mining stats failed", d);
+    return;
+  }
+
+  sp.innerText = d.sp;
+  level.innerText = d.level;
+
   if(!d.running){
     activityFill.style.width = "0%";
-    nodeStatus.innerText="IDLE";mineBtn.classList.remove("disabled");
-    mineBtn.innerText="START NODE";timerText.innerText="";return;
+    nodeStatus.innerText = "IDLE";
+    mineBtn.classList.remove("disabled");
+    mineBtn.innerText = "START NODE";
+    timerText.innerText = "";
+    return;
   }
-  nodeStatus.innerText="ACTIVE";mineBtn.classList.add("disabled");
-  activityFill.style.width = "100%";
-  mineBtn.innerText = "NODE ACTIVE";
+
+  nodeStatus.innerText = "ACTIVE";
   mineBtn.classList.add("disabled");
+  mineBtn.innerText = "NODE ACTIVE";
+  activityFill.style.width = "100%";
 
-updateTimer(d.remaining);
-setTimeout(refreshMining, 1000);
-
+  updateTimer(d.remaining);
+  setTimeout(refreshMining, 1000);
 }
+
 
 function updateTimer(min){
   const h = Math.floor(min / 60);
@@ -791,15 +818,20 @@ async function claimReferral(r){
 }
 
 async function loadProfile(){
-  const d=await apiPost("/user/profile");
-  sp2.innerText=d.sp;level2.innerText=d.level;
-  miningSp.innerText=d.breakdown.mining;
-  taskSp.innerText=d.breakdown.tasks;
-  refSp.innerText=d.breakdown.referrals;
-  refCount.innerText=d.referral_count;
+  const d = await apiPost("/user/profile");
+  if(!d || d.error) return;
+
+  sp2.innerText = d.sp;
+  level2.innerText = d.level;
+  miningSp.innerText = d.breakdown.mining;
+  taskSp.innerText = d.breakdown.tasks;
+  refSp.innerText = d.breakdown.referrals;
+  refCount.innerText = d.referral_count;
+
   refLink.value =
-`https://t.me/Whale_alert_info_bot?start=${Telegram.WebApp.initDataUnsafe.user.id}`;
+    `https://t.me/Whale_alert_info_bot?start=${Telegram.WebApp.initDataUnsafe.user.id}`;
 }
+
 function copyRef(){navigator.clipboard.writeText(refLink.value);successSound.play();Telegram.WebApp.showPopup({title:"Copied",message:"Referral link copied",buttons:[{type:"ok"}]});}
 
 // ---------------- ADMIN DASHBOARD ----------------
