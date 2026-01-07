@@ -387,6 +387,26 @@ body{
 
 </div>
 
+
+<div id="intelModal" style="
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(2,6,23,.85);
+  z-index:9999;
+  padding:20px;
+">
+  <div class="card">
+    <b id="intelModalTitle"></b>
+    <div class="small" id="intelModalMeta"></div>
+    <div id="intelModalList" class="list"></div>
+    <br>
+    <button class="btn blue" onclick="shareCurrentIntel()">SHARE</button>
+    <br><br>
+    <button class="btn red" onclick="closeIntelModal()">CLOSE</button>
+  </div>
+</div>
+
 <!-- CHARTS -->
 <div id="charts" class="page">
 
@@ -745,6 +765,57 @@ function timeAgo(ts){
   return Math.floor(diff/60) + "h ago";
 }
 
+let currentIntel = null;
+
+function openIntelModal(i){
+  currentIntel = i;
+  intelModal.style.display = "block";
+
+  intelModalTitle.innerText = i.msg;
+  intelModalMeta.innerText =
+    `${i.window || "24h"} · generated ${timeAgo(i.ts)}`;
+
+  intelModalList.innerHTML = "";
+
+  if(i.assets){
+    i.assets.forEach(a=>{
+      intelModalList.innerHTML += `
+        <div class="item">
+          ${a.symbol}
+          <span>${a.change > 0 ? "+" : ""}${a.change}%</span>
+        </div>
+      `;
+    });
+  } else {
+    intelModalList.innerHTML =
+      `<div class="small">No further details available</div>`;
+  }
+}
+
+function closeIntelModal(){
+  intelModal.style.display = "none";
+  currentIntel = null;
+}
+
+function shareCurrentIntel(){
+  if(!currentIntel) return;
+
+  let text = `🔥 Market Intel\n\n${currentIntel.msg}\n`;
+
+  if(currentIntel.assets){
+    text += "\nTop movers:\n";
+    currentIntel.assets.slice(0,6).forEach(a=>{
+      text += `${a.symbol}: ${a.change > 0 ? "+" : ""}${a.change}%\n`;
+    });
+  }
+
+  text += `\nWindow: ${currentIntel.window || "24h"}\nvia SignalMania`;
+
+  Telegram.WebApp.openTelegramLink(
+    `https://t.me/share/url?text=${encodeURIComponent(text)}`
+  );
+}
+
 function loadIntel(){
   fetch(API + "/market/intel", { method: "POST" })
     .then(r => r.json())
@@ -775,7 +846,7 @@ function loadIntel(){
         }
 
         intelFeed.innerHTML += `
-          <div class="item ${cls}">
+          <div class="item ${cls}" onclick='openIntelModal(${JSON.stringify(i)})'>
             <div style="font-weight:600">
               ${icon} ${i.msg}
             </div>
