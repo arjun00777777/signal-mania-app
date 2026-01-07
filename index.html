@@ -271,17 +271,17 @@ body{
 }
 
 .intel-card{
-  padding:14px 14px;
+  padding:14px;
   border-radius:14px;
-  background:linear-gradient(180deg,#050b18,#020617);
-  font-size:13px;
-  line-height:1.4;
+  background:#020617;
+  border:1px solid var(--border);
+  box-shadow:none;
 }
 
 .intel-hero{
-  padding:18px;
-  font-size:14px;
-  box-shadow:0 0 18px rgba(0,255,204,.45);
+  background:linear-gradient(180deg,#061a17,#020617);
+  border-left:4px solid var(--neon);
+  box-shadow:0 0 12px rgba(0,255,204,.25);
 }
 
 .intel-bearish{
@@ -733,17 +733,26 @@ function loadIntel(){
       intelFeed.innerHTML = "";
 
       d.forEach(i => {
-        let cls = "intel-card intel-stable";
+        let icon = "🟢";
+        let cls = "intel-card";
 
-        if(i.type === "VOLATILITY") cls = "intel-card intel-hero";
-        else if(i.type === "BEARISH_GROUP") cls = "intel-card intel-group";
-        else if(i.type === "BEARISH") cls = "intel-card intel-bearish";
-        else if(i.type === "BULLISH") cls = "intel-card intel-bullish";
+        if(i.type === "VOLATILITY"){
+          icon = "🔥";
+          cls += " intel-hero";
+        }
+        else if(i.type === "BEARISH_GROUP"){
+          icon = "🔻";
+        }
+        else if(i.type === "BULLISH"){
+          icon = "🚀";
+        }
 
         intelFeed.innerHTML += `
           <div class="item ${cls}">
-            <div>${i.msg}</div>
-            <div class="intel-time">${timeAgo(i.ts)}</div>
+            <div style="font-weight:600">
+              ${icon} ${i.msg.split("—")[0]}
+            </div>
+            <div class="small">${i.msg.split("—")[1] || ""}</div>
           </div>
         `;
       });
