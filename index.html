@@ -392,13 +392,17 @@ body{
   display:none;
   position:fixed;
   inset:0;
-  background:rgba(2,6,23,.85);
+  background:rgba(2,6,23,.75);
   z-index:9999;
   padding:20px;
-">
-  <div class="card">
+"
+onclick="closeIntelModal()"
+>
+  <div class="card"
+       onclick="event.stopPropagation()">
     <b id="intelModalTitle"></b>
     <div class="small" id="intelModalMeta"></div>
+    <hr>
     <div id="intelModalList" class="list"></div>
     <br>
     <button class="btn blue" onclick="shareCurrentIntel()">SHARE</button>
@@ -777,7 +781,8 @@ function openIntelModal(i){
 
   intelModalList.innerHTML = "";
 
-  if(i.assets){
+  // ✅ SHOW DETAILS BASED ON CARD TYPE
+  if(i.type === "VOLATILITY" && i.assets){
     i.assets.forEach(a=>{
       intelModalList.innerHTML += `
         <div class="item">
@@ -786,14 +791,42 @@ function openIntelModal(i){
         </div>
       `;
     });
-  } else {
+  }
+
+  else if(i.type === "BEARISH_GROUP" && i.assets){
+    i.assets.forEach(a=>{
+      intelModalList.innerHTML += `
+        <div class="item">
+          🔻 ${a.symbol}
+          <span>${a.change}%</span>
+        </div>
+      `;
+    });
+  }
+
+  else if(i.type === "BULLISH" && i.assets){
+    const a = i.assets[0];
+    intelModalList.innerHTML = `
+      <div class="item">
+        🚀 ${a.symbol}
+        <span>+${a.change}%</span>
+      </div>
+      <div class="small">
+        Strong outperformance compared to market
+      </div>
+    `;
+  }
+
+  else {
     intelModalList.innerHTML =
-      `<div class="small">No further details available</div>`;
+      `<div class="small">No additional details available</div>`;
   }
 }
 
+
 function closeIntelModal(){
   intelModal.style.display = "none";
+  intelModalList.innerHTML = "";
   currentIntel = null;
 }
 
@@ -863,6 +896,11 @@ function loadIntel(){
       });
     });
 }
+
+document.addEventListener("keydown", e=>{
+  if(e.key === "Escape") closeIntelModal();
+});
+
 
 function loadCandles(){
   if(!currentSymbol) return;
