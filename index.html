@@ -319,6 +319,33 @@ body{
   background:linear-gradient(180deg,#06120a,#020617);
 }
 
+body.modal-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
+#intelModal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(2,6,23,.75);
+  z-index: 9999;
+  padding: 20px;
+}
+
+#intelModal .card {
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#intelModalList {
+  max-height: 60vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+  
 </style>
 </head>
 
@@ -773,6 +800,10 @@ let currentIntel = null;
 
 function openIntelModal(i){
   currentIntel = i;
+
+  // 🔒 lock background scroll
+  document.body.classList.add("modal-open");
+
   intelModal.style.display = "block";
 
   intelModalTitle.innerText = i.msg;
@@ -782,7 +813,7 @@ function openIntelModal(i){
   intelModalList.innerHTML = "";
 
   // ✅ SHOW DETAILS BASED ON CARD TYPE
-  if(i.type === "VOLATILITY" && i.assets){
+  if(i.type === "VOLATILITY" && i.assets && i.assets.length){
     i.assets.forEach(a=>{
       intelModalList.innerHTML += `
         <div class="item">
@@ -793,7 +824,7 @@ function openIntelModal(i){
     });
   }
 
-  else if(i.type === "BEARISH_GROUP" && i.assets){
+  else if(i.type === "BEARISH_GROUP" && i.assets && i.assets.length){
     i.assets.forEach(a=>{
       intelModalList.innerHTML += `
         <div class="item">
@@ -804,7 +835,7 @@ function openIntelModal(i){
     });
   }
 
-  else if(i.type === "BULLISH" && i.assets){
+  else if(i.type === "BULLISH" && i.assets && i.assets.length){
     const a = i.assets[0];
     intelModalList.innerHTML = `
       <div class="item">
@@ -823,11 +854,13 @@ function openIntelModal(i){
   }
 }
 
-
 function closeIntelModal(){
   intelModal.style.display = "none";
   intelModalList.innerHTML = "";
   currentIntel = null;
+
+  // unlock background
+  document.body.classList.remove("modal-open");
 }
 
 function shareCurrentIntel(){
@@ -1154,6 +1187,13 @@ apiPost("/admin/stats").then(d=>{
     document.getElementById("adminTab").style.display = "block";
   }
 });
+
+intelModalList.addEventListener(
+  "touchmove",
+  e => e.stopPropagation(),
+  { passive: true }
+);
+
   
 setTimeout(refreshMining,800);
 </script>
