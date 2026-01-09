@@ -1092,19 +1092,30 @@ function delAlert(id){
   });
 }
 
-
 async function loadTasks(){
   const p = await apiPost("/user/profile");
   dailyTask.innerHTML = "";
+
+  const today = new Date().toISOString().slice(0,10);
 
   for(let i=1;i<=7;i++){
     let cls = "streak-day locked";
     let label = `DAY ${i}`;
 
-    if(i <= p.daily_day){
+    if(i < p.daily_day){
       cls = "streak-day claimed";
       label = `DAY ${i} ✓`;
-    }else if(i === p.daily_day + 1){
+    }
+    else if(i === p.daily_day){
+      if(p.last_daily_claim === today){
+        cls = "streak-day claimed";
+        label = `DAY ${i} ✓`;
+      } else {
+        cls = "streak-day today";
+        label = `DAY ${i}`;
+      }
+    }
+    else if(i === p.daily_day + 1 && p.last_daily_claim !== today){
       cls = "streak-day today";
       label = `DAY ${i}`;
     }
@@ -1112,14 +1123,21 @@ async function loadTasks(){
     dailyTask.innerHTML += `<div class="${cls}">${label}</div>`;
   }
 
-  if(p.daily_day >= 7){
+  // ---- BUTTON STATE ----
+  if(p.last_daily_claim === today){
     dailyBtn.classList.add("disabled");
-    dailyInfo.innerText = "STREAK COMPLETED";
-  }else{
+    dailyInfo.innerText = "Already claimed today";
+  }
+  else if(p.daily_day >= 7){
+    dailyBtn.classList.add("disabled");
+    dailyInfo.innerText = "Streak completed";
+  }
+  else{
     dailyBtn.classList.remove("disabled");
     dailyInfo.innerText = "Claim available today";
   }
 }
+
 
 async function claimDaily(){
   const r = await apiPost("/claim/daily");
