@@ -218,10 +218,11 @@ body{
 
 .streak-grid{
   display:grid;
-  grid-template-columns:repeat(4,1fr);
+  grid-template-columns: repeat(5, 1fr); /* 30 days = 5×6 */
   gap:8px;
   margin-top:10px;
 }
+
 
 .streak-day{
   padding:10px 6px;
@@ -1114,44 +1115,45 @@ async function loadTasks(){
   const last = p.last_daily_claim || 0;
   const remaining = Math.max(0, 86400 - (now - last));
 
-  // --- STREAK UI ---
-  for(let i = 1; i <= 7; i++){
+  const currentDay = p.daily_day || 0;
+
+  // 🔥 30-DAY CALENDAR
+  for(let i = 1; i <= 30; i++){
     let cls = "streak-day locked";
     let label = `DAY ${i}`;
 
-    if(i < p.daily_day){
+    if(i < currentDay){
       cls = "streak-day claimed";
       label = `DAY ${i} ✓`;
     }
-    else if(i === p.daily_day){
+    else if(i === currentDay){
       if(remaining > 0){
         cls = "streak-day claimed";
         label = `DAY ${i} ✓`;
       } else {
-        cls = "streak-day today";
+        cls = "streak-day today pulse";
       }
     }
 
     dailyTask.innerHTML += `<div class="${cls}">${label}</div>`;
   }
 
-  // --- BUTTON STATE ---
+  // BUTTON STATE
   if(remaining > 0){
     dailyBtn.classList.add("disabled");
     const h = Math.floor(remaining / 3600);
     const m = Math.floor((remaining % 3600) / 60);
     dailyInfo.innerText = `Next claim in ${h}h ${m}m`;
   }
-  else if(p.daily_day >= 7){
+  else if(currentDay >= 30){
     dailyBtn.classList.add("disabled");
-    dailyInfo.innerText = "Streak completed";
+    dailyInfo.innerText = "30-day streak completed";
   }
   else{
     dailyBtn.classList.remove("disabled");
     dailyInfo.innerText = "Claim available";
   }
 }
-
   
 async function claimDaily(){
   const r = await apiPost("/claim/daily");
