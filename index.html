@@ -1105,6 +1105,11 @@ async function loadTasks(){
   const p = await apiPost("/user/profile");
   dailyTask.innerHTML = "";
 
+  const now = Math.floor(Date.now() / 1000);
+  const last = p.last_daily_claim || 0;
+  const remaining = 86400 - (now - last);
+
+  // ---- STREAK UI ----
   for(let i = 1; i <= 7; i++){
     let cls = "streak-day locked";
     let label = `DAY ${i}`;
@@ -1114,19 +1119,23 @@ async function loadTasks(){
       label = `DAY ${i} ✓`;
     }
     else if(i === p.daily_day){
-      cls = "streak-day today";
+      if(remaining > 0){
+        cls = "streak-day claimed";
+        label = `DAY ${i} ✓`;
+      } else {
+        cls = "streak-day today";
+        label = `DAY ${i}`;
+      }
     }
 
     dailyTask.innerHTML += `<div class="${cls}">${label}</div>`;
   }
 
-  // 🔥 SOURCE OF TRUTH = BACKEND
-  if(p.daily.remaining > 0){
+  // ---- BUTTON STATE ----
+  if(remaining > 0){
     dailyBtn.classList.add("disabled");
-
-    const h = Math.floor(p.daily.remaining / 3600);
-    const m = Math.floor((p.daily.remaining % 3600) / 60);
-
+    const h = Math.floor(remaining / 3600);
+    const m = Math.floor((remaining % 3600) / 60);
     dailyInfo.innerText = `Next claim in ${h}h ${m}m`;
   }
   else if(p.daily_day >= 7){
@@ -1139,22 +1148,6 @@ async function loadTasks(){
   }
 }
 
-  // ---- BUTTON STATE ----
-  if(p.last_daily_claim === today){
-    dailyBtn.classList.add("disabled");
-    dailyInfo.innerText = "Already claimed today";
-  }
-  else if(p.daily_day >= 7){
-    dailyBtn.classList.add("disabled");
-    dailyInfo.innerText = "Streak completed";
-  }
-  else{
-    dailyBtn.classList.remove("disabled");
-    dailyInfo.innerText = "Claim available";
-  }
-}
-
-
 
 async function claimDaily(){
   const r = await apiPost("/claim/daily");
@@ -1164,13 +1157,17 @@ async function claimDaily(){
     vibrate();
     loadTasks();
     loadProfile();
+    loadHistory();
   } else {
     const h = Math.floor(r.remaining / 3600);
     const m = Math.floor((r.remaining % 3600) / 60);
 
+    dailyBtn.classList.add("disabled");
+    dailyInfo.innerText = `Next claim in ${h}h ${m}m`;
+
     Telegram.WebApp.showPopup({
       title: "Daily Reward",
-      message: `Already claimed.\nNext claim in ${h}h ${m}m`,
+      message: `Next claim in ${h}h ${m}m`,
       buttons: [{ type: "ok" }]
     });
   }
