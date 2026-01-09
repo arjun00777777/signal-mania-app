@@ -1032,20 +1032,33 @@ function loadAlerts(){apiPost("/alert/list").then(d=>{alertsList.innerHTML="";d.
 </div>`;});});}
 function createAlert(){
   apiPost("/alert/create",{
-    symbol:aSymbol.value,
-    target:aTarget.value,
-    condition:aCond.value
-  }).then(()=>{
-    successSound.play();
-    vibrate();
-    loadAlerts();
-    Telegram.WebApp.showPopup({
-      title:"Alert Set",
-      message:"You will be notified when price hits target",
-      buttons:[{type:"ok"}]
-    });
+    symbol: aSymbol.value,
+    target: aTarget.value,
+    condition: aCond.value
+  }).then(r => {
+
+    if(r && r.ok){
+      successSound.play();
+      vibrate();
+      loadAlerts();
+
+      Telegram.WebApp.showPopup({
+        title: "Alert Set",
+        message: "You will be notified when price hits target",
+        buttons: [{ type: "ok" }]
+      });
+
+    } else {
+      Telegram.WebApp.showPopup({
+        title: "Invalid Alert",
+        message: r?.error || "Please check coin and price",
+        buttons: [{ type: "ok" }]
+      });
+    }
+
   });
 }
+
 
 function confirmDeleteAlert(id, btn){
   Telegram.WebApp.showPopup({
