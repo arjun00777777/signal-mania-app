@@ -1105,9 +1105,8 @@ async function loadTasks(){
   const p = await apiPost("/user/profile");
   dailyTask.innerHTML = "";
 
-  const today = new Date().toISOString().slice(0,10);
-
-  for(let i=1;i<=7;i++){
+  // ---- STREAK UI (UNCHANGED STYLE) ----
+  for(let i = 1; i <= 7; i++){
     let cls = "streak-day locked";
     let label = `DAY ${i}`;
 
@@ -1116,21 +1115,32 @@ async function loadTasks(){
       label = `DAY ${i} ✓`;
     }
     else if(i === p.daily_day){
-      if(p.last_daily_claim === today){
-        cls = "streak-day claimed";
-        label = `DAY ${i} ✓`;
-      } else {
-        cls = "streak-day today";
-        label = `DAY ${i}`;
-      }
-    }
-    else if(i === p.daily_day + 1 && p.last_daily_claim !== today){
       cls = "streak-day today";
       label = `DAY ${i}`;
     }
 
     dailyTask.innerHTML += `<div class="${cls}">${label}</div>`;
   }
+
+  // ---- BUTTON STATE (24H COOLDOWN) ----
+  if(p.daily && p.daily.remaining > 0){
+    dailyBtn.classList.add("disabled");
+
+    const h = Math.floor(p.daily.remaining / 3600);
+    const m = Math.floor((p.daily.remaining % 3600) / 60);
+
+    dailyInfo.innerText = `Next claim in ${h}h ${m}m`;
+  }
+  else if(p.daily_day >= 7){
+    dailyBtn.classList.add("disabled");
+    dailyInfo.innerText = "Streak completed";
+  }
+  else{
+    dailyBtn.classList.remove("disabled");
+    dailyInfo.innerText = "Claim available";
+  }
+}
+
 
   // ---- BUTTON STATE ----
   if(p.last_daily_claim === today){
@@ -1154,20 +1164,19 @@ async function claimDaily(){
   if(r.ok){
     successSound.play();
     vibrate();
+    loadTasks();
+    loadProfile();
+  } else {
+    const h = Math.floor(r.remaining / 3600);
+    const m = Math.floor((r.remaining % 3600) / 60);
 
-    // 🔒 FORCE UI STATE FOR TODAY
-    dailyBtn.classList.add("disabled");
-    dailyInfo.innerText = "Already claimed today";
-
-    // 🔁 refresh AFTER small delay (avoid race)
-    setTimeout(() => {
-      loadTasks();
-      loadProfile();
-    }, 500);
+    Telegram.WebApp.showPopup({
+      title: "Daily Reward",
+      message: `Next claim in ${h}h ${m}m`,
+      buttons: [{ type: "ok" }]
+    });
   }
 }
-
-
 
 function loadHistory(){apiPost("/tasks/history").then(d=>{taskHistory.innerHTML="";d.forEach(t=>{taskHistory.innerHTML+=`<div class="item">${t[0]}<span>+${t[1]}</span></div>`;});});}
 
