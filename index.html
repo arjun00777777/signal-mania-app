@@ -1024,8 +1024,12 @@ function setTF(tf){
   currentTF = tf;
   loadCandles();
 }
-function loadAlerts(){apiPost("/alert/list").then(d=>{alertsList.innerHTML="";d.forEach(a=>{alertsList.innerHTML+=`<div class="item">${a[1]} ${a[3]} ${a[2]}<button class="btn red"
-onclick="event.stopPropagation(); delAlert(${a[0]})">X</button></div>`;});});}
+function loadAlerts(){apiPost("/alert/list").then(d=>{alertsList.innerHTML="";d.forEach(a=>{alertsList.innerHTML+=`<div class="item">${a[1]} ${a[3]} ${a[2]}
+<button class="btn red"
+  onclick="event.stopPropagation(); confirmDeleteAlert(${a[0]}, this)">
+  DELETE
+</button>
+</div>`;});});}
 function createAlert(){
   apiPost("/alert/create",{
     symbol:aSymbol.value,
@@ -1043,7 +1047,38 @@ function createAlert(){
   });
 }
 
-function delAlert(id){apiPost("/alert/delete",{id}).then(loadAlerts);}
+function confirmDeleteAlert(id, btn){
+  Telegram.WebApp.showPopup({
+    title: "⚠️ Remove Price Alert",
+    message: "This alert will be permanently deleted.\nThis action cannot be undone.",
+    buttons: [
+      { id: "delete", type: "destructive", text: "Delete Alert" },
+      { id: "cancel", type: "cancel", text: "Cancel" }
+    ]
+  }, buttonId => {
+    if(buttonId === "delete"){
+      btn.classList.add("disabled");
+      btn.innerText = "REMOVING…";
+      delAlert(id);
+    }
+  });
+}
+
+function delAlert(id){
+  apiPost("/alert/delete",{id}).then(r=>{
+    if(r && r.ok){
+      loadAlerts();
+      successSound.play();
+    } else {
+      Telegram.WebApp.showPopup({
+        title: "Error",
+        message: "Failed to delete alert. Please try again.",
+        buttons: [{ type: "ok" }]
+      });
+    }
+  });
+}
+
 
 async function loadTasks(){
   const p = await apiPost("/user/profile");
