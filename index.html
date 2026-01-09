@@ -813,16 +813,37 @@ function openIntelModal(i){
   intelModalList.innerHTML = "";
 
   // ✅ SHOW DETAILS BASED ON CARD TYPE
-  if(i.type === "VOLATILITY" && i.assets && i.assets.length){
-    i.assets.forEach(a=>{
+  if(i.type === "VOLATILITY" && i.assets){
+
+  if(i.assets.bullish && i.assets.bullish.length){
+    intelModalList.innerHTML +=
+      `<div class="small">📈 Rising assets</div>`;
+
+    i.assets.bullish.forEach(a=>{
       intelModalList.innerHTML += `
         <div class="item">
           ${a.symbol}
-          <span>${a.change > 0 ? "+" : ""}${a.change}%</span>
+          <span>+${a.change}%</span>
         </div>
       `;
     });
   }
+
+  if(i.assets.bearish && i.assets.bearish.length){
+    intelModalList.innerHTML +=
+      `<div class="small">📉 Falling assets</div>`;
+
+    i.assets.bearish.forEach(a=>{
+      intelModalList.innerHTML += `
+        <div class="item">
+          ${a.symbol}
+          <span>${a.change}%</span>
+        </div>
+      `;
+    });
+  }
+}
+
 
   else if(i.type === "BEARISH_GROUP" && i.assets && i.assets.length){
     i.assets.forEach(a=>{
