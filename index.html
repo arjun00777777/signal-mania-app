@@ -1105,9 +1105,6 @@ async function loadTasks(){
   const p = await apiPost("/user/profile");
   dailyTask.innerHTML = "";
 
-  const today = new Date().toISOString().slice(0,10);
-
-  // ---- STREAK UI ----
   for(let i = 1; i <= 7; i++){
     let cls = "streak-day locked";
     let label = `DAY ${i}`;
@@ -1117,17 +1114,30 @@ async function loadTasks(){
       label = `DAY ${i} ✓`;
     }
     else if(i === p.daily_day){
-      if(p.last_daily_claim === today){
-        cls = "streak-day claimed";
-        label = `DAY ${i} ✓`;
-      } else {
-        cls = "streak-day today";
-        label = `DAY ${i}`;
-      }
+      cls = "streak-day today";
     }
 
     dailyTask.innerHTML += `<div class="${cls}">${label}</div>`;
   }
+
+  // 🔥 SOURCE OF TRUTH = BACKEND
+  if(p.daily.remaining > 0){
+    dailyBtn.classList.add("disabled");
+
+    const h = Math.floor(p.daily.remaining / 3600);
+    const m = Math.floor((p.daily.remaining % 3600) / 60);
+
+    dailyInfo.innerText = `Next claim in ${h}h ${m}m`;
+  }
+  else if(p.daily_day >= 7){
+    dailyBtn.classList.add("disabled");
+    dailyInfo.innerText = "Streak completed";
+  }
+  else{
+    dailyBtn.classList.remove("disabled");
+    dailyInfo.innerText = "Claim available";
+  }
+}
 
   // ---- BUTTON STATE ----
   if(p.last_daily_claim === today){
@@ -1155,16 +1165,33 @@ async function claimDaily(){
     loadTasks();
     loadProfile();
   } else {
+    const h = Math.floor(r.remaining / 3600);
+    const m = Math.floor((r.remaining % 3600) / 60);
+
     Telegram.WebApp.showPopup({
       title: "Daily Reward",
-      message: "You already claimed today",
+      message: `Already claimed.\nNext claim in ${h}h ${m}m`,
       buttons: [{ type: "ok" }]
     });
   }
 }
 
 
-function loadHistory(){apiPost("/tasks/history").then(d=>{taskHistory.innerHTML="";d.forEach(t=>{taskHistory.innerHTML+=`<div class="item">${t[0]}<span>+${t[1]}</span></div>`;});});}
+function loadHistory(){
+  apiPost("/tasks/history").then(d=>{
+    taskHistory.innerHTML="";
+    d.forEach(t=>{
+      const time = new Date(t[2]*1000).toLocaleString();
+      taskHistory.innerHTML+=`
+        <div class="item">
+          ${t[0]}
+          <span>+${t[1]}</span>
+          <div class="small">${time}</div>
+        </div>`;
+    });
+  });
+}
+
 
 async function loadMiningHistory(){
   const d = await apiPost("/user/mining/history");
