@@ -616,6 +616,8 @@ let currentTF = "1m";
 const CHARTS_ENABLED = false;
 let miningTimer = null;
 let miningActive = false;
+let miningInitialized = false;
+
 
 function initChart(){
   if(chart) return; // 🔥 important
@@ -728,14 +730,18 @@ function logTerm(){
 }
 
 async function refreshMining(){
-  if(!miningActive) return;
-  if(miningTimer) return; // ⛔ prevent multiple loops
+  // allow first fetch always
+  if(miningInitialized && !miningActive) return;
+  if(miningTimer) return;
 
   miningTimer = setTimeout(async () => {
     miningTimer = null;
 
     const d = await apiPost("/user/mining/stats");
     if(!d || d.error) return;
+
+    // ✅ MARK INITIAL FETCH DONE HERE
+    miningInitialized = true;
 
     sp.innerText = d.sp;
     level.innerText = d.level;
@@ -756,9 +762,10 @@ async function refreshMining(){
 
     updateTimer(d.remaining);
 
-    refreshMining(); // 🔁 safe recursion
+    refreshMining(); // safe loop
   }, 1000);
 }
+
 
 
 function updateTimer(min){
