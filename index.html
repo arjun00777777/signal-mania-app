@@ -617,6 +617,7 @@ const CHARTS_ENABLED = false;
 let miningTimer = null;
 let miningActive = false;
 let miningInitialized = false;
+let intelTimer = null;
 
 
 function initChart(){
@@ -657,7 +658,8 @@ function apiPost(url, data = {}) {
 
 function nav(id, btn){
   clickSound.play();
-clearTimeout(intelTimer);
+if (intelTimer) clearTimeout(intelTimer);
+
   // Hide all pages & deactivate tabs
   document.querySelectorAll('.page').forEach(p => p.classList.remove("active"));
   document.querySelectorAll('.tabs button').forEach(b => b.classList.remove("active"));
@@ -799,8 +801,6 @@ function loadSignals(){
     });
   });
 }
-
-let intelTimer = null;
 
 function timeAgo(ts){
   const diff = Math.floor((Date.now()/1000 - ts)/60);
@@ -1105,7 +1105,9 @@ async function loadTasks(){
   const p = await apiPost("/user/profile");
   dailyTask.innerHTML = "";
 
-  // ---- STREAK UI (UNCHANGED STYLE) ----
+  const today = new Date().toISOString().slice(0,10);
+
+  // ---- STREAK UI ----
   for(let i = 1; i <= 7; i++){
     let cls = "streak-day locked";
     let label = `DAY ${i}`;
@@ -1115,32 +1117,17 @@ async function loadTasks(){
       label = `DAY ${i} ✓`;
     }
     else if(i === p.daily_day){
-      cls = "streak-day today";
-      label = `DAY ${i}`;
+      if(p.last_daily_claim === today){
+        cls = "streak-day claimed";
+        label = `DAY ${i} ✓`;
+      } else {
+        cls = "streak-day today";
+        label = `DAY ${i}`;
+      }
     }
 
     dailyTask.innerHTML += `<div class="${cls}">${label}</div>`;
   }
-
-  // ---- BUTTON STATE (24H COOLDOWN) ----
-  if(p.daily && p.daily.remaining > 0){
-    dailyBtn.classList.add("disabled");
-
-    const h = Math.floor(p.daily.remaining / 3600);
-    const m = Math.floor((p.daily.remaining % 3600) / 60);
-
-    dailyInfo.innerText = `Next claim in ${h}h ${m}m`;
-  }
-  else if(p.daily_day >= 7){
-    dailyBtn.classList.add("disabled");
-    dailyInfo.innerText = "Streak completed";
-  }
-  else{
-    dailyBtn.classList.remove("disabled");
-    dailyInfo.innerText = "Claim available";
-  }
-}
-
 
   // ---- BUTTON STATE ----
   if(p.last_daily_claim === today){
@@ -1153,9 +1140,10 @@ async function loadTasks(){
   }
   else{
     dailyBtn.classList.remove("disabled");
-    dailyInfo.innerText = "Claim available today";
+    dailyInfo.innerText = "Claim available";
   }
 }
+
 
 
 async function claimDaily(){
@@ -1167,16 +1155,14 @@ async function claimDaily(){
     loadTasks();
     loadProfile();
   } else {
-    const h = Math.floor(r.remaining / 3600);
-    const m = Math.floor((r.remaining % 3600) / 60);
-
     Telegram.WebApp.showPopup({
       title: "Daily Reward",
-      message: `Next claim in ${h}h ${m}m`,
+      message: "You already claimed today",
       buttons: [{ type: "ok" }]
     });
   }
 }
+
 
 function loadHistory(){apiPost("/tasks/history").then(d=>{taskHistory.innerHTML="";d.forEach(t=>{taskHistory.innerHTML+=`<div class="item">${t[0]}<span>+${t[1]}</span></div>`;});});}
 
