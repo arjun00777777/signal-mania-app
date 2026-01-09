@@ -589,6 +589,18 @@ onclick="closeIntelModal()"
 
     <b>SP DISTRIBUTION</b>
     <canvas id="spChart" height="120"></canvas>
+
+    <hr>
+    <b>ADVANCED STATS</b>
+    <div class="item">NEW USERS TODAY <span id="adNewToday">-</span></div>
+    <div class="item">ACTIVE (24H) <span id="adActive24">-</span></div>
+    <div class="item">TOTAL REFERRALS <span id="adTotalRef">-</span></div>
+    <div class="item">TOP REFERRER <span id="adTopRef">-</span></div>
+
+    <hr>
+    <b>SUSPICIOUS USERS (MONITOR)</b>
+    <div id="susUsers" class="list"></div>
+
   </div>
 </div>
 
@@ -1282,7 +1294,25 @@ async function loadAdmin(){
   adAlerts.innerText = d.active_alerts;
 
   loadAdminAnalytics();
+  loadAdminAdvanced(); // ✅ NEW
+  loadSuspiciousUsers();
+
 }
+
+
+async function loadAdminAdvanced(){
+  const d = await apiPost("/admin/advanced-stats");
+  if(d.error) return;
+
+  adNewToday.innerText = d.new_today;
+  adActive24.innerText = d.active_24h;
+  adTotalRef.innerText = d.total_referrals;
+
+  adTopRef.innerText = d.top_referrer
+    ? `${d.top_referrer.uid} (${d.top_referrer.count})`
+    : "-";
+}
+
 
 async function loadAdminAnalytics(){
   const d = await apiPost("/admin/analytics");
@@ -1305,6 +1335,29 @@ function drawGrowthChart(data){
     c.fillRect(x, y, 6, 120-y);
   });
 }
+
+async function loadSuspiciousUsers(){
+  const d = await apiPost("/admin/suspicious-users");
+  susUsers.innerHTML = "";
+
+  if(!Array.isArray(d) || d.length === 0){
+    susUsers.innerHTML = `<div class="small">No suspicious activity detected</div>`;
+    return;
+  }
+
+  d.forEach(u=>{
+    susUsers.innerHTML += `
+      <div class="item">
+        <div>
+          <b>${u.uid}</b><br>
+          <span class="small">${u.reason}</span>
+        </div>
+        <span class="small">${u.meta}</span>
+      </div>
+    `;
+  });
+}
+
 
 function drawSpChart(sp){
   const c = spChart.getContext("2d");
