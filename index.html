@@ -617,7 +617,6 @@ const CHARTS_ENABLED = false;
 let miningTimer = null;
 let miningActive = false;
 let miningInitialized = false;
-let intelTimer = null;
 
 
 function initChart(){
@@ -658,7 +657,6 @@ function apiPost(url, data = {}) {
 
 function nav(id, btn){
   clickSound.play();
-if (intelTimer) clearTimeout(intelTimer);
 
   // Hide all pages & deactivate tabs
   document.querySelectorAll('.page').forEach(p => p.classList.remove("active"));
@@ -928,19 +926,27 @@ function shareCurrentIntel(){
   );
 }
 
-
 function loadIntel(){
   fetch(API + "/market/intel", { method: "POST" })
     .then(r => r.json())
     .then(d => {
       intelFeed.innerHTML = "";
 
-      if(!d || d.length === 0){
+      // ✅ HARD GUARD: API must return an array
+      if(!Array.isArray(d)){
+        intelFeed.innerHTML =
+          `<div class="small">Unable to load market intel</div>`;
+        return;
+      }
+
+      // ✅ EMPTY FEED FALLBACK
+      if(d.length === 0){
         intelFeed.innerHTML =
           `<div class="small">Market is calm right now</div>`;
         return;
       }
 
+      // ✅ RENDER INTEL CARDS
       d.forEach(i => {
         let icon = "🟢";
         let cls = "intel-card";
@@ -959,27 +965,26 @@ function loadIntel(){
         }
 
         intelFeed.innerHTML += `
-          <div class="item ${cls}" onclick='openIntelModal(${JSON.stringify(i)})'>
+          <div class="item ${cls}"
+               onclick='openIntelModal(${JSON.stringify(i)})'>
             <div style="font-weight:600">
               ${icon} ${i.msg}
             </div>
             <div class="small">
-              ${(i.detail || "Multiple assets across the market")}
-              ·
-              ${(i.window || "24h")}
-              ·
-              ${timeAgo(i.ts)}
+              ${i.detail || "Multiple assets across the market"}
+              · ${i.window || "24h"}
+              · ${timeAgo(i.ts)}
             </div>
-
           </div>
         `;
       });
+    })
+    .catch(err => {
+      console.error("Intel fetch failed:", err);
+      intelFeed.innerHTML =
+        `<div class="small">Market intel unavailable</div>`;
     });
 }
-
-document.addEventListener("keydown", e=>{
-  if(e.key === "Escape") closeIntelModal();
-});
 
 
 function loadCandles(){
@@ -1107,9 +1112,9 @@ async function loadTasks(){
 
   const now = Math.floor(Date.now() / 1000);
   const last = p.last_daily_claim || 0;
-  const remaining = 86400 - (now - last);
+  const remaining = Math.max(0, 86400 - (now - last));
 
-  // ---- STREAK UI ----
+  // --- STREAK UI ---
   for(let i = 1; i <= 7; i++){
     let cls = "streak-day locked";
     let label = `DAY ${i}`;
@@ -1124,30 +1129,13 @@ async function loadTasks(){
         label = `DAY ${i} ✓`;
       } else {
         cls = "streak-day today";
-        label = `DAY ${i}`;
       }
     }
 
     dailyTask.innerHTML += `<div class="${cls}">${label}</div>`;
   }
 
-  // ---- BUTTON STATE ----
-  if(remaining > 0){
-    dailyBtn.classList.add("disabled");
-    const h = Math.floor(remaining / 3600);
-    const m = Math.floor((remaining % 3600) / 60);
-    dailyInfo.innerText = `Next claim in ${h}h ${m}m`;
-  }
-  else if(p.daily_day >= 7){
-    dailyBtn.classList.add("disabled");
-    dailyInfo.innerText = "Streak completed";
-  }
-  else{
-    dailyBtn.classList.remove("disabled");
-    dailyInfo.innerText = "Claim available";
-  }
-}
-
+  
 
 async function claimDaily(){
   const r = await apiPost("/claim/daily");
@@ -1161,10 +1149,7 @@ async function claimDaily(){
   } else {
     const h = Math.floor(r.remaining / 3600);
     const m = Math.floor((r.remaining % 3600) / 60);
-
-    dailyBtn.classList.add("disabled");
     dailyInfo.innerText = `Next claim in ${h}h ${m}m`;
-
     Telegram.WebApp.showPopup({
       title: "Daily Reward",
       message: `Next claim in ${h}h ${m}m`,
