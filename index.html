@@ -614,7 +614,8 @@ let currentSymbol = null;
 let candleSeries = null;
 let currentTF = "1m";
 const CHARTS_ENABLED = false;
-let miningActive = true;
+let miningTimer = null;
+let miningActive = false;
 
 function initChart(){
   if(chart) return; // 🔥 important
@@ -667,8 +668,14 @@ clearTimeout(intelTimer);
   miningActive = (id === "node");
 
   if(id === "node"){
+    miningActive = true;
     refreshMining(); // resume mining loop safely
   }
+  // stop mining loop when leaving node
+  if(id !== "node"){
+    miningActive = false;
+    miningTimer = null;}
+
 
   // -------- EXISTING LOGIC (UNCHANGED) --------
  if(id === "signals"){
@@ -721,34 +728,36 @@ function logTerm(){
 }
 
 async function refreshMining(){
-  if(!miningActive) return; // ⛔ stop background refresh
+  if(!miningActive) return;
+  if(miningTimer) return; // ⛔ prevent multiple loops
 
-  const d = await apiPost("/user/mining/stats");
+  miningTimer = setTimeout(async () => {
+    miningTimer = null;
 
-  if(!d || d.error){
-    console.warn("Mining stats failed", d);
-    return;
-  }
+    const d = await apiPost("/user/mining/stats");
+    if(!d || d.error) return;
 
-  sp.innerText = d.sp;
-  level.innerText = d.level;
+    sp.innerText = d.sp;
+    level.innerText = d.level;
 
-  if(!d.running){
-    activityFill.style.width = "0%";
-    nodeStatus.innerText = "IDLE";
-    mineBtn.classList.remove("disabled");
-    mineBtn.innerText = "START NODE";
-    timerText.innerText = "";
-    return;
-  }
+    if(!d.running){
+      activityFill.style.width = "0%";
+      nodeStatus.innerText = "IDLE";
+      mineBtn.classList.remove("disabled");
+      mineBtn.innerText = "START NODE";
+      timerText.innerText = "";
+      return;
+    }
 
-  nodeStatus.innerText = "ACTIVE";
-  mineBtn.classList.add("disabled");
-  mineBtn.innerText = "NODE ACTIVE";
-  activityFill.style.width = "100%";
+    nodeStatus.innerText = "ACTIVE";
+    mineBtn.classList.add("disabled");
+    mineBtn.innerText = "NODE ACTIVE";
+    activityFill.style.width = "100%";
 
-  updateTimer(d.remaining);
-  setTimeout(refreshMining, 1000);
+    updateTimer(d.remaining);
+
+    refreshMining(); // 🔁 safe recursion
+  }, 1000);
 }
 
 
@@ -763,6 +772,7 @@ async function startMining(){
   clickSound.play();
   const r = await apiPost("/user/mining/start");
   if(r.ok !== false){
+    miningActive = true;
     refreshMining();
   }
 }
