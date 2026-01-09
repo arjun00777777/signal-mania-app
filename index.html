@@ -666,9 +666,6 @@ clearTimeout(intelTimer);
   document.getElementById(id).classList.add("active");
   btn.classList.add("active");
 
-  // 🔴 IMPORTANT FIX: control mining refresh
-  miningActive = (id === "node");
-
   if(id === "node"){
     miningActive = true;
     refreshMining(); // resume mining loop safely
@@ -906,7 +903,18 @@ function shareCurrentIntel(){
 
   let text = `🔥 Market Intel\n\n${currentIntel.msg}\n`;
 
-  if(currentIntel.assets){
+  if(currentIntel.type === "VOLATILITY" && currentIntel.assets){
+    text += "\n📈 Rising:\n";
+    (currentIntel.assets.bullish || []).slice(0,3).forEach(a=>{
+      text += `${a.symbol}: +${a.change}%\n`;
+    });
+
+    text += "\n📉 Falling:\n";
+    (currentIntel.assets.bearish || []).slice(0,3).forEach(a=>{
+      text += `${a.symbol}: ${a.change}%\n`;
+    });
+  }
+  else if(Array.isArray(currentIntel.assets)){
     text += "\nTop movers:\n";
     currentIntel.assets.slice(0,6).forEach(a=>{
       text += `${a.symbol}: ${a.change > 0 ? "+" : ""}${a.change}%\n`;
@@ -919,6 +927,7 @@ function shareCurrentIntel(){
     `https://t.me/share/url?text=${encodeURIComponent(text)}`
   );
 }
+
 
 function loadIntel(){
   fetch(API + "/market/intel", { method: "POST" })
@@ -1141,15 +1150,23 @@ async function loadTasks(){
 
 async function claimDaily(){
   const r = await apiPost("/claim/daily");
+
   if(r.ok){
     successSound.play();
     vibrate();
+
+    // 🔒 FORCE UI STATE FOR TODAY
     dailyBtn.classList.add("disabled");
-    dailyInfo.innerText = "CLAIMED TODAY";
-    loadTasks();
-    loadProfile();
+    dailyInfo.innerText = "Already claimed today";
+
+    // 🔁 refresh AFTER small delay (avoid race)
+    setTimeout(() => {
+      loadTasks();
+      loadProfile();
+    }, 500);
   }
 }
+
 
 
 function loadHistory(){apiPost("/tasks/history").then(d=>{taskHistory.innerHTML="";d.forEach(t=>{taskHistory.innerHTML+=`<div class="item">${t[0]}<span>+${t[1]}</span></div>`;});});}
