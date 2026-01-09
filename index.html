@@ -1135,8 +1135,24 @@ async function loadTasks(){
     dailyTask.innerHTML += `<div class="${cls}">${label}</div>`;
   }
 
-  
+  // --- BUTTON STATE ---
+  if(remaining > 0){
+    dailyBtn.classList.add("disabled");
+    const h = Math.floor(remaining / 3600);
+    const m = Math.floor((remaining % 3600) / 60);
+    dailyInfo.innerText = `Next claim in ${h}h ${m}m`;
+  }
+  else if(p.daily_day >= 7){
+    dailyBtn.classList.add("disabled");
+    dailyInfo.innerText = "Streak completed";
+  }
+  else{
+    dailyBtn.classList.remove("disabled");
+    dailyInfo.innerText = "Claim available";
+  }
+}
 
+  
 async function claimDaily(){
   const r = await apiPost("/claim/daily");
 
@@ -1149,7 +1165,10 @@ async function claimDaily(){
   } else {
     const h = Math.floor(r.remaining / 3600);
     const m = Math.floor((r.remaining % 3600) / 60);
+
+    dailyBtn.classList.add("disabled");
     dailyInfo.innerText = `Next claim in ${h}h ${m}m`;
+
     Telegram.WebApp.showPopup({
       title: "Daily Reward",
       message: `Next claim in ${h}h ${m}m`,
@@ -1157,6 +1176,7 @@ async function claimDaily(){
     });
   }
 }
+
 
 
 function loadHistory(){
